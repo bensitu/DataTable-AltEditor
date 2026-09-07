@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.pages/
+.work/
+artifacts/
+coverage/
+playwright-report/
+test-results/
+tmp/
+.DS_Store

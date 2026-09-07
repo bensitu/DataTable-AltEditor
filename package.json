@@ -1,30 +1,49 @@
-
 {
+  "name": "datatables.net-AltEditor",
+  "version": "3.2.0",
+  "description": "DataTables AltEditor for DataTables 2.10+",
   "author": {
     "name": "KasperOlesen",
     "url": "https://github.com/KasperOlesen/DataTable-AltEditor"
   },
-  "contributors": [{
-    "name": "KasperOlesen"
-  } , { 
-    "name": "luca-vercelli"
-  } , {
-    "name": "zack-hable"
-  } , {
-    "name": "zadarkside"
-  }],
-  "description": "DataTables Editor Updated",
+  "homepage": "https://bensitu.github.io/DataTable-AltEditor/",
+  "bugs": {
+    "url": "https://github.com/bensitu/DataTable-AltEditor/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bensitu/DataTable-AltEditor.git"
+  },
   "keywords": [
     "DataTables",
     "Editor",
-    "Free"
+    "Free",
+    "crud",
+    "inline-editing"
   ],
   "license": "MIT",
   "main": "src/dataTables.altEditor.free.js",
-  "name": "datatables.net-alteditor-updated",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/KasperOlesen/DataTable-AltEditor.git"
-  },
-  "version": "2.0.0"
+  "contributors": [
+    {
+      "name": "KasperOlesen"
+    },
+    {
+      "name": "luca-vercelli"
+    },
+    {
+      "name": "zack-hable"
+    },
+    {
+      "name": "zadarkside"
+    },
+    {
+      "name": "bensitu"
+    }
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
 }
