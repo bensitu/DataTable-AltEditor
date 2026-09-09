@@ -34,6 +34,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- The dialog close button's accessible label updates when an asynchronous translation finishes loading.
 - Missing Italian, Russian, and Ukrainian deletion confirmations, the Italian response code label, and Ukrainian spelling in the required-field message.
 - Examples generate new row identifiers consistently and remove duplicate identifiers from sample data. Validation starts with valid unique values, field options use supported constraints, and custom actions work in responsive row details.
 - Ajax examples retain submitted values and assign identifiers to new rows. Dependent town options handle loading, request failures, and country changes. The file example stores and downloads attachments without discarding them on later edits.

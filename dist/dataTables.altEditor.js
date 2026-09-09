@@ -440,6 +440,9 @@
       };
 
       this.language = mergeOptions(defaults, this.language || {});
+      $(this.modal_selector)
+        .find('.altEditor-close')
+        .attr('aria-label', this.language.modalClose);
     },
     /** Open the edit dialog.
      * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
