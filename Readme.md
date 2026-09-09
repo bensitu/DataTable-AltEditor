@@ -167,6 +167,8 @@ Examples use a shared DataTables table presentation, with Bootstrap dialogs in e
 
 See [styling and themes](docs/styling.md) for color modes, CSS custom properties, and application overrides.
 
+See the [example guide](docs/examples.md) for the controls to try in each page and the limits of simulated persistence.
+
 Run `npm ci` and `npm run dev`, then open [the example index](http://127.0.0.1:8080/). Rebuild first if source files have changed. Examples include arrays, objects, Ajax, multiple tables, optional controls, dependent selects, validation, translations, files, Foundation, [custom action buttons](example/12_custom_action_buttons/example12.html), and [cell editing](example/13_inline_edit/example13.html). Examples load `dist/` and require internet access for CDN dependencies. Ajax examples use static demonstration responses; they do not persist changes to a server.
 
 ```sh

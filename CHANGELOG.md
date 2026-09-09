@@ -33,6 +33,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Examples generate new row identifiers consistently and remove duplicate identifiers from sample data. Validation starts with valid unique values, field options use supported constraints, and custom actions work in responsive row details.
 - Ajax examples retain submitted values and assign identifiers to new rows. Dependent town options handle loading, request failures, and country changes. The file example stores and downloads attachments without discarding them on later edits.
 - Example 6 retains submitted selections and dates after simulated saves, derives degree labels from the selected value, and uses the source timestamp format in its date/time control.
 - Dialog close button alignment, form spacing, checkbox sizing, and stacked fields on small screens across supported dialog frameworks.

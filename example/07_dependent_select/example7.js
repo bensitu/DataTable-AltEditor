@@ -42,6 +42,7 @@ $(document).ready(function () {
         town.prop('required', hasTowns);
         if (!hasTowns) {
           editor.reloadOptions(town, ['']);
+          town.val('').trigger('change');
           town[0].setCustomValidity('');
           return;
         }

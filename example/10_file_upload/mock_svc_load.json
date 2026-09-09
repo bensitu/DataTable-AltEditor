@@ -29,7 +29,7 @@
 {"id":28, "name":"Brenden Wagner", "position":"Software Engineer", "office":"San Francisco", "extension":"1314", "startDate":"2011/06/07", "salary":"Brenden Wagner", "imagelink" : "./avatar.svg"},
 {"id":29, "name":"Fiona Green", "position":"Chief Operating Officer (COO)", "office":"San Francisco", "extension":"2947", "startDate":"2010/03/11", "salary":"Fiona Green", "imagelink" : "./avatar.svg"},
 {"id":30, "name":"Shou Itou", "position":"Regional Marketing", "office":"Tokyo", "extension":"8899", "startDate":"2011/08/14", "salary":"Shou Itou", "imagelink" : "./avatar.svg"},
-{"id":30, "name":"Michelle House", "position":"Integration Specialist", "office":"Sidney", "extension":"2769", "startDate":"2011/06/02", "salary":"Michelle House", "imagelink" : "./avatar.svg"},
+{"id":31, "name":"Michelle House", "position":"Integration Specialist", "office":"Sidney", "extension":"2769", "startDate":"2011/06/02", "salary":"Michelle House", "imagelink" : "./avatar.svg"},
 {"id":32, "name":"Suki Burks", "position":"Developer", "office":"London", "extension":"6832", "startDate":"2009/10/22", "salary":"Suki Burks", "imagelink" : "./avatar.svg"},
 {"id":33, "name":"Prescott Bartlett", "position":"Technical Author", "office":"London", "extension":"3606", "startDate":"2011/05/07", "salary":"Prescott Bartlett", "imagelink" : "./avatar.svg"},
 {"id":34, "name":"Gavin Cortez", "position":"Team Leader", "office":"San Francisco", "extension":"2860", "startDate":"2008/10/26", "salary":"Gavin Cortez", "imagelink" : "./avatar.svg"},

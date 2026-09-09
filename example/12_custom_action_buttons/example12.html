@@ -26,10 +26,6 @@
       rel="stylesheet"
       href="https://cdn.datatables.net/responsive/3.0.8/css/responsive.dataTables.css"
     />
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.css"
-    />
 
     <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
     <link rel="stylesheet" href="../examples.css" />
@@ -44,8 +40,15 @@
         </nav>
         <p class="example-eyebrow">DataTable-AltEditor / Example 12</p>
         <h1>Custom action buttons</h1>
-        <p>Use row actions to open the editor or delete a record directly.</p>
+        <p>
+          Add records with the button below, click a row to edit it, or use its
+          Delete action. On small screens, expand a row to access additional
+          columns and actions.
+        </p>
       </header>
+      <button id="addbutton" type="button" class="btn btn-primary">
+        Add record
+      </button>
       <div
         class="example-table"
         tabindex="0"
