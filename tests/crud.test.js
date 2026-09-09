@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import DataTable from 'datatables.net';
 import 'datatables.net-select';
-import '../src/dataTables.altEditor.free.js';
+import '../src/index.js';
 import { afterEach, expect, test, vi } from 'vitest';
 
 const tables = [];

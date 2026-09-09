@@ -8,7 +8,7 @@ const banner = `/*! DataTables AltEditor v${pkg.version}
  * Copyright (c) 2026 Ben Situ and contributors
  * MIT License */`;
 export default {
-  input: 'src/dataTables.altEditor.free.js',
+  input: 'src/index.js',
   external: ['jquery', 'datatables.net'],
   output: [false, true].map((minify) => ({
     file: `dist/dataTables.altEditor${minify ? '.min' : ''}.js`,

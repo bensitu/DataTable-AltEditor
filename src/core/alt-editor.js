@@ -1,0 +1,179 @@
+import $ from 'jquery';
+import { defaults, normalizeOptions } from './options.js';
+import { normalizeColumns } from './columns.js';
+import { emit } from './events.js';
+import { readPath, writePath } from '../data/path.js';
+import { resolveRow } from '../data/row-data.js';
+import { methods as dialogs } from '../dialog/dialog.js';
+import { methods as fields } from '../dialog/field-renderer.js';
+import { methods as plugins } from '../dialog/plugins.js';
+import { methods as actions } from '../crud/actions.js';
+import * as bootstrap from '../dialog/adapters/bootstrap.js';
+import * as foundation from '../dialog/adapters/foundation.js';
+let instance = 0;
+export function createAltEditor(DataTable) {
+  /** Row-oriented dialog and cell editor for a DataTables instance.
+   * @class
+   * @param {DataTable.Api} dt Table API.
+   * @param {Object} [options] Editor configuration.
+   */
+  function AltEditor(dt, options) {
+    const api = new DataTable.Api(dt);
+    const table = api.table().node();
+    if (table.altEditor && !table.altEditor._destroyed) return table.altEditor;
+    if (!DataTable.versionCheck('2.1') || DataTable.versionCheck('3'))
+      throw new Error('AltEditor requires DataTables >=2.1.0 <3');
+    this.c = normalizeOptions(
+      DataTable.defaults.altEditor,
+      api.init(),
+      options,
+    );
+    const id = instance++;
+    this.s = {
+      dt: api,
+      namespace: '.altEditor' + id,
+      modalNamespace: '.altEditorModal' + id,
+    };
+    this.dom = { modal: $('<div class="dt-altEditor-handle"/>') };
+    this._destroyed = false;
+    this._submitting = false;
+    [
+      'closeModalOnSuccess',
+      'encodeFiles',
+      'debug',
+      'onAddRow',
+      'onEditRow',
+      'onDeleteRow',
+      'onInlineEditRow',
+    ].forEach((key) => {
+      if (this.c[key] !== undefined) this[key] = this.c[key];
+    });
+    table.altEditor = this;
+    this.selectionListener();
+    const language = api.init().language || {};
+    this.language = language.altEditor || {};
+    this._setup();
+    if (!language.altEditor && language.altEditorUrl)
+      this._languageRequest = $.ajax({
+        url: language.altEditorUrl,
+        dataType: 'json',
+        success: (json) => {
+          if (!this._destroyed) {
+            this.language = json;
+            this._initLanguage();
+          }
+        },
+      });
+    api.on('destroy' + this.s.namespace, () => this.destroy());
+  }
+  Object.assign(AltEditor.prototype, dialogs, fields, plugins, actions, {
+    selectionListener: function () {
+      var dt = this.s.dt;
+      var toggleEditButton = function () {
+        if (typeof dt.buttons !== 'function') return;
+        var buttons = dt.buttons('edit:name');
+        if (
+          !buttons ||
+          (typeof buttons.count === 'function' && buttons.count() === 0)
+        )
+          return;
+        if (dt.rows({ selected: true }).count() === 1) buttons.enable();
+        else buttons.disable();
+      };
+
+      dt.off('select' + this.s.namespace + ' deselect' + this.s.namespace);
+      dt.on('select' + this.s.namespace, toggleEditButton);
+      dt.on('deselect' + this.s.namespace, toggleEditButton);
+      toggleEditButton();
+    },
+    /** @returns {DataTable.Api} The associated table API. */
+    api: function () {
+      return this.s.dt;
+    },
+    completeColumnDefs: function () {
+      return normalizeColumns(this.api());
+    },
+    _getValueByPath: readPath,
+    _setValueByPath: writePath,
+    _resolveSnapshotRow: function (snapshot) {
+      return resolveRow(this.api(), snapshot);
+    },
+    /** @deprecated Use openAddDialog(). */
+    _openAddModal: function () {
+      return this.openAddDialog();
+    },
+    /** @deprecated Use openEditDialog(rowSelector). */
+    _openEditModal: function (selector) {
+      return this.openEditDialog(selector);
+    },
+    /** @deprecated Use openDeleteDialog(rowSelector). */
+    _openDeleteModal: function (selector) {
+      return this.openDeleteDialog(selector);
+    },
+    _bindDialog: function (action) {
+      this._action = action;
+      const editor = this;
+      $(this.modal_selector)
+        .find('form')
+        .off('submit' + this.s.modalNamespace)
+        .on('submit' + this.s.modalNamespace, function (event) {
+          event.preventDefault();
+          editor[
+            action === 'add'
+              ? '_addRowData'
+              : action === 'edit'
+                ? '_editRowData'
+                : '_deleteRow'
+          ]();
+        });
+      emit(this, 'open', { action, mode: 'dialog' });
+    },
+    internalOpenDialog: function (selector, fill) {
+      this._returnFocus = document.activeElement;
+      const adapter = bootstrap.available()
+        ? bootstrap
+        : foundation.available()
+          ? foundation
+          : null;
+      if (!adapter)
+        throw new Error(
+          'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs',
+        );
+      this._adapter = adapter;
+      fill();
+      adapter.show($(selector)[0]);
+    },
+    internalCloseDialog: function (selector) {
+      if (this._adapter) this._adapter.hide($(selector)[0]);
+    },
+    /** Refresh Ajax data, or redraw client-side data. */
+    refresh: function () {
+      const api = this.api();
+      if (api.ajax.url()) api.ajax.reload(null, false);
+      else api.draw(false);
+    },
+    /** Dispose editor-owned listeners, integrations, and dialog elements. */
+    destroy: function () {
+      if (this._destroyed) return;
+      this._destroyed = true;
+      if (this._languageRequest) this._languageRequest.abort();
+      this._cleanupPlugins();
+      const modal = $(this.modal_selector);
+      if (this._adapter && modal.length) {
+        this._adapter.hide(modal[0]);
+        this._adapter.dispose(modal[0]);
+      }
+      modal.off(this.s.namespace).remove();
+      this.api().off(this.s.namespace);
+      delete this.api().table().node().altEditor;
+      emit(this, 'destroy', {});
+    },
+    _destroy: function () {
+      this.destroy();
+    },
+  });
+  AltEditor.version = '4.0.0';
+  AltEditor.defaults = defaults;
+  AltEditor.classes = { btn: 'btn' };
+  return AltEditor;
+}
