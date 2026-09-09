@@ -1,0 +1,15 @@
+dist
+node_modules
+coverage
+playwright-report
+test-results
+README.md
+CHANGELOG.md
+AGENTS.md
+example
+translations
+index.html
+
+_config.yml
+CODE_OF_CONDUCT.md
+SECURITY.md
