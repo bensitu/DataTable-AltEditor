@@ -18,6 +18,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- Example pages share responsive navigation, typography, table containers, and an example directory. Long dialog forms scroll within the available mobile viewport.
 - Historical changelog entries are grouped by change type and listed in reverse chronological order, preserving available dates and contributor credits.
 
 ## 4.0.0 - 2026-09-09

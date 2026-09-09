@@ -1,47 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DataTable-AltEditor - Example #3</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dependent fields | AltEditor examples</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.8/css/responsive.dataTables.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/css/select2.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/responsive/3.0.8/css/responsive.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/css/select2.css"
+    />
 
-<link rel="stylesheet" href="../../dist/dataTables.altEditor.css">
-</head>
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="../examples.css" />
+  </head>
 
-<body>
-  <p><br></p>
-      <h1>DataTable-AltEditor - Example #7</h1>
-      <h2>with object-based datatable rows loaded via Ajax</h2>
-
-<p>Populate SELECT options according to values from another field.
-Hide/show fields according to values from another field.
-</p>
-  <div class="container">
-  
-  <table cellpadding="0" cellspacing="0" border="0" class="dataTable table table-striped" id="example">
-
-  </table>
-
-</div>
-
-<script src="https://code.jquery.com/jquery-3.7.1.js" ></script>
-
-<script src="https://cdn.datatables.net/2.3.8/js/dataTables.js" ></script>
-<script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js" ></script>
-<script src="https://cdn.datatables.net/select/3.1.3/js/dataTables.select.js" ></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.js" ></script>
-<script src="https://cdn.datatables.net/responsive/3.0.8/js/dataTables.responsive.js" ></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.js" ></script>>
-<script src="../../dist/dataTables.altEditor.js" ></script>
-<script src="./example7.js" ></script>
-
-</body>
+  <body class="examples-page">
+    <main class="example-main">
+      <header class="example-header">
+        <nav aria-label="Example navigation">
+          <a href="../../index.html">← All examples</a>
+        </nav>
+        <p class="example-eyebrow">DataTable-AltEditor / Example 07</p>
+        <h1>Dependent fields</h1>
+        <p>
+          Update selection options and field visibility when another field
+          changes. Static responses demonstrate the dependencies.
+        </p>
+      </header>
+      <div
+        class="example-table"
+        tabindex="0"
+        role="region"
+        aria-label="Editable table 1"
+      >
+        <table class="dataTable table table-striped" id="example"></table>
+      </div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/select/3.1.3/js/dataTables.select.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.js"></script>
+    <script src="https://cdn.datatables.net/responsive/3.0.8/js/dataTables.responsive.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.js"></script>
+    <script src="../../dist/dataTables.altEditor.js"></script>
+    <script src="./example7.js"></script>
+  </body>
 </html>

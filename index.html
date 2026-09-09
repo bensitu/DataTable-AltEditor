@@ -5,49 +5,128 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>DataTable-AltEditor - List of available examples</title>
+    <link rel="stylesheet" href="example/examples.css" />
   </head>
 
-  <body>
-    <h1>DataTable-AltEditor - List of available examples</h1>
-
-    <ol>
-      <li>
-        <a href="example/01_in_memory_arrays/example1.html">In memory arrays</a>
-      </li>
-      <li>
-        <a href="example/02_in_memory_objects/example2.html"
-          >In memory objects</a
-        >
-      </li>
-      <li><a href="example/03_ajax_objects/example3.html">AJAX objects</a></li>
-      <li><a href="example/04_more/DataTableExample.html">Some more</a></li>
-      <li>
-        <a href="example/05_two_datatables/example5.html"
-          >More datatables in one page</a
-        >
-      </li>
-      <li>
-        <a href="example/06_select_datepicker/example6.html"
-          >Select2 and Datetimepicker</a
-        >
-      </li>
-      <li>
-        <a href="example/07_dependent_select/example7.html">Dependent items</a>
-      </li>
-      <li><a href="example/08_validation/example8.html">Validation</a></li>
-      <li><a href="example/09_translations/example9.html">Translations</a></li>
-      <li><a href="example/10_file_upload/example10.html">File upload</a></li>
-      <li>
-        <a href="example/11_foundation/example11.html">Foundation support</a>
-      </li>
-      <li>
-        <a href="example/12_custom_action_buttons/example12.html"
-          >Custom action buttons</a
-        >
-      </li>
-      <li>
-        <a href="example/13_inline_edit/example13.html">Cell inline editing</a>
-      </li>
-    </ol>
+  <body class="examples-page">
+    <main class="example-main">
+      <header class="example-header">
+        <p class="example-eyebrow">DataTable-AltEditor</p>
+        <h1>Explore the examples</h1>
+        <p>
+          From simple row editing to custom controls. Choose an example to try
+          the editor with different data and interfaces.
+        </p>
+      </header>
+      <ol class="example-grid">
+        <li>
+          <a href="example/01_in_memory_arrays/example1.html"
+            >In-memory arrays<span
+              >Add, edit, and delete array-based rows. Changes are stored in
+              memory and reset when the page reloads.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/02_in_memory_objects/example2.html"
+            >In-memory objects<span
+              >Work with named fields in object-based rows. Changes are stored
+              in memory and reset when the page reloads.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/03_ajax_objects/example3.html"
+            >Ajax data<span
+              >Load object-based rows from a static JSON response. Requests
+              demonstrate the callback flow; this example has no persistent
+              backend.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/04_more/DataTableExample.html"
+            >Additional field options<span
+              >Explore table configuration and field options with a local JSON
+              data source.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/05_two_datatables/example5.html"
+            >Multiple tables<span
+              >Use two independent editors on the same page. Static Ajax
+              responses demonstrate loading and callbacks without persistent
+              storage.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/06_select_datepicker/example6.html"
+            >Select2 and date pickers<span
+              >Edit single and multiple selections, dates, timestamps, and
+              nested object values. Select a row and choose Edit to explore the
+              controls.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/07_dependent_select/example7.html"
+            >Dependent fields<span
+              >Update selection options and field visibility when another field
+              changes. Static responses demonstrate the dependencies.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/08_validation/example8.html"
+            >Form validation<span
+              >Try required fields, unique values, and input constraints before
+              saving a row.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/09_translations/example9.html"
+            >Translations<span
+              >Explore localized editor titles, actions, and validation
+              messages.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/10_file_upload/example10.html"
+            >Files and images<span
+              >Select a file to encode as Base64 with the row data. Use small
+              files for this demonstration; downloads can be provided as direct
+              links.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/11_foundation/example11.html"
+            >Foundation dialogs<span
+              >Add, edit, and delete rows using Foundation Reveal dialogs.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/12_custom_action_buttons/example12.html"
+            >Custom action buttons<span
+              >Use row actions to open the editor or delete a record
+              directly.</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="example/13_inline_edit/example13.html"
+            >Cell editing<span
+              >Edit cells directly with keyboard navigation and
+              validation.</span
+            ></a
+          >
+        </li>
+      </ol>
+    </main>
   </body>
 </html>

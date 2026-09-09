@@ -103,6 +103,16 @@
   margin: 0;
 }
 @media (max-width: 575.98px) {
+  .altEditor-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 4rem);
+    max-height: calc(100dvh - 4rem);
+  }
+  .altEditor-modal .modal-header,
+  .altEditor-modal .modal-footer {
+    flex-shrink: 0;
+  }
   .altEditor-modal .altEditor-field {
     flex-direction: column;
   }
@@ -113,6 +123,8 @@
   }
   .altEditor-modal .modal-body {
     padding: 1rem;
+    min-height: 0;
+    overflow-y: auto;
   }
 }
 .altEditor-modal .nonDisplay {

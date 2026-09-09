@@ -161,6 +161,8 @@ With `serverSide: true`, the editor only has the currently loaded row snapshot. 
 
 ## Examples and development
 
+The example directory and individual pages share responsive styling in `example/examples.css`. Table containers allow horizontal scrolling when needed. Dialog fields stack on small screens, and long forms scroll inside the dialog while its header and actions remain visible. Include `dist/dataTables.altEditor.css` after the framework stylesheet to apply editor layout and control styles.
+
 Run `npm run dev` after building, then open [the example index](http://127.0.0.1:8080/). Examples include arrays, objects, Ajax, multiple tables, optional controls, dependent selects, validation, translations, files, Foundation, [custom action buttons](example/12_custom_action_buttons/example12.html), and [cell editing](example/13_inline_edit/example13.html). Examples load `dist/` and require internet access for CDN dependencies. Ajax examples use static demonstration responses; they do not persist changes to a server.
 
 ```sh
