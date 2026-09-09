@@ -10,6 +10,9 @@ test('registers an editor for automatic initialization', () => {
     altEditor: true,
   });
   expect(table.table().node().altEditor).toBeInstanceOf(AltEditor);
+  expect(
+    getComputedStyle(document.querySelector('.altEditor-modal')).display
+  ).toBe('none');
   expect(table.altEditor()).toBe(table.altEditor({}));
   expect(table.altEditor().api().table().node()).toBe(table.table().node());
   table.destroy();

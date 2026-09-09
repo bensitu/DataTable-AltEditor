@@ -18,6 +18,7 @@ export const methods = {
 
     var modal = document.createElement('div');
     modal.className = 'modal fade altEditor-modal reveal';
+    modal.style.display = 'none';
     modal.id = modalId;
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
