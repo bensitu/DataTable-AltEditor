@@ -26,12 +26,12 @@ export default {
         mkdirSync('dist', { recursive: true });
         copyFileSync(
           'src/style/dataTables.altEditor.css',
-          'dist/dataTables.altEditor.css',
+          'dist/dataTables.altEditor.css'
         );
         for (const [name, item] of Object.entries(bundle)) {
           if (item.type === 'chunk')
             console.log(
-              `${name}: ${Buffer.byteLength(item.code)} bytes; gzip ${gzipSync(item.code).length} bytes`,
+              `${name}: ${Buffer.byteLength(item.code)} bytes; gzip ${gzipSync(item.code).length} bytes`
             );
         }
       },

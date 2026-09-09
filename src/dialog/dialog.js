@@ -191,7 +191,7 @@ export const methods = {
       if (duplicate)
         event.target.setCustomValidity(
           that.completeColumnDefs()[index].uniqueMsg ||
-            that.language.error.unique,
+            that.language.error.unique
         );
     };
 
@@ -239,7 +239,15 @@ export const methods = {
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
    */
   openEditDialog: function (rowSelector) {
-    if (this._destroyed || this._submitting) return false;
+    if (
+      this._destroyed ||
+      this._submitting ||
+      (this._inline &&
+        this._inline.session &&
+        this._inline.session.state === 'submitting')
+    )
+      return false;
+    if (this._inline) this._inline.cancel('dialog', false);
     this._cleanupPlugins();
     var dt = this.s.dt;
     var selectedRows =
@@ -264,7 +272,7 @@ export const methods = {
       this.language.edit.button,
       this.language.modalClose,
       'editRowBtn',
-      'altEditor-edit-form',
+      'altEditor-edit-form'
     );
 
     var that = this;
@@ -300,7 +308,15 @@ export const methods = {
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
    */
   openDeleteDialog: function (rowSelector) {
-    if (this._destroyed || this._submitting) return false;
+    if (
+      this._destroyed ||
+      this._submitting ||
+      (this._inline &&
+        this._inline.session &&
+        this._inline.session.state === 'submitting')
+    )
+      return false;
+    if (this._inline) this._inline.cancel('dialog', false);
     this._cleanupPlugins();
     var selectedRows =
       rowSelector === undefined
@@ -332,8 +348,8 @@ export const methods = {
         .empty()
         .append(
           $('<p/>', { class: 'altEditor-delete-message' }).text(
-            that.language.deleteMessage,
-          ),
+            that.language.deleteMessage
+          )
         );
       $modal
         .find('.modal-footer')
@@ -346,7 +362,7 @@ export const methods = {
             'data-bs-dismiss': 'modal',
             'data-close': '',
             text: that.language.modalClose,
-          }),
+          })
         )
         .append(
           $('<button/>', {
@@ -354,7 +370,7 @@ export const methods = {
             class: 'btn btn-danger button',
             id: 'deleteRowBtn',
             text: that.language.delete.button,
-          }),
+          })
         );
 
       var modalContent = $modal.find('.modal-content');
@@ -366,7 +382,7 @@ export const methods = {
             name: formName,
             id: formName,
             role: 'form',
-          }),
+          })
         );
       }
     };
@@ -382,7 +398,15 @@ export const methods = {
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
    */
   openAddDialog: function () {
-    if (this._destroyed || this._submitting) return false;
+    if (
+      this._destroyed ||
+      this._submitting ||
+      (this._inline &&
+        this._inline.session &&
+        this._inline.session.state === 'submitting')
+    )
+      return false;
+    if (this._inline) this._inline.cancel('dialog', false);
     this._cleanupPlugins();
     var columnDefs = this.completeColumnDefs();
     this.createDialog(
@@ -391,7 +415,7 @@ export const methods = {
       this.language.add.button,
       this.language.modalClose,
       'addRowBtn',
-      'altEditor-add-form',
+      'altEditor-add-form'
     );
 
     var that = this;

@@ -1,1 +1,5 @@
-{ "singleQuote": true, "endOfLine": "lf" }
+{
+  "singleQuote": true,
+  "endOfLine": "lf",
+  "trailingComma": "es5"
+}

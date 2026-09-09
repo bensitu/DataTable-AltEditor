@@ -10,6 +10,7 @@ import { methods as plugins } from '../dialog/plugins.js';
 import { methods as actions } from '../crud/actions.js';
 import * as bootstrap from '../dialog/adapters/bootstrap.js';
 import * as foundation from '../dialog/adapters/foundation.js';
+import { InlineEditor } from '../inline/inline-editor.js';
 let instance = 0;
 export function createAltEditor(DataTable) {
   /** Row-oriented dialog and cell editor for a DataTables instance.
@@ -26,7 +27,7 @@ export function createAltEditor(DataTable) {
     this.c = normalizeOptions(
       DataTable.defaults.altEditor,
       api.init(),
-      options,
+      options
     );
     const id = instance++;
     this.s = {
@@ -53,6 +54,7 @@ export function createAltEditor(DataTable) {
     const language = api.init().language || {};
     this.language = language.altEditor || {};
     this._setup();
+    this._inline = new InlineEditor(this);
     if (!language.altEditor && language.altEditorUrl)
       this._languageRequest = $.ajax({
         url: language.altEditorUrl,
@@ -131,6 +133,22 @@ export function createAltEditor(DataTable) {
         });
       emit(this, 'open', { action, mode: 'dialog' });
     },
+    /** Start editing an eligible DataTables cell selector. @returns {boolean} Whether editing started. */
+    startInlineEdit: function (cellSelector) {
+      return this._inline.start(cellSelector);
+    },
+    /** Validate and submit the active cell. @returns {boolean} Whether submission started. */
+    commitInlineEdit: function () {
+      return this._inline.commit();
+    },
+    /** Cancel an unsaved cell. Pending persistence cannot be canceled. @returns {boolean} Whether editing was canceled. */
+    cancelInlineEdit: function () {
+      return this._inline.cancel();
+    },
+    /** @returns {boolean} Whether a cell is editing or awaiting persistence. */
+    isInlineEditing: function () {
+      return !!this._inline.session;
+    },
     internalOpenDialog: function (selector, fill) {
       this._returnFocus = document.activeElement;
       const adapter = bootstrap.available()
@@ -140,7 +158,7 @@ export function createAltEditor(DataTable) {
           : null;
       if (!adapter)
         throw new Error(
-          'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs',
+          'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs'
         );
       this._adapter = adapter;
       fill();
@@ -166,6 +184,7 @@ export function createAltEditor(DataTable) {
     destroy: function () {
       if (this._destroyed) return;
       this._destroyed = true;
+      this._inline.destroy();
       if (this._languageRequest) this._languageRequest.abort();
       this._cleanupPlugins();
       const modal = $(this.modal_selector);

@@ -12,7 +12,7 @@ export function segments(path) {
 export function readPath(source, path) {
   return segments(path).reduce(
     (value, key) => (value == null ? undefined : value[key]),
-    source,
+    source
   );
 }
 

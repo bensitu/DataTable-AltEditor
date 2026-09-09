@@ -26,7 +26,7 @@ test('merges configuration in precedence order without losing falsy values or fu
   const list = ['b'];
   const result = mergeOptions(
     { list: ['a', 'c'] },
-    { callback, date, list, zero: 0, empty: '', enabled: false },
+    { callback, date, list, zero: 0, empty: '', enabled: false }
   );
   expect(result.callback).toBe(callback);
   expect(result.date).toBe(date);
@@ -39,11 +39,10 @@ test('merges configuration in precedence order without losing falsy values or fu
   expect(
     normalizeOptions(
       { debug: true },
-      { debug: true, altEditor: { debug: false, inlineEdit: true } },
-    ).debug,
+      { debug: true, altEditor: { debug: false, inlineEdit: true } }
+    ).debug
   ).toBe(false);
   expect(
-    normalizeOptions({}, { altEditor: { inlineEdit: true } }).inlineEdit
-      .enabled,
+    normalizeOptions({}, { altEditor: { inlineEdit: true } }).inlineEdit.enabled
   ).toBe(true);
 });

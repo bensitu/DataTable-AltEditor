@@ -139,7 +139,7 @@ export const methods = {
               const api = editor.api();
               if (action === 'delete') {
                 const rows = snapshot.targets.map((target) =>
-                  resolveRow(api, target),
+                  resolveRow(api, target)
                 );
                 if (rows.some((row) => !row))
                   throw new Error('Target row is unavailable');
@@ -157,7 +157,7 @@ export const methods = {
                       candidate = withValue(
                         candidate,
                         this.name,
-                        editor._getValueByPath(values, this.name),
+                        editor._getValueByPath(values, this.name)
                       );
                   });
                 }
@@ -167,7 +167,7 @@ export const methods = {
                     : editor._normalizeResponseData(response);
                 if (!data || typeof data !== 'object')
                   throw new Error(
-                    'Persistence must return a row object or array',
+                    'Persistence must return a row object or array'
                   );
                 if (action === 'add') api.row.add(data);
                 else {
@@ -185,7 +185,7 @@ export const methods = {
               fail(error);
             }
           },
-          fail,
+          fail
         );
       })
       .catch(fail);

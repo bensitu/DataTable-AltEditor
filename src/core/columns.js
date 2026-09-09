@@ -1,6 +1,6 @@
 const keys =
   'editable visible type readonly disabled required hoverMsg pattern unique uniqueMsg maxLength multiple select2 datepicker datetimepicker editorOnChange style dateFormat optionsSortByLabel inline step min max value options rows cols accept special placeholder inlineEditable inlineEditType inlineEditOptions inlineEditSetValue'.split(
-    ' ',
+    ' '
   );
 
 export function normalizeColumns(api) {

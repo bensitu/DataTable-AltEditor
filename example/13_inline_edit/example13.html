@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AltEditor cell editing</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css">
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css">
+    <style>
+      body { max-width: 960px; margin: 2rem auto; padding: 0 1rem; font-family: system-ui, sans-serif; }
+      section { margin: 2rem 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Cell editing</h1>
+    <p>Double-click a cell to edit it. Enter saves, Escape cancels, and Tab or Shift+Tab saves and moves within the row. Leaving a control cancels its unsaved value.</p>
+    <p>Names are required, email addresses must be valid, and ages must be between 0 and 120. Sorting or paging cancels unsaved edits. Saves take a short time to demonstrate pending requests.</p>
+    <label><input id="fail-next" type="checkbox"> Fail the next save</label>
+    <p id="status" role="status" aria-live="polite">Ready to edit.</p>
+    <section><h2>People</h2><table id="people"></table></section>
+    <section><h2>Array rows</h2><p>The City column uses numeric data source 0.</p><table id="cities"></table></section>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
+    <script src="../../dist/dataTables.altEditor.js"></script>
+    <script src="./example13.js"></script>
+  </body>
+</html>

@@ -62,13 +62,13 @@ test('adds, edits and deletes the captured row despite selection changes', async
       .rows()
       .data()
       .toArray()
-      .map((row) => row.id),
+      .map((row) => row.id)
   ).toEqual(['a', 'c']);
 });
 
 test('keeps callback errors editable and renders error text safely', async () => {
   const callback = vi.fn((_editor, _row, success, error) =>
-    error(new Error('<img src=x onerror=alert(1)>')),
+    error(new Error('<img src=x onerror=alert(1)>'))
   );
   const { editor, table } = create({ onAddRow: callback });
   editor._openAddModal();
@@ -114,7 +114,7 @@ test('loads configured language and releases dialog elements on destroy', () => 
   });
   editor._openAddModal();
   expect($(editor.modal_selector).find('.modal-title').text()).toBe(
-    'Create item',
+    'Create item'
   );
   table.destroy();
   tables.pop();
@@ -137,7 +137,7 @@ test('supports cancelable submission, duplicate settlement and retry after failu
   editor.openEditDialog(0);
   $(editor.modal_selector).find('[name="name"]').val('Ann');
   $(table.table().node()).one('alteditor-pre-submit.dt', (event) =>
-    event.preventDefault(),
+    event.preventDefault()
   );
   await editor._editRowData();
   expect(callback).not.toHaveBeenCalled();
@@ -200,7 +200,7 @@ test('uses uniqueMsg and handles encoded files, read failures and aborts', async
     vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(
       function () {
         this.dispatchEvent(new Event(event));
-      },
+      }
     );
     await editor._addRowData();
     expect(editor._submitting).toBe(false);
@@ -223,7 +223,7 @@ test('loads language from a URL and ignores persistence after destroy', async ()
   });
   editor.openAddDialog();
   expect($(editor.modal_selector).find('.modal-title').text()).toBe(
-    'Create item',
+    'Create item'
   );
   $(editor.modal_selector).find('[name="name"]').val('Carol');
   await editor._addRowData();

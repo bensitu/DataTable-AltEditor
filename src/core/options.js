@@ -57,7 +57,7 @@ export function normalizeOptions(base, init, supplied) {
   const options = mergeOptions(defaults, base, root, init.altEditor, supplied);
   options.inlineEdit = mergeOptions(
     defaults.inlineEdit,
-    options.inlineEdit === true ? { enabled: true } : options.inlineEdit,
+    options.inlineEdit === true ? { enabled: true } : options.inlineEdit
   );
   return options;
 }

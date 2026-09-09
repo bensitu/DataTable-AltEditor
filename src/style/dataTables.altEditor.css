@@ -1,3 +1,28 @@
 .altEditor-modal .nonDisplay {
   display: none;
 }
+
+.alteditor-inline-cell {
+  position: relative;
+}
+.alteditor-inline-control {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 4rem;
+  font: inherit;
+}
+.alteditor-inline-control[type='checkbox'] {
+  width: auto;
+  min-width: 0;
+}
+.alteditor-inline-control[aria-invalid='true'] {
+  outline: 2px solid #b42318;
+}
+.alteditor-inline-error {
+  display: block;
+  color: #b42318;
+  font-size: 0.875em;
+}
+.alteditor-inline-submitting {
+  opacity: 0.65;
+}

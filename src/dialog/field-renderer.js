@@ -7,7 +7,7 @@ export const methods = {
     buttonCaption,
     closeCaption,
     buttonClass,
-    formName,
+    formName
   ) {
     formName = formName + '-' + this.random_id;
     var fragment = document.createDocumentFragment();
@@ -88,7 +88,7 @@ export const methods = {
         if (columnDef.placeholder)
           select.setAttribute(
             'data-placeholder',
-            String(columnDef.placeholder),
+            String(columnDef.placeholder)
           );
 
         var normalized = that._normalizeOptions(columnDef.options);
@@ -118,7 +118,7 @@ export const methods = {
         textarea.placeholder = String(columnDef.placeholder || title);
         textarea.setAttribute(
           'data-unique',
-          columnDef.unique ? 'true' : 'false',
+          columnDef.unique ? 'true' : 'false'
         );
         if (columnDef.value !== undefined && columnDef.value !== null)
           textarea.value = columnDef.value;
@@ -180,7 +180,7 @@ export const methods = {
             'data-bs-dismiss': 'modal',
             'data-close': '',
             text: closeCaption,
-          }),
+          })
         )
         .append(
           $('<button/>', {
@@ -189,7 +189,7 @@ export const methods = {
             id: buttonClass,
             form: formName,
             text: buttonCaption,
-          }),
+          })
         );
 
       var modalContent = $modal.find('.modal-content');
@@ -206,7 +206,7 @@ export const methods = {
             id: formName,
             role: 'form',
             class: 'needs-validation',
-          }),
+          })
         );
       }
     };
@@ -280,9 +280,9 @@ export const methods = {
                     reject(error);
                   }
                 },
-                reject,
+                reject
               );
-            }),
+            })
           );
         } else {
           that._setValueByPath(values, id, file);

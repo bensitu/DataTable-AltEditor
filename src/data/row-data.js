@@ -41,10 +41,32 @@ export function invoke(callback, editor, values, extra, success, error) {
     if (callback)
       callback.apply(
         editor,
-        [editor, values, resolve, reject].concat(extra || []),
+        [editor, values, resolve, reject].concat(extra || [])
       );
     else resolve(values);
   } catch (failure) {
     reject(failure);
   }
+}
+
+export function cloneRow(value, seen) {
+  if (!value || typeof value !== 'object') return value;
+  if (value instanceof Date) return new Date(value.getTime());
+  const prototype = Object.getPrototypeOf(value);
+  if (
+    !Array.isArray(value) &&
+    prototype !== Object.prototype &&
+    prototype !== null
+  )
+    return value;
+  seen = seen || new Map();
+  if (seen.has(value)) return seen.get(value);
+  const result = Array.isArray(value) ? [] : {};
+  seen.set(value, result);
+  Object.keys(value).forEach((key) => {
+    if (['__proto__', 'prototype', 'constructor'].indexOf(key) !== -1)
+      throw new Error('Unsafe row key: ' + key);
+    result[key] = cloneRow(value[key], seen);
+  });
+  return result;
 }
