@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AltEditor interactions</title>
+    <link
+      rel="stylesheet"
+      href="/node_modules/bootstrap/dist/css/bootstrap.css"
+    />
+    <link rel="stylesheet" href="/dist/dataTables.altEditor.css" />
+  </head>
+  <body>
+    <table id="table"></table>
+    <script src="/node_modules/jquery/dist/jquery.js"></script>
+    <script src="/node_modules/datatables.net/js/dataTables.js"></script>
+    <script src="/node_modules/datatables.net-buttons/js/dataTables.buttons.js"></script>
+    <script src="/node_modules/datatables.net-select/js/dataTables.select.js"></script>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <script src="/dist/dataTables.altEditor.js"></script>
+    <script>
+      window.table = new DataTable('#table', {
+        data: [{ name: 'Alice' }, { name: 'Bob' }],
+        columns: [{ data: 'name', title: 'Name', required: true }],
+        altEditor: true,
+        select: 'single',
+        layout: {
+          topStart: {
+            buttons: [
+              { name: 'add', text: 'Add' },
+              { name: 'edit', text: 'Edit' },
+              { name: 'delete', text: 'Delete' },
+            ],
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

@@ -175,6 +175,7 @@ $.extend(altEditor.prototype, {
     closeButton.type = 'button';
     closeButton.className = 'close close-button';
     closeButton.setAttribute('data-dismiss', 'modal');
+    closeButton.setAttribute('data-bs-dismiss', 'modal');
     closeButton.setAttribute('data-close', '');
     closeButton.setAttribute('aria-label', this.language.modalClose);
     var closeGlyph = document.createElement('span');
@@ -420,7 +421,12 @@ $.extend(altEditor.prototype, {
 
     var that = this;
     columnDefs.forEach(function (columnDef) {
-      if (!columnDef.name || columnDef.editable === false) return;
+      if (
+        columnDef.name === null ||
+        columnDef.name === undefined ||
+        columnDef.editable === false
+      )
+        return;
       var selector = '#' + String(columnDef.name).replace(/\./g, '\\.');
       var $element = $(that.modal_selector)
         .find(selector)
@@ -521,6 +527,7 @@ $.extend(altEditor.prototype, {
             type: 'button',
             class: 'btn btn-default button secondary',
             'data-dismiss': 'modal',
+            'data-bs-dismiss': 'modal',
             'data-close': '',
             text: that.language.modalClose,
           }),
@@ -603,7 +610,8 @@ $.extend(altEditor.prototype, {
     var that = this;
     columnDefs.forEach(function (columnDef) {
       if (
-        !columnDef.name ||
+        columnDef.name === null ||
+        columnDef.name === undefined ||
         columnDef.value === null ||
         columnDef.value === undefined
       )
@@ -724,7 +732,7 @@ $.extend(altEditor.prototype, {
       var title = String(columnDef.title || '')
         .replace(/(<([^>]+)>)/gi, '')
         .trim();
-      if (!columnDef.name) return;
+      if (columnDef.name === null || columnDef.name === undefined) return;
 
       if (String(columnDef.type).indexOf('hidden') >= 0) {
         var hidden = document.createElement('input');
@@ -869,6 +877,7 @@ $.extend(altEditor.prototype, {
             type: 'button',
             class: 'btn btn-default button secondary',
             'data-dismiss': 'modal',
+            'data-bs-dismiss': 'modal',
             'data-close': '',
             text: closeCaption,
           }),
@@ -1062,7 +1071,12 @@ $.extend(altEditor.prototype, {
    */
   onEditRow: function (dt, rowdata, success, error, originalRowData) {
     try {
-      var merged = $.extend(true, {}, originalRowData || {}, rowdata || {});
+      var merged = $.extend(
+        true,
+        Array.isArray(originalRowData) ? [] : {},
+        originalRowData || {},
+        rowdata || {},
+      );
       success(merged);
     } catch (exception) {
       if (error) error(exception);
@@ -1086,7 +1100,10 @@ $.extend(altEditor.prototype, {
   internalOpenDialog: function (selector, onopen) {
     try {
       var $sel = $(selector);
-      if (typeof $sel.modal === 'function') {
+      if (window.bootstrap && window.bootstrap.Modal) {
+        onopen();
+        window.bootstrap.Modal.getOrCreateInstance($sel[0]).show();
+      } else if (typeof $sel.modal === 'function') {
         $sel
           .off('show.bs.modal.altEditorFill')
           .on('show.bs.modal.altEditorFill', onopen);
@@ -1238,7 +1255,7 @@ $.extend(altEditor.prototype, {
     var that = this;
     var selector = this.modal_selector;
     var escapeSelector = function (value) {
-      var text = String(value || '');
+      var text = String(value === null || value === undefined ? '' : value);
       if ($.escapeSelector) return $.escapeSelector(text);
       return text.replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g, '\\$1');
     };
@@ -1474,7 +1491,7 @@ $.extend(altEditor.prototype, {
   },
 
   _getValueByPath: function (source, path) {
-    if (!source || !path) return undefined;
+    if (!source || path === null || path === undefined) return undefined;
     return String(path)
       .split('.')
       .reduce(function (value, key) {
@@ -1508,7 +1525,11 @@ $.extend(altEditor.prototype, {
 
   _collectFormData: function ($form) {
     var that = this;
-    var values = {};
+    var values = this.completeColumnDefs().every(function (column) {
+      return typeof column.name === 'number';
+    })
+      ? []
+      : {};
     var fileTasks = [];
 
     $form.find('select, textarea, input').each(function () {
