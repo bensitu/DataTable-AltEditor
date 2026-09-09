@@ -1,8 +1,118 @@
 /*! DataTables AltEditor v4.0.0 | MIT License */
+:where(.altEditor-modal, .alteditor-inline-cell, .altEditor-datetimepicker) {
+  color-scheme: light dark;
+}
+:where([data-bs-theme='light'], [data-alteditor-theme='light'])
+  :is(.altEditor-modal, .alteditor-inline-cell, .altEditor-datetimepicker),
+:is(
+  .altEditor-modal,
+  .alteditor-inline-cell,
+  .altEditor-datetimepicker
+)[data-alteditor-theme='light'] {
+  color-scheme: light;
+}
+:where([data-bs-theme='dark'], [data-alteditor-theme='dark'])
+  :is(.altEditor-modal, .alteditor-inline-cell, .altEditor-datetimepicker),
+:is(
+  .altEditor-modal,
+  .alteditor-inline-cell,
+  .altEditor-datetimepicker
+)[data-alteditor-theme='dark'] {
+  color-scheme: dark;
+}
+.altEditor-modal,
+.altEditor-modal .modal-content {
+  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
+}
+.altEditor-modal .modal-content,
+.altEditor-modal.reveal.is-open {
+  background-color: var(--alteditor-surface, light-dark(#fff, #182231));
+}
+.altEditor-modal .modal-header,
+.altEditor-modal .modal-footer {
+  border-color: var(--alteditor-border, light-dark(#cbd5e1, #526178));
+}
+.altEditor-modal .altEditor-label label,
+.altEditor-modal
+  .select2-container
+  .select2-selection
+  .select2-selection__rendered,
+.altEditor-modal .select2-selection__choice__remove {
+  color: inherit;
+}
+.altEditor-modal .altEditor-input .form-control,
+.altEditor-modal .select2-selection,
+.altEditor-modal .select2-dropdown,
+.altEditor-modal .select2-search__field,
+.alteditor-inline-control {
+  background-color: var(
+    --alteditor-control-background,
+    light-dark(#fff, #111b29)
+  );
+  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
+  border: 1px solid var(--alteditor-border, light-dark(#cbd5e1, #526178));
+  border-radius: var(--alteditor-radius, 0.375rem);
+}
+.altEditor-modal .altEditor-input .form-control:disabled,
+.altEditor-modal .altEditor-input .form-control[readonly],
+.altEditor-modal
+  .select2-container
+  .select2-selection
+  .select2-selection__choice,
+.altEditor-modal .select2-results__option[aria-selected='true'] {
+  background-color: var(--alteditor-hover, light-dark(#eef2f6, #334155));
+  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
+}
+.altEditor-modal .select2-selection__choice {
+  border-color: var(--alteditor-border, light-dark(#cbd5e1, #526178));
+}
+.altEditor-modal .select2-results__option--highlighted[aria-selected] {
+  background: var(--alteditor-action-background, #2458b8);
+  color: var(--alteditor-action-text, #fff);
+}
+.altEditor-modal .altEditor-input .form-control:focus,
+.alteditor-inline-control:focus {
+  border-color: var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
+  outline: 2px solid var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
+  outline-offset: 1px;
+  box-shadow: none;
+}
+.altEditor-modal .modal-footer .btn-primary {
+  background: var(--alteditor-action-background, #2458b8);
+  color: var(--alteditor-action-text, #fff);
+  border-color: var(--alteditor-action-background, #2458b8);
+}
+.altEditor-datetimepicker.xdsoft_datetimepicker,
+.altEditor-datetimepicker .xdsoft_label,
+.altEditor-datetimepicker .xdsoft_select,
+.altEditor-datetimepicker .xdsoft_time_box {
+  background: var(--alteditor-surface, light-dark(#fff, #182231));
+  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
+  border-color: var(--alteditor-border, light-dark(#cbd5e1, #526178));
+}
+.altEditor-datetimepicker .xdsoft_calendar th,
+.altEditor-datetimepicker .xdsoft_calendar td,
+.altEditor-datetimepicker .xdsoft_time_variant .xdsoft_time {
+  background: var(--alteditor-hover, light-dark(#eef2f6, #334155));
+  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
+  border-color: var(--alteditor-border, light-dark(#cbd5e1, #526178));
+}
+.altEditor-datetimepicker .xdsoft_calendar td.xdsoft_current,
+.altEditor-datetimepicker .xdsoft_time_variant .xdsoft_time.xdsoft_current {
+  background: var(--alteditor-action-background, #2458b8);
+  color: var(--alteditor-action-text, #fff);
+  box-shadow: none;
+}
+.altEditor-datetimepicker .xdsoft_prev,
+.altEditor-datetimepicker .xdsoft_next,
+.altEditor-datetimepicker .xdsoft_today_button {
+  filter: invert(0.5);
+  opacity: 1;
+}
 .altEditor-modal .modal-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--alteditor-spacing, 1rem);
 }
 .altEditor-modal .modal-title {
   margin: 0;
@@ -19,7 +129,7 @@
   margin-inline-start: auto;
   padding: 0;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: var(--alteditor-radius, 0.375rem);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -28,10 +138,10 @@
   cursor: pointer;
 }
 .altEditor-modal .altEditor-close:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--alteditor-hover, light-dark(#eef2f6, #334155));
 }
 .altEditor-modal .altEditor-close:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
   outline-offset: 2px;
 }
 .altEditor-modal .altEditor-close:disabled {
@@ -42,7 +152,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--alteditor-spacing, 1rem);
 }
 .altEditor-modal .altEditor-field:last-child {
   margin-bottom: 0;
@@ -72,8 +182,8 @@
 }
 .altEditor-modal .altEditor-input input[type='checkbox'],
 .altEditor-modal .altEditor-input input[type='radio'] {
-  width: 1.25rem !important;
-  height: 1.25rem;
+  width: var(--alteditor-check-size, 1.25rem);
+  height: var(--alteditor-check-size, 1.25rem);
   min-height: 0;
   margin-top: 0.625rem;
   appearance: auto;
@@ -145,11 +255,11 @@
   min-width: 0;
 }
 .alteditor-inline-control[aria-invalid='true'] {
-  outline: 2px solid #b42318;
+  outline: 2px solid var(--alteditor-error, light-dark(#b42318, #fda29b));
 }
 .alteditor-inline-error {
   display: block;
-  color: #b42318;
+  color: var(--alteditor-error, light-dark(#b42318, #fda29b));
   font-size: 0.875em;
 }
 .alteditor-inline-submitting {

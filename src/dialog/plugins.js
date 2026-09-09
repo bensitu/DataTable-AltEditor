@@ -51,7 +51,11 @@ export const methods = {
         columnDef.datetimepicker &&
         typeof $.fn.datetimepicker === 'function'
       ) {
-        $element.datetimepicker(columnDef.datetimepicker);
+        const config = $.extend({}, columnDef.datetimepicker);
+        config.className =
+          (config.className ? config.className + ' ' : '') +
+          'altEditor-datetimepicker';
+        $element.datetimepicker(config);
         $element.attr('data-alteditor-datetimepicker', 'true');
       }
 

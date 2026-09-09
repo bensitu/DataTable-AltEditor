@@ -1,5 +1,40 @@
 import { expect, test } from '@playwright/test';
 
+test('editor themes are customizable and leave unrelated controls unchanged', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto('/tests/browser/table.html');
+  const unrelated = await page.evaluate(() => {
+    const input = document.createElement('input');
+    input.className = 'form-control';
+    document.body.append(input);
+    const stylesheet = document.querySelector('link[href*="altEditor.css"]');
+    function appearance() {
+      const style = getComputedStyle(input);
+      return [style.color, style.backgroundColor, style.border, style.width];
+    }
+    stylesheet.disabled = true;
+    const before = appearance();
+    stylesheet.disabled = false;
+    return { before, after: appearance() };
+  });
+  expect(unrelated.after).toEqual(unrelated.before);
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  const content = page.locator('.altEditor-modal .modal-content');
+  await expect(content).toHaveCSS('background-color', 'rgb(24, 34, 49)');
+  await page.evaluate(() => {
+    document.documentElement.dataset.alteditorTheme = 'light';
+  });
+  await expect(content).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await page.evaluate(() => {
+    document
+      .querySelector('.altEditor-modal')
+      .style.setProperty('--alteditor-surface', '#123456');
+  });
+  await expect(content).toHaveCSS('background-color', 'rgb(18, 52, 86)');
+});
+
 test('dialog controls fit desktop and mobile viewports', async ({ page }) => {
   for (const width of [1280, 375]) {
     await page.setViewportSize({ width, height: 812 });

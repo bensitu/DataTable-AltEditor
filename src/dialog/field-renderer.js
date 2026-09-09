@@ -73,7 +73,7 @@ export const methods = {
       if (type.indexOf('select') >= 0) {
         var select = document.createElement('select');
         select.className =
-          'w-100 form-control form-control-sm' +
+          'form-control form-control-sm' +
           (columnDef.select2 ? ' select2' : '');
         select.id = String(columnDef.name);
         that._setElementAttributes(select, columnDef, [
@@ -102,7 +102,7 @@ export const methods = {
         inputCol.appendChild(select);
       } else if (type.indexOf('textarea') >= 0) {
         var textarea = document.createElement('textarea');
-        textarea.className = 'w-100 form-control form-control-sm';
+        textarea.className = 'form-control form-control-sm';
         textarea.id = String(columnDef.name);
         that._setElementAttributes(textarea, columnDef, [
           'name',
@@ -125,7 +125,7 @@ export const methods = {
       } else {
         var input = document.createElement('input');
         input.className =
-          'w-100 form-control form-control-sm' +
+          'form-control form-control-sm' +
           (columnDef.readonly ? ' readonlyText' : '');
         input.id = String(columnDef.name);
         input.title = String(columnDef.hoverMsg || '');

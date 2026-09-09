@@ -1,7 +1,15 @@
 .examples-page {
+  color-scheme: light dark;
+  --example-page: light-dark(#f4f6fa, #0e1623);
+  --example-surface: light-dark(#fff, #182231);
+  --example-text: light-dark(#243247, #e2e8f0);
+  --example-muted: light-dark(#526178, #afbed2);
+  --example-accent: light-dark(#2458b8, #93c5fd);
+  --example-border: light-dark(#cbd5e1, #526178);
+  --example-subtle: light-dark(#f5f7fb, #223044);
   margin: 0;
-  background: #f4f6fa;
-  color: #243247;
+  background: var(--example-page);
+  color: var(--example-text);
   font-family:
     system-ui,
     -apple-system,
@@ -10,6 +18,84 @@
     sans-serif;
   font-size: 1rem;
   line-height: 1.6;
+}
+[data-bs-theme='light'] .examples-page {
+  color-scheme: light;
+}
+[data-bs-theme='dark'] .examples-page {
+  color-scheme: dark;
+}
+.example-theme {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: var(--example-muted);
+  font-size: 0.875rem;
+}
+.example-theme select {
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  background-color: var(--example-surface);
+  color: var(--example-text);
+  border: 1px solid var(--example-border);
+  border-radius: 0.375rem;
+  font: inherit;
+}
+.example-table table.dataTable {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--example-surface);
+  color: var(--example-text);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+.example-table table.dataTable thead,
+.example-table table.dataTable tfoot {
+  color: var(--example-text);
+  border-color: var(--example-border);
+}
+.example-table table.dataTable tbody tr {
+  background: var(--example-surface);
+  color: var(--example-text);
+}
+.example-table table.dataTable tbody tr:nth-child(even) {
+  background: var(--example-subtle);
+}
+.example-table table.dataTable tbody tr.selected {
+  background: #2458b8;
+  color: #fff;
+}
+.example-table table.dataTable tbody tr > * {
+  box-shadow: none;
+}
+.example-table table.dataTable th,
+.example-table table.dataTable td {
+  border-color: var(--example-border);
+}
+.example-table .dt-input {
+  background-color: var(--example-surface);
+  color: var(--example-text);
+  border: 1px solid var(--example-border);
+  border-radius: 0.375rem;
+  font-family: inherit;
+}
+.example-table .dt-paging-button {
+  font-family: inherit;
+}
+.example-table .dt-container .dt-paging .dt-paging-button {
+  color: var(--example-text) !important;
+}
+.example-table .dt-container .dt-paging .dt-paging-button.disabled {
+  color: var(--example-muted) !important;
+  opacity: 0.65;
+}
+.example-table .dt-container .dt-paging .dt-paging-button.current {
+  background: var(--example-subtle);
+  border-color: var(--example-border);
 }
 .example-main {
   box-sizing: border-box;
@@ -25,7 +111,7 @@
   margin-bottom: 2rem;
 }
 .examples-page a {
-  color: #2458b8;
+  color: var(--example-accent);
   text-decoration: none;
 }
 .examples-page a:hover {
@@ -33,7 +119,7 @@
 }
 .example-header .example-eyebrow {
   margin: 0 0 0.5rem;
-  color: #526681;
+  color: var(--example-muted);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -49,7 +135,7 @@
 .example-header p {
   max-width: 75ch;
   margin: 0 0 0.75rem;
-  color: #526178;
+  color: var(--example-muted);
 }
 .example-main section {
   margin-top: 2rem;
@@ -64,8 +150,8 @@
   padding: 1.5rem;
   margin: 1.5rem 0;
   overflow-x: auto;
-  background: #fff;
-  border: 1px solid #dce3ed;
+  background: var(--example-surface);
+  border: 1px solid var(--example-border);
   border-radius: 0.75rem;
   box-shadow: 0 4px 18px rgba(24, 43, 73, 0.04);
 }
@@ -77,7 +163,7 @@
   padding-block: 0.75rem;
 }
 .example-table table.dataTable thead {
-  background: #f5f7fb;
+  background: var(--example-subtle);
 }
 .example-table .dt-layout-row {
   gap: 1rem;
@@ -91,16 +177,16 @@
   margin: 0;
   min-height: 2.75rem;
   padding: 0.5rem 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--example-border);
   border-radius: 0.375rem;
-  background: #fff;
-  color: #243247;
+  background: var(--example-surface);
+  color: var(--example-text);
   font: inherit;
   font-size: 0.875rem;
 }
 .example-table .dt-buttons .dt-button:hover:not(.disabled) {
-  border-color: #2458b8;
-  background: #edf3ff;
+  border-color: var(--example-accent);
+  background: var(--example-subtle);
 }
 .example-table .dt-buttons .dt-button.disabled {
   opacity: 0.45;
@@ -114,7 +200,7 @@
 .example-table .dt-info,
 .example-table .dt-search,
 .example-table .dt-length {
-  color: #526178;
+  color: var(--example-muted);
   font-size: 0.875rem;
 }
 .example-grid {
@@ -131,24 +217,24 @@
 .example-grid a {
   flex: 1;
   padding: 1.5rem;
-  border: 1px solid #dce3ed;
+  border: 1px solid var(--example-border);
   border-radius: 0.75rem;
-  background: #fff;
+  background: var(--example-surface);
   font-weight: 600;
 }
 .example-grid a:hover {
-  border-color: #2458b8;
+  border-color: var(--example-accent);
   text-decoration: none;
 }
 .example-grid span {
   display: block;
   margin-top: 0.5rem;
-  color: #526178;
+  color: var(--example-muted);
   font-size: 0.875rem;
   font-weight: 400;
 }
 .example-main :focus-visible {
-  outline: 2px solid #2458b8;
+  outline: 2px solid var(--example-accent);
   outline-offset: 3px;
 }
 @media (max-width: 640px) {

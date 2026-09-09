@@ -13,11 +13,13 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Added
 
+- Automatic light and dark editor themes, scoped CSS custom properties, and an Appearance selector shared by the examples.
 - Security policy covering supported versions, private vulnerability reporting, and application responsibilities.
 - Code of conduct covering participation standards, reporting concerns, and maintainer responses.
 
 ### Changed
 
+- Examples use consistent DataTables table styling without overlapping Bootstrap table classes.
 - Example pages share responsive navigation, typography, table containers, and an example directory. Long dialog forms scroll within the available mobile viewport.
 - Historical changelog entries are grouped by change type and listed in reverse chronological order, preserving available dates and contributor credits.
 
