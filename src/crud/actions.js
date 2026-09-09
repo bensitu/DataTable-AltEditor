@@ -1,160 +1,20 @@
-import $ from 'jquery';
+import { $, root as window, document } from '../core/dependencies.js';
+import { emit } from '../core/events.js';
+import { invoke, resolveRow } from '../data/row-data.js';
+import { withValue } from '../data/path.js';
 
+/** @callback PersistenceCallback
+ * @param {Object} editor AltEditor instance.
+ * @param {Object|Array} rowData Submitted values; deletion receives an array of rows.
+ * @param {Function} success Accept an optional persisted row.
+ * @param {Function} error Reject with an error.
+ * @param {Object|Array} [originalRowData] Original row for editing.
+ */
 export const methods = {
-  _editRowData: function () {
-    var that = this;
-    var snapshot = this._editSnapshot;
-    if (!snapshot || this._submitting) return;
-
-    var $form = $('form[name="altEditor-edit-form-' + this.random_id + '"]');
-    if (!$form.length) {
-      this._errorCallback(new Error('Edit form not found'));
-      return;
-    }
-
-    var errors = this._validateFormData($form);
-    if (errors.length) {
-      this._errorCallback(new Error(errors.join('\n')));
-      return;
-    }
-
-    this._setDialogSubmitting(true);
-    this._collectFormData($form)
-      .then(function (rowData) {
-        try {
-          that.onEditRow(
-            that,
-            rowData,
-            function (data) {
-              that._editRowCallback(data);
-            },
-            function (error) {
-              that._errorCallback(error);
-            },
-            snapshot.originalData,
-          );
-        } catch (error) {
-          that._errorCallback(error);
-        }
-      })
-      .catch(function (error) {
-        that._errorCallback(error);
-      });
-  },
-  _deleteRow: function () {
-    if (this._submitting) return;
-    var that = this;
-    var snapshot = this._deleteSnapshot;
-    if (!snapshot || !snapshot.rows || snapshot.rows.length === 0) {
-      this._errorCallback(new Error('No deletion target is available'));
-      return;
-    }
-
-    this._setDialogSubmitting(true);
-    try {
-      this.onDeleteRow(
-        this,
-        snapshot.rows.slice(),
-        function (data) {
-          that._deleteRowCallback(data);
-        },
-        function (error) {
-          that._errorCallback(error);
-        },
-      );
-    } catch (error) {
-      this._errorCallback(error);
-    }
-  },
-  _addRowData: function () {
-    if (this._submitting) return;
-    var that = this;
-    var $form = $('form[name="altEditor-add-form-' + this.random_id + '"]');
-    if (!$form.length) {
-      this._errorCallback(new Error('Add form not found'));
-      return;
-    }
-
-    var errors = this._validateFormData($form);
-    if (errors.length) {
-      this._errorCallback(new Error(errors.join('\n')));
-      return;
-    }
-
-    this._setDialogSubmitting(true);
-    this._collectFormData($form)
-      .then(function (rowData) {
-        try {
-          that.onAddRow(
-            that,
-            rowData,
-            function (data) {
-              that._addRowCallback(data);
-            },
-            function (error) {
-              that._errorCallback(error);
-            },
-          );
-        } catch (error) {
-          that._errorCallback(error);
-        }
-      })
-      .catch(function (error) {
-        that._errorCallback(error);
-      });
-  },
-  _deleteRowCallback: function (response, status, more) {
-    var snapshot = this._deleteSnapshot;
-    if (!snapshot || !snapshot.rowIndexes || snapshot.rowIndexes.length === 0) {
-      this._errorCallback(new Error('Deletion target is no longer available'));
-      return;
-    }
-
-    try {
-      this.s.dt.rows(snapshot.rowIndexes).remove();
-      this.s.dt.draw('full-hold');
-      this._deleteSnapshot = null;
-      this._completeSuccessfulSubmit();
-      if (this.debug) console.log('_deleteRowCallback completed.', response);
-    } catch (error) {
-      this._errorCallback(error);
-    }
-  },
-  _addRowCallback: function (response, status, more) {
-    var data = this._normalizeResponseData(response);
-    try {
-      this.s.dt.row.add(data).draw(false);
-      this._completeSuccessfulSubmit();
-      if (this.debug) console.log('_addRowCallback completed.', data);
-    } catch (error) {
-      this._errorCallback(error);
-    }
-  },
-  _editRowCallback: function (response, status, more) {
-    var data = this._normalizeResponseData(response);
-    var snapshot = this._editSnapshot;
-    if (!snapshot) {
-      this._errorCallback(new Error('Edit target is no longer available'));
-      return;
-    }
-
-    try {
-      var row = this._resolveSnapshotRow(snapshot);
-      if (!row) throw new Error('Edit target row no longer exists');
-      row.data(data);
-      var currentPage = this.s.dt.page();
-      this.s.dt.draw('page');
-      this.s.dt.page(currentPage).draw('page');
-      this._editSnapshot = null;
-      this._completeSuccessfulSubmit();
-      if (this.debug) console.log('_editRowCallback completed.', data);
-    } catch (error) {
-      this._errorCallback(error);
-    }
-  },
   _errorCallback: function (response, status, more) {
     var error = response || {};
-    var message = this.language.error.message;
+    var message =
+      typeof response === 'string' ? response : this.language.error.message;
 
     if (error instanceof Error && error.message) {
       message = error.message;
@@ -181,33 +41,6 @@ export const methods = {
     this._showErrorMessage(message);
     this._setDialogSubmitting(false);
   },
-  onAddRow: function (dt, rowdata, success, error) {
-    try {
-      success(rowdata);
-    } catch (exception) {
-      if (error) error(exception);
-    }
-  },
-  onEditRow: function (dt, rowdata, success, error, originalRowData) {
-    try {
-      var merged = $.extend(
-        true,
-        Array.isArray(originalRowData) ? [] : {},
-        originalRowData || {},
-        rowdata || {},
-      );
-      success(merged);
-    } catch (exception) {
-      if (error) error(exception);
-    }
-  },
-  onDeleteRow: function (dt, rowdata, success, error) {
-    try {
-      success(rowdata);
-    } catch (exception) {
-      if (error) error(exception);
-    }
-  },
   _normalizeResponseData: function (response) {
     if (typeof response !== 'string') return response;
     var trimmed = response.trim();
@@ -220,5 +53,141 @@ export const methods = {
       }
     }
     return response;
+  },
+  _addRowData: function () {
+    return this._submitDialog('add');
+  },
+  _editRowData: function () {
+    return this._submitDialog('edit');
+  },
+  _deleteRow: function () {
+    return this._submitDialog('delete');
+  },
+  _submitDialog: function (action) {
+    if (this._destroyed || this._submitting || this._completed) return;
+    const editor = this;
+    const snapshot =
+      action === 'edit' ? this._editSnapshot : this._deleteSnapshot;
+    const token = this._dialogToken;
+    const active = () => !editor._destroyed && token === editor._dialogToken;
+    const payload = {
+      action,
+      mode: 'dialog',
+      row: snapshot && snapshot.originalData,
+      rows: snapshot && snapshot.rows,
+    };
+    const fail = (error) => {
+      if (active()) {
+        editor._errorCallback(error);
+        emit(editor, 'error', Object.assign({}, payload, { error }));
+      }
+    };
+    if (action !== 'add' && !snapshot) {
+      fail(new Error('Target row is unavailable'));
+      return;
+    }
+    const form = $(this.modal_selector).find('form');
+    const errors = this._validateFormData(form);
+    if (errors.length) {
+      fail(new Error(errors.join('\n')));
+      return;
+    }
+    this._setDialogSubmitting(true);
+    let collection;
+    try {
+      collection =
+        action === 'delete'
+          ? Promise.resolve(snapshot.rows.slice())
+          : this._collectFormData(form);
+    } catch (error) {
+      fail(error);
+      return;
+    }
+    return collection
+      .then((values) => {
+        if (!active()) return;
+        payload.values = values;
+        if (!emit(editor, 'pre-submit', payload)) {
+          editor._setDialogSubmitting(false);
+          return;
+        }
+        if (!active()) return;
+        if (action === 'edit' && !resolveRow(editor.api(), snapshot))
+          throw new Error('Target row is unavailable');
+        if (
+          action === 'delete' &&
+          snapshot.targets.some((target) => !resolveRow(editor.api(), target))
+        )
+          throw new Error('Target row is unavailable');
+        emit(editor, 'submit', payload);
+        const callback =
+          editor[
+            action === 'add'
+              ? 'onAddRow'
+              : action === 'edit'
+                ? 'onEditRow'
+                : 'onDeleteRow'
+          ];
+        invoke(
+          callback,
+          editor,
+          values,
+          action === 'edit' ? [snapshot.originalData] : [],
+          (response) => {
+            if (!active()) return;
+            try {
+              const api = editor.api();
+              if (action === 'delete') {
+                const rows = snapshot.targets.map((target) =>
+                  resolveRow(api, target),
+                );
+                if (rows.some((row) => !row))
+                  throw new Error('Target row is unavailable');
+                api.rows(rows.map((row) => row.index())).remove();
+              } else {
+                let candidate =
+                  action === 'edit' ? snapshot.originalData : values;
+                if (action === 'edit') {
+                  form.find('input, select, textarea').each(function () {
+                    if (
+                      !this.disabled &&
+                      this.name &&
+                      (this.type !== 'file' || this.files.length)
+                    )
+                      candidate = withValue(
+                        candidate,
+                        this.name,
+                        editor._getValueByPath(values, this.name),
+                      );
+                  });
+                }
+                const data =
+                  response === undefined || response === values
+                    ? candidate
+                    : editor._normalizeResponseData(response);
+                if (!data || typeof data !== 'object')
+                  throw new Error(
+                    'Persistence must return a row object or array',
+                  );
+                if (action === 'add') api.row.add(data);
+                else {
+                  const row = resolveRow(api, snapshot);
+                  if (!row) throw new Error('Target row is unavailable');
+                  row.data(data);
+                }
+              }
+              api.draw(false);
+              editor._completed = true;
+              editor._setDialogSubmitting(false);
+              emit(editor, 'success', payload);
+              editor._completeSuccessfulSubmit();
+            } catch (error) {
+              fail(error);
+            }
+          },
+          fail,
+        );
+      })
+      .catch(fail);
   },
 };

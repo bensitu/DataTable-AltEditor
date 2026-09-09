@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import { $, root as window, document } from './dependencies.js';
 
 /** @typedef {Object} EditorEventPayload
  * @property {Object} editor AltEditor instance.

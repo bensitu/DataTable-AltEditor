@@ -56,6 +56,7 @@ test('adds, edits and deletes the captured row despite selection changes', async
   table.row(1).deselect();
   table.row(0).select();
   editor._deleteRow();
+  await flush();
   expect(
     table
       .rows()
@@ -118,4 +119,115 @@ test('loads configured language and releases dialog elements on destroy', () => 
   table.destroy();
   tables.pop();
   expect(document.querySelector(editor.modal_selector)).toBeNull();
+});
+
+test('supports cancelable submission, duplicate settlement and retry after failure', async () => {
+  let reject = true;
+  const callback = vi.fn((_editor, values, success, error) => {
+    if (reject) {
+      error(new Error('Unavailable'));
+      success(values);
+    } else {
+      success(values);
+      success(values);
+      error(new Error('Late error'));
+    }
+  });
+  const { editor, table } = create({ onEditRow: callback });
+  editor.openEditDialog(0);
+  $(editor.modal_selector).find('[name="name"]').val('Ann');
+  $(table.table().node()).one('alteditor-pre-submit.dt', (event) =>
+    event.preventDefault(),
+  );
+  await editor._editRowData();
+  expect(callback).not.toHaveBeenCalled();
+  await editor._editRowData();
+  expect(table.row(0).data().name).toBe('Alice');
+  reject = false;
+  await editor._editRowData();
+  expect(table.row(0).data().name).toBe('Ann');
+  expect(editor._submitting).toBe(false);
+});
+
+test('rejects a removed target and keeps delete failures retryable', async () => {
+  let reject = true;
+  const { editor, table } = create({
+    onDeleteRow: (_editor, rows, success, error) =>
+      reject ? error('Unavailable') : success(rows),
+  });
+  editor.openDeleteDialog(0);
+  await editor._deleteRow();
+  expect(table.rows().count()).toBe(2);
+  expect(editor._submitting).toBe(false);
+  reject = false;
+  await editor._deleteRow();
+  expect(table.rows().count()).toBe(1);
+  editor.openEditDialog(1);
+  table.row(1).remove();
+  table.row.add({ id: 'c', name: 'Carol' }).draw();
+  await editor._editRowData();
+  expect(table.rows().data().toArray()).toEqual([{ id: 'c', name: 'Carol' }]);
+});
+
+test('uses uniqueMsg and handles encoded files, read failures and aborts', async () => {
+  const { editor, table } = create({
+    columns: [
+      {
+        data: 'name',
+        title: 'Name',
+        unique: true,
+        uniqueMsg: 'Name already exists',
+      },
+      { data: 'attachment', title: 'File', type: 'file', defaultContent: '' },
+    ],
+  });
+  editor.openAddDialog();
+  const form = $(editor.modal_selector).find('form');
+  form.find('[name="name"]').val('Alice');
+  expect(editor._validateFormData(form)).toContain('Name already exists');
+  form.find('[name="name"]').val('Carol');
+  const file = new File(['hello'], 'hello.txt');
+  Object.defineProperty(form.find('[type="file"]')[0], 'files', {
+    value: [file],
+    configurable: true,
+  });
+  const values = await editor._collectFormData(form);
+  expect(values.attachment).toContain('base64,aGVsbG8=');
+  editor.encodeFiles = false;
+  expect((await editor._collectFormData(form)).attachment).toBe(file);
+  editor.encodeFiles = true;
+  for (const event of ['error', 'abort']) {
+    vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(
+      function () {
+        this.dispatchEvent(new Event(event));
+      },
+    );
+    await editor._addRowData();
+    expect(editor._submitting).toBe(false);
+    expect(table.rows().count()).toBe(2);
+    vi.restoreAllMocks();
+  }
+});
+
+test('loads language from a URL and ignores persistence after destroy', async () => {
+  vi.spyOn($, 'ajax').mockImplementation((options) => {
+    options.success({ add: { title: 'Create item' } });
+    return { abort() {} };
+  });
+  let success;
+  const { editor, table } = create({
+    language: { altEditorUrl: '/language.json' },
+    onAddRow: (_editor, _values, accept) => {
+      success = accept;
+    },
+  });
+  editor.openAddDialog();
+  expect($(editor.modal_selector).find('.modal-title').text()).toBe(
+    'Create item',
+  );
+  $(editor.modal_selector).find('[name="name"]').val('Carol');
+  await editor._addRowData();
+  editor.destroy();
+  success({ name: 'Carol' });
+  expect(table.rows().count()).toBe(2);
 });

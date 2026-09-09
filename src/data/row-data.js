@@ -26,3 +26,25 @@ export function resolveRow(api, snapshot) {
     ? byIndex
     : null;
 }
+
+/** Invoke a persistence callback; only its first settlement is accepted. */
+export function invoke(callback, editor, values, extra, success, error) {
+  let settled = false;
+  const accept = (handler) => (value) => {
+    if (settled) return;
+    settled = true;
+    handler(value);
+  };
+  const resolve = accept(success);
+  const reject = accept(error);
+  try {
+    if (callback)
+      callback.apply(
+        editor,
+        [editor, values, resolve, reject].concat(extra || []),
+      );
+    else resolve(values);
+  } catch (failure) {
+    reject(failure);
+  }
+}

@@ -1,4 +1,6 @@
-import $ from 'jquery';
+import { emit } from '../core/events.js';
+import { mergeOptions } from '../core/options.js';
+import { $, root as window, document } from '../core/dependencies.js';
 import { snapshotRow } from '../data/row-data.js';
 export const methods = {
   _setup: function () {
@@ -23,6 +25,8 @@ export const methods = {
     modal.setAttribute('aria-describedby', bodyId);
     modal.setAttribute('data-backdrop', 'static');
     modal.setAttribute('data-keyboard', 'false');
+    modal.setAttribute('data-bs-backdrop', 'static');
+    modal.setAttribute('data-bs-keyboard', 'false');
     modal.setAttribute('data-reveal', '');
     modal.tabIndex = -1;
 
@@ -64,16 +68,24 @@ export const methods = {
 
     var $modal = $(this.modal_selector);
     var cleanupDialog = function () {
+      if (!that._dialogOpen) return;
+      that._dialogOpen = false;
+      that._dialogToken = {};
       that._cleanupPlugins();
       that._removeModalEvents(this);
       that._editSnapshot = null;
       that._deleteSnapshot = null;
       that._setDialogSubmitting(false);
+      if (that._returnFocus && that._returnFocus.isConnected)
+        that._returnFocus.focus();
+      emit(that, 'close', { action: that._action, mode: 'dialog' });
     };
     $modal.on('hidden.bs.modal' + this.s.namespace, cleanupDialog);
+    $modal.on('hide.bs.modal' + this.s.namespace, function (event) {
+      if (that._submitting && !that._destroyed) event.preventDefault();
+    });
     $modal.on('closed.zf.reveal' + this.s.namespace, function () {
       cleanupDialog.call(this);
-      $('.reveal-overlay').hide();
     });
 
     var buttonActions = [
@@ -176,7 +188,11 @@ export const methods = {
           return value == dt.cell(rowIndex, index).data();
         });
       });
-      if (duplicate) event.target.setCustomValidity(that.language.error.unique);
+      if (duplicate)
+        event.target.setCustomValidity(
+          that.completeColumnDefs()[index].uniqueMsg ||
+            that.language.error.unique,
+        );
     };
 
     $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
@@ -217,9 +233,14 @@ export const methods = {
       },
     };
 
-    this.language = $.extend(true, {}, defaults, this.language || {});
+    this.language = mergeOptions(defaults, this.language || {});
   },
+  /** Open the edit dialog.
+   * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
+   */
   openEditDialog: function (rowSelector) {
+    if (this._destroyed || this._submitting) return false;
+    this._cleanupPlugins();
     var dt = this.s.dt;
     var selectedRows =
       rowSelector === undefined
@@ -249,6 +270,11 @@ export const methods = {
     var that = this;
     columnDefs.forEach(function (columnDef) {
       if (
+        typeof columnDef.name !== 'number' &&
+        typeof columnDef.name !== 'string'
+      )
+        return;
+      if (
         columnDef.name === null ||
         columnDef.name === undefined ||
         columnDef.editable === false
@@ -270,7 +296,12 @@ export const methods = {
       .trigger('alteditor:edit_dialog_opened');
     this._bindDialog('edit');
   },
+  /** Open the delete dialog.
+   * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
+   */
   openDeleteDialog: function (rowSelector) {
+    if (this._destroyed || this._submitting) return false;
+    this._cleanupPlugins();
     var selectedRows =
       rowSelector === undefined
         ? this.s.dt.rows({ selected: true })
@@ -347,7 +378,12 @@ export const methods = {
       .trigger('alteditor:delete_dialog_opened');
     this._bindDialog('delete');
   },
+  /** Open the add dialog.
+   * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
+   */
   openAddDialog: function () {
+    if (this._destroyed || this._submitting) return false;
+    this._cleanupPlugins();
     var columnDefs = this.completeColumnDefs();
     this.createDialog(
       columnDefs,
@@ -360,6 +396,11 @@ export const methods = {
 
     var that = this;
     columnDefs.forEach(function (columnDef) {
+      if (
+        typeof columnDef.name !== 'number' &&
+        typeof columnDef.name !== 'string'
+      )
+        return;
       if (
         columnDef.name === null ||
         columnDef.name === undefined ||

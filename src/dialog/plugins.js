@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import { $, root as window, document } from '../core/dependencies.js';
 
 export const methods = {
   _initializePlugins: function () {
@@ -12,6 +12,11 @@ export const methods = {
     };
 
     this.columnDefs.forEach(function (columnDef) {
+      if (
+        typeof columnDef.name !== 'string' &&
+        typeof columnDef.name !== 'number'
+      )
+        return;
       var $element = $(selector).find('#' + escapeSelector(columnDef.name));
       if (!$element.length) return;
 
@@ -47,6 +52,7 @@ export const methods = {
         typeof $.fn.datetimepicker === 'function'
       ) {
         $element.datetimepicker(columnDef.datetimepicker);
+        $element.attr('data-alteditor-datetimepicker', 'true');
       }
 
       if (typeof columnDef.editorOnChange === 'function') {
@@ -80,6 +86,15 @@ export const methods = {
           } catch (_error) {}
         });
     }
+    if (typeof $.fn.datetimepicker === 'function')
+      $(selector)
+        .find('[data-alteditor-datetimepicker]')
+        .each(function () {
+          const picker = $(this).data('DateTimePicker');
+          if (picker && picker.destroy) picker.destroy();
+          else $(this).datetimepicker('destroy');
+          $(this).removeAttr('data-alteditor-datetimepicker');
+        });
     $(selector).find('[alt-editor-id]').off(this.s.modalNamespace);
   },
   _setFieldValue: function ($element, columnDef, value) {
@@ -129,7 +144,12 @@ export const methods = {
 
     $element.val(normalized);
   },
+  /** Replace select options while retaining the current value when available.
+   * @param {Element|jQuery} $select Select control.
+   * @param {Array|Object} options Available values and labels.
+   */
   reloadOptions: function ($select, options) {
+    $select = $($select);
     if (!$select || !$select.length) return;
     var oldValue = $select.val();
     var normalized = this._normalizeOptions(options || []);

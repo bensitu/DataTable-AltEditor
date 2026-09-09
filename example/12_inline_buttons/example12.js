@@ -92,49 +92,18 @@ $(document).ready(function() {
     },
     responsive: true,
     altEditor: true,     // Enable altEditor
-    buttons: []          // no buttons, however this seems compulsory
+    buttons: []
   });
 
-  // Edit
-  $(document).on('click', "[id^='example'] tbody ", 'tr', function () {
-    var tableID = $(this).closest('table').attr('id');    // id of the table
-    var that = $( '#'+tableID )[0].altEditor;
-    that._openEditModal();
-    $('#altEditor-edit-form-' + that.random_id)
-                .off('submit')
-                .on('submit', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    that._editRowData();
-                });
+  $('#example tbody').on('click', 'tr', function () {
+    myTable.altEditor().openEditDialog(this);
   });
-
-  // Delete
-  $(document).on('click', "[id^='example'] .delbutton", 'tr', function (x) {
-    var tableID = $(this).closest('table').attr('id');    // id of the table
-    var that = $( '#'+tableID )[0].altEditor;
-    that._openDeleteModal();
-    $('#altEditor-delete-form-' + that.random_id)
-                .off('submit')
-                .on('submit', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    that._deleteRow();
-                });
-    x.stopPropagation(); //avoid open "Edit" dialog
+  $('#example tbody').on('click', '.delbutton', function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    myTable.altEditor().openDeleteDialog($(this).closest('tr'));
   });
-
-  // Add row
   $('#addbutton').on('click', function () {
-    var that = $( '#example' )[0].altEditor;
-    that._openAddModal();
-    $('#altEditor-add-form-' + that.random_id)
-                .off('submit')
-                .on('submit', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    that._addRowData();
-                });
+    myTable.altEditor().openAddDialog();
   });
 });
-

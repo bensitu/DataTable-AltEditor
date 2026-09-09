@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import { $, root as window, document } from '../../core/dependencies.js';
 export function available() {
   return !!(window.Foundation && window.Foundation.Reveal);
 }

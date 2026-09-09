@@ -21,11 +21,12 @@ for (const mode of ['browser', 'AMD', 'CommonJS']) {
       win.define.amd = true;
     }
     if (mode === 'CommonJS') {
-      win.exports = {};
-      win.module = { exports: win.exports };
-      win.require = (name) => (name === 'jquery' ? win.jQuery : win.DataTable);
+      const initialize = require('../dist/dataTables.altEditor.js');
+      const AltEditor = initialize(win, win.jQuery);
+      expect(AltEditor).toBe(win.DataTable.altEditor);
     }
-    win.eval(readFileSync('dist/dataTables.altEditor.js', 'utf8'));
+    if (mode !== 'CommonJS')
+      win.eval(readFileSync('dist/dataTables.altEditor.js', 'utf8'));
     const table = new win.DataTable('table', {
       data: [[1]],
       columns: [{ title: 'Value' }],

@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import { $, root as window, document } from './dependencies.js';
 import { defaults, normalizeOptions } from './options.js';
 import { normalizeColumns } from './columns.js';
 import { emit } from './events.js';
@@ -112,6 +112,9 @@ export function createAltEditor(DataTable) {
     },
     _bindDialog: function (action) {
       this._action = action;
+      this._completed = false;
+      this._dialogOpen = true;
+      this._dialogToken = {};
       const editor = this;
       $(this.modal_selector)
         .find('form')
@@ -149,8 +152,15 @@ export function createAltEditor(DataTable) {
     /** Refresh Ajax data, or redraw client-side data. */
     refresh: function () {
       const api = this.api();
-      if (api.ajax.url()) api.ajax.reload(null, false);
-      else api.draw(false);
+      const payload = { action: 'refresh', mode: 'dialog' };
+      if (!emit(this, 'pre-submit', payload)) return;
+      emit(this, 'submit', payload);
+      if (api.ajax.url())
+        api.ajax.reload(() => emit(this, 'success', payload), false);
+      else {
+        api.draw(false);
+        emit(this, 'success', payload);
+      }
     },
     /** Dispose editor-owned listeners, integrations, and dialog elements. */
     destroy: function () {
@@ -160,7 +170,6 @@ export function createAltEditor(DataTable) {
       this._cleanupPlugins();
       const modal = $(this.modal_selector);
       if (this._adapter && modal.length) {
-        this._adapter.hide(modal[0]);
         this._adapter.dispose(modal[0]);
       }
       modal.off(this.s.namespace).remove();

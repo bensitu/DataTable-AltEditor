@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import { $, root as window, document } from '../core/dependencies.js';
 
 export const methods = {
   createDialog: function (
@@ -28,13 +28,17 @@ export const methods = {
       var title = String(columnDef.title || '')
         .replace(/(<([^>]+)>)/gi, '')
         .trim();
-      if (columnDef.name === null || columnDef.name === undefined) return;
+      if (
+        typeof columnDef.name !== 'string' &&
+        typeof columnDef.name !== 'number'
+      )
+        return;
 
       if (String(columnDef.type).indexOf('hidden') >= 0) {
         var hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.id = String(columnDef.name);
-        that._setElementAttributes(hidden, columnDef, ['name']);
+        that._setElementAttributes(hidden, columnDef, ['name', 'disabled']);
         if (columnDef.value !== undefined && columnDef.value !== null)
           hidden.value = columnDef.value;
         col.appendChild(hidden);
@@ -317,6 +321,8 @@ export const methods = {
     return Array.from(new Set(errors));
   },
   _setElementAttributes: function (element, columnDef, attributes) {
+    if (columnDef.special !== undefined)
+      element.setAttribute('data-special', String(columnDef.special));
     attributes.forEach(function (attribute) {
       var value = columnDef[attribute];
       if (value === undefined || value === null || value === false) return;
@@ -334,7 +340,7 @@ export const methods = {
     });
   },
   getBase64: function (file, onSuccess, onError) {
-    var reader = new FileReader();
+    var reader = new window.FileReader();
     reader.onload = function () {
       if (onSuccess) onSuccess(reader.result);
     };
