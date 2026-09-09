@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import DataTable from 'datatables.net';
 import 'datatables.net-select';
+import 'datatables.net-buttons';
 import '../src/index.js';
 import { afterEach, expect, test, vi } from 'vitest';
 
@@ -230,4 +231,15 @@ test('loads language from a URL and ignores persistence after destroy', async ()
   editor.destroy();
   success({ name: 'Carol' });
   expect(table.rows().count()).toBe(2);
+});
+
+test('restores application toolbar actions when the editor is destroyed', () => {
+  const action = vi.fn();
+  const { editor, table } = create({
+    layout: { topStart: 'buttons' },
+    buttons: [{ name: 'add', text: 'Add', action }],
+  });
+  editor.destroy();
+  table.button('add:name').trigger();
+  expect(action).toHaveBeenCalledOnce();
 });

@@ -89,57 +89,24 @@ export const methods = {
       cleanupDialog.call(this);
     });
 
-    var buttonActions = [
-      {
-        name: 'edit',
-        open: function () {
-          that._openEditModal();
-        },
-        form: 'edit',
-        submit: function () {
-          that._editRowData();
-        },
-      },
-      {
-        name: 'delete',
-        open: function () {
-          that._openDeleteModal();
-        },
-        form: 'delete',
-        submit: function () {
-          that._deleteRow();
-        },
-      },
-      {
-        name: 'add',
-        open: function () {
-          that._openAddModal();
-        },
-        form: 'add',
-        submit: function () {
-          that._addRowData();
-        },
-      },
-    ];
-
     if (typeof dt.button === 'function') {
-      buttonActions.forEach(function (definition) {
-        var button = dt.button(definition.name + ':name');
-        if (
-          !button ||
-          (typeof button.count === 'function' && button.count() === 0)
-        )
-          return;
-        button.action(function () {
-          definition.open();
-          $('#altEditor-' + definition.form + '-form-' + that.random_id)
-            .off('submit' + that.s.modalNamespace)
-            .on('submit' + that.s.modalNamespace, function (event) {
-              event.preventDefault();
-              event.stopPropagation();
-              definition.submit();
-            });
-        });
+      ['add', 'edit', 'delete', 'refresh'].forEach(function (name) {
+        const button = dt.button(name + ':name');
+        if (!button || !button.count()) return;
+        const original = button.action();
+        const action = function () {
+          if (name === 'refresh') that.refresh();
+          else
+            that[
+              name === 'add'
+                ? 'openAddDialog'
+                : name === 'edit'
+                  ? 'openEditDialog'
+                  : 'openDeleteDialog'
+            ]();
+        };
+        that._buttonActions.push({ name, original, action });
+        button.action(action);
       });
     }
 
@@ -198,24 +165,6 @@ export const methods = {
 
     $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
     $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
-
-    if (typeof dt.button === 'function') {
-      var refreshButton = dt.button('refresh:name');
-      if (
-        refreshButton &&
-        (!refreshButton.count || refreshButton.count() > 0)
-      ) {
-        refreshButton.action(function (_event, tableApi) {
-          if (
-            tableApi.ajax &&
-            typeof tableApi.ajax.url === 'function' &&
-            tableApi.ajax.url()
-          ) {
-            tableApi.ajax.reload();
-          }
-        });
-      }
-    }
   },
   _initLanguage: function () {
     var defaults = {

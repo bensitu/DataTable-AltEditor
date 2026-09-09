@@ -38,6 +38,7 @@ export function createAltEditor(DataTable) {
     this.dom = { modal: $('<div class="dt-altEditor-handle"/>') };
     this._destroyed = false;
     this._submitting = false;
+    this._buttonActions = [];
     [
       'closeModalOnSuccess',
       'encodeFiles',
@@ -185,6 +186,12 @@ export function createAltEditor(DataTable) {
       if (this._destroyed) return;
       this._destroyed = true;
       this._inline.destroy();
+      this._buttonActions.forEach((entry) => {
+        const button = this.api().button(entry.name + ':name');
+        if (button.count() && button.action() === entry.action)
+          button.action(entry.original || function () {});
+      });
+      this._buttonActions = [];
       if (this._languageRequest) this._languageRequest.abort();
       this._cleanupPlugins();
       const modal = $(this.modal_selector);
