@@ -1,0 +1,24 @@
+{
+  "modalClose": "Fermer",
+  "edit": {
+    "title": "Modifier un enregistrement",
+    "button": "Enregistrer"
+  },
+  "add": {
+    "title": "Ajouter un enregistrement",
+    "button": "Ajouter"
+  },
+  "delete": {
+    "title": "Supprimer des enregistrements",
+    "button": "Supprimer"
+  },
+  "deleteMessage": "Voulez-vous supprimer les enregistrements sélectionnés ?",
+  "success": "Opération réussie.",
+  "error": {
+    "message": "Une erreur inconnue s’est produite.",
+    "label": "Erreur",
+    "responseCode": "Code de réponse : ",
+    "required": "Ce champ est obligatoire",
+    "unique": "La valeur de ce champ existe déjà"
+  }
+}

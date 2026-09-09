@@ -1,0 +1,24 @@
+{
+  "modalClose": "Schließen",
+  "edit": {
+    "title": "Datensatz bearbeiten",
+    "button": "Speichern"
+  },
+  "add": {
+    "title": "Datensatz hinzufügen",
+    "button": "Hinzufügen"
+  },
+  "delete": {
+    "title": "Datensätze löschen",
+    "button": "Löschen"
+  },
+  "deleteMessage": "Möchten Sie die ausgewählten Datensätze löschen?",
+  "success": "Vorgang erfolgreich abgeschlossen.",
+  "error": {
+    "message": "Ein unbekannter Fehler ist aufgetreten.",
+    "label": "Fehler",
+    "responseCode": "Antwortcode: ",
+    "required": "Dieses Feld ist erforderlich",
+    "unique": "Der Wert dieses Feldes ist bereits vorhanden"
+  }
+}

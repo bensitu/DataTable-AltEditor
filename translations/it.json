@@ -12,11 +12,12 @@
         "title" : "Elimina",
         "button" : "Elimina"
     },
+    "deleteMessage" : "Vuoi eliminare le righe selezionate?",
     "success" : "Fatto.",
     "error" : {
         "message" : "Si è verificato un errore non previsto.",
         "label" : "Errore",
-        "responseCode" : "Response code:",
+        "responseCode" : "Codice di risposta: ",
         "required" : "Valore obbligatorio",
         "unique" : "Valore duplicato"
     }

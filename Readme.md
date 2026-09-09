@@ -74,7 +74,7 @@ Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`,
 | `debug`               | `false`  | Retained compatibility option.                                                                                 |
 | `inlineEdit`          | disabled | Set true or configure enabled, submitOnBlur, selectText, and tabNavigation.                                    |
 
-The callbacks and the first three options also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`.
+The callbacks and the first three options also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`; see the [supported languages and configuration guide](docs/translations.md).
 
 ### Persistence callbacks
 

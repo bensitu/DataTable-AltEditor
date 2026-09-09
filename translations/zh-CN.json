@@ -1,0 +1,24 @@
+{
+  "modalClose": "关闭",
+  "edit": {
+    "title": "编辑记录",
+    "button": "保存"
+  },
+  "add": {
+    "title": "添加记录",
+    "button": "添加"
+  },
+  "delete": {
+    "title": "删除记录",
+    "button": "删除"
+  },
+  "deleteMessage": "确定要删除所选记录吗？",
+  "success": "操作成功！",
+  "error": {
+    "message": "发生未知错误。",
+    "label": "错误",
+    "responseCode": "响应代码：",
+    "required": "此字段为必填项",
+    "unique": "此字段的值已存在"
+  }
+}

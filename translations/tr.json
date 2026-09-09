@@ -1,0 +1,24 @@
+{
+  "modalClose": "Kapat",
+  "edit": {
+    "title": "Kaydı düzenle",
+    "button": "Kaydet"
+  },
+  "add": {
+    "title": "Kayıt ekle",
+    "button": "Ekle"
+  },
+  "delete": {
+    "title": "Kayıtları sil",
+    "button": "Sil"
+  },
+  "deleteMessage": "Seçili kayıtları silmek istediğinizden emin misiniz?",
+  "success": "İşlem başarılı.",
+  "error": {
+    "message": "Bilinmeyen bir hata oluştu.",
+    "label": "Hata",
+    "responseCode": "Yanıt kodu: ",
+    "required": "Bu alan zorunludur",
+    "unique": "Bu alanın değeri zaten mevcut"
+  }
+}

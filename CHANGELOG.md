@@ -9,6 +9,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Added
 
+- Simplified Chinese, Japanese, Spanish, French, German, Korean, and Turkish translations, with a language configuration and coverage guide.
 - Automatic light and dark editor themes, scoped CSS custom properties, and an Appearance selector shared by the examples.
 - Security policy covering supported versions, private vulnerability reporting, and application responsibilities.
 - Code of conduct covering participation standards, reporting concerns, and maintainer responses.
@@ -33,6 +34,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Missing Italian, Russian, and Ukrainian deletion confirmations, the Italian response code label, and Ukrainian spelling in the required-field message.
 - Examples generate new row identifiers consistently and remove duplicate identifiers from sample data. Validation starts with valid unique values, field options use supported constraints, and custom actions work in responsive row details.
 - Ajax examples retain submitted values and assign identifiers to new rows. Dependent town options handle loading, request failures, and country changes. The file example stores and downloads attachments without discarding them on later edits.
 - Example 6 retains submitted selections and dates after simulated saves, derives degree labels from the selected value, and uses the source timestamp format in its date/time control.

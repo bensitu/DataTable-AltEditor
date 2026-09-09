@@ -1,0 +1,24 @@
+{
+  "modalClose": "Cerrar",
+  "edit": {
+    "title": "Editar registro",
+    "button": "Guardar"
+  },
+  "add": {
+    "title": "Añadir registro",
+    "button": "Añadir"
+  },
+  "delete": {
+    "title": "Eliminar registros",
+    "button": "Eliminar"
+  },
+  "deleteMessage": "¿Desea eliminar los registros seleccionados?",
+  "success": "Operación completada.",
+  "error": {
+    "message": "Se ha producido un error desconocido.",
+    "label": "Error",
+    "responseCode": "Código de respuesta: ",
+    "required": "Este campo es obligatorio",
+    "unique": "El valor de este campo ya existe"
+  }
+}

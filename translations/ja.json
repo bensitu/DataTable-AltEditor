@@ -1,0 +1,24 @@
+{
+  "modalClose": "閉じる",
+  "edit": {
+    "title": "レコードを編集",
+    "button": "保存"
+  },
+  "add": {
+    "title": "レコードを追加",
+    "button": "追加"
+  },
+  "delete": {
+    "title": "レコードを削除",
+    "button": "削除"
+  },
+  "deleteMessage": "選択したレコードを削除してもよろしいですか？",
+  "success": "操作が完了しました。",
+  "error": {
+    "message": "不明なエラーが発生しました。",
+    "label": "エラー",
+    "responseCode": "応答コード：",
+    "required": "この項目は必須です",
+    "unique": "この項目の値は既に存在します"
+  }
+}
