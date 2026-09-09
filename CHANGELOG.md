@@ -7,6 +7,10 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ## Unreleased
 
+### Fixed
+
+- Dialog close button alignment, form spacing, checkbox sizing, and stacked fields on small screens across supported dialog frameworks.
+
 ### Added
 
 - Security policy covering supported versions, private vulnerability reporting, and application responsibilities.

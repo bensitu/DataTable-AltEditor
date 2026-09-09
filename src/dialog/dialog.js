@@ -42,7 +42,7 @@ export const methods = {
     title.id = titleId;
     var closeButton = document.createElement('button');
     closeButton.type = 'button';
-    closeButton.className = 'close close-button';
+    closeButton.className = 'altEditor-close';
     closeButton.setAttribute('data-dismiss', 'modal');
     closeButton.setAttribute('data-bs-dismiss', 'modal');
     closeButton.setAttribute('data-close', '');
@@ -307,7 +307,7 @@ export const methods = {
         .append(
           $('<button/>', {
             type: 'button',
-            class: 'btn btn-default button secondary',
+            class: 'btn btn-default btn-secondary button secondary',
             'data-dismiss': 'modal',
             'data-bs-dismiss': 'modal',
             'data-close': '',

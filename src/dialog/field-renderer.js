@@ -12,11 +12,11 @@ export const methods = {
     formName = formName + '-' + this.random_id;
     var fragment = document.createDocumentFragment();
     var container = document.createElement('div');
-    container.className = 'container';
+    container.className = 'altEditor-fields';
     var row = document.createElement('div');
-    row.className = 'row';
+    row.className = 'altEditor-field-list';
     var col = document.createElement('div');
-    col.className = 'col-12 col-sm-12 col-md-12 col-lg-10 mx-auto';
+    col.className = 'altEditor-field-content';
     row.appendChild(col);
     container.appendChild(row);
     fragment.appendChild(container);
@@ -49,13 +49,12 @@ export const methods = {
 
       var formGroup = document.createElement('div');
       formGroup.className =
-        'form-group row' + (columnDef.visible === false ? ' nonDisplay' : '');
+        'altEditor-field' + (columnDef.visible === false ? ' nonDisplay' : '');
       formGroup.id = 'alteditor-row-' + String(columnDef.name);
 
       if (!columnDef.inline || inlineCount === 0) {
         var labelCol = document.createElement('div');
-        labelCol.className =
-          'col-12 col-sm-12 col-md-4 text-left text-sm-left text-md-right';
+        labelCol.className = 'altEditor-label';
         var label = document.createElement('label');
         label.className = 'col-form-label col-form-label-sm';
         label.htmlFor = String(columnDef.name);
@@ -65,9 +64,9 @@ export const methods = {
       }
 
       var inputCol = document.createElement('div');
-      inputCol.className = columnDef.inline
-        ? 'col-sm-2 col-md-2 col-lg-2'
-        : 'col-12 col-sm-12 col-md-8';
+      inputCol.className =
+        'altEditor-input' +
+        (columnDef.inline ? ' altEditor-input-compact' : '');
       formGroup.appendChild(inputCol);
 
       var type = String(columnDef.type || 'text');
@@ -175,7 +174,7 @@ export const methods = {
         .append(
           $('<button/>', {
             type: 'button',
-            class: 'btn btn-default button secondary',
+            class: 'btn btn-default btn-secondary button secondary',
             'data-dismiss': 'modal',
             'data-bs-dismiss': 'modal',
             'data-close': '',
