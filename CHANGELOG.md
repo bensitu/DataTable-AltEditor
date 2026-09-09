@@ -2,10 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
-## [4.0.0] - 2026-09-09
+## Unreleased
+
+### Added
+
+- Security policy covering supported versions, private vulnerability reporting, and application responsibilities.
+- Code of conduct covering participation standards, reporting concerns, and maintainer responses.
+
+### Changed
+
+- Historical changelog entries are grouped by change type and listed in reverse chronological order, preserving available dates and contributor credits.
+
+## 4.0.0 - 2026-09-09
 
 ### Added
 
@@ -40,37 +51,150 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unused alwaysAsk, focus, columns, update, and editor defaults.
 - Direct script consumption of the single-file source. Use the built UMD distribution.
 
-2021-04 thetechnician94
-*Added more modifiers for number columns
-*Checkboxes will now be checked when the value of a column is 1
-*Dropdowns sometimes got extra spaces around their values, fixed
-*Added the `value` modifier: lets you specify a value for the add dialog
-*Disabled fields are no longer sent to the endpoint. HTTP POST never sends these, maintaining that convention
+## Historical changes
 
-2020-09 luca-vercelli * basic support for Foundation * "close modal on success" feature
+The original changelog recorded most updates by month without release versions or exact release dates. The entries below retain that precision and the original contributor credits; they are not a complete release history. The original version label `2.0` is preserved without inferring a patch version. Semantic Versioning compliance is not asserted for these historical entries.
 
-2020-09 viicslen * basic npm support
+### 2021-04
 
-2020-06 mjbernot * support for checkboxes and date input fields * IE compatibility support
+Contributor: thetechnician94.
 
-2020-04 luca-vercelli * support for file uploads
+#### Added
 
-2020-02 goalgui10 * support for textareas
+- Additional modifiers for number columns.
+- The `value` modifier for specifying an initial value in the add dialog.
 
-2019-07 luca-vercelli * better support for readonly and disabled fields, see issue #35
+#### Changed
 
-2019-11 seunets * i18n support
+- Disabled fields are excluded from submitted data, consistent with native HTML form submission.
 
-2019-05 luca-vercelli * better documentation * limited support for nested objects, see issue #15
+#### Fixed
 
-2019-03 luca-vercelli * support for datepicker, datetimepicker, select2
+- Checkboxes are checked when a column value is `1`.
+- Unwanted spaces around dropdown values.
 
-2018-09 luca-vercelli * some improvements in AJAX callbacks
+### 2020-09
 
-2018-07 zach-hable * Version 2.0 * Cleaner source code * Improved modal layouts * Input validation * Callbacks for use of AJAX when a row is added/edited/deleted * Support for Max length of items * Support for Multiple select box * Support for using Select2 Dropdowns
+Contributors: luca-vercelli, viicslen.
 
-2017-07 luca-vercelli * Support for object-based data * Cleaner source code * Refresh button * Naive AJAX support
+#### Added
 
-2016-09 KasperOlesen * Initial commit * Added example and tweaked comments in editor
+- Basic Foundation support and an option to close the dialog after a successful operation (luca-vercelli).
+- Basic npm support (viicslen).
 
-2016-04 Kingcode * Original script found at http://kingkode.com/free-datatables-editor-alternative/ * It seems that, nowadays, the source code is changed there
+### 2020-06
+
+Contributor: mjbernot.
+
+#### Added
+
+- Checkbox and date input fields.
+- Internet Explorer compatibility.
+
+### 2020-04
+
+Contributor: luca-vercelli.
+
+#### Added
+
+- File uploads.
+
+### 2020-02
+
+Contributor: goalgui10.
+
+#### Added
+
+- Textarea fields.
+
+### 2019-11
+
+Contributor: seunets.
+
+#### Added
+
+- Internationalization support.
+
+### 2019-07
+
+Contributor: luca-vercelli.
+
+#### Changed
+
+- Improved handling of read-only and disabled fields ([#35](https://github.com/KasperOlesen/DataTable-AltEditor/issues/35)).
+
+### 2019-05
+
+Contributor: luca-vercelli.
+
+#### Added
+
+- Limited nested object support ([#15](https://github.com/KasperOlesen/DataTable-AltEditor/issues/15)).
+
+#### Changed
+
+- Improved documentation.
+
+### 2019-03
+
+Contributor: luca-vercelli.
+
+#### Added
+
+- Datepicker, datetimepicker, and Select2 integration.
+
+### 2018-09
+
+Contributor: luca-vercelli.
+
+#### Changed
+
+- Improved AJAX callbacks.
+
+### 2.0 - 2018-07
+
+Contributor: zach-hable.
+
+#### Added
+
+- Input validation and maximum input length support.
+- AJAX callbacks for adding, editing, and deleting rows.
+- Multiple-selection fields and Select2 dropdown integration.
+
+#### Changed
+
+- Simplified source code and improved dialog layouts.
+
+### 2017-07
+
+Contributor: luca-vercelli.
+
+#### Added
+
+- Object-based row data.
+- Refresh button.
+- Basic AJAX support.
+
+#### Changed
+
+- Simplified source code.
+
+### 2016-09
+
+Contributor: KasperOlesen.
+
+#### Added
+
+- Initial repository implementation and example.
+
+#### Changed
+
+- Updated editor comments.
+
+### 2016-04
+
+Contributor: Kingcode.
+
+#### Added
+
+- Original script, historically published at `http://kingkode.com/free-datatables-editor-alternative/`. The historical changelog notes that the content at that address subsequently changed.
