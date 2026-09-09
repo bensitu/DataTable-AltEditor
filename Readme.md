@@ -1,110 +1,181 @@
-# JQuery Datatables Editor - Alternative to the official one
+# DataTables AltEditor
 
-Add capabilities to add, edit and delete rows in your datatables through the use of modals.
+AltEditor 4.0.0 adds row dialogs and cell inline editing to DataTables 2.x. It is a JavaScript library with modular source and readable or minified UMD distribution files. jQuery and DataTables remain external peer dependencies.
 
-Inline editing is not supported (so far).
+## Requirements
 
-## Basic usage
+- DataTables `>=2.1.0 <3`; examples use 2.3.8. DataTables 1.x and 3.x are outside this version's support scope.
+- jQuery `>=1.8 <5`; examples use 3.7.1. Choose a version supported by your DataTables and optional plugins.
+- Dialogs require Bootstrap 5, Bootstrap 4, or Foundation Reveal 6. Bootstrap 3 has best-effort compatibility.
+- Inline editing uses native controls and does not require a dialog framework.
+- Buttons and Select are optional. Programmatic dialog methods work without either extension when you provide row selectors.
+- Use a current browser supported by DataTables 2.x. Internet Explorer is not supported. Runtime JavaScript uses ES2015 syntax without a transpiler or bundled polyfills.
 
-Include in the project the libraries:
+## Installation
 
-1. jQuery
-2. [Bootstrap](https://getbootstrap.com/) > 4.0 **or** [Foundation](https://get.foundation/) > 6.0
-3. [jquery.dataTables](https://datatables.net/), [dataTables.buttons](https://datatables.net/extensions/buttons/), [dataTables.select](https://datatables.net/extensions/select/)
+Build the distribution from a checkout with Node.js 24 and npm:
 
-Define a DataTable as usual.
-
-Pass to the DataTable constructor at least the following arguments: `dom`, `select`, `buttons`, `altEditor: true` (see the examples).
-
-_Bootstrap or Foundation is necessary for action buttons and modals._
-
-## Examples
-
-There are some examples in the folder `example`, for different use cases:
-
-- a DataTable populated and maintained via Javascript, (no AJAX, no databases), with data organized in rows;
-
-- a DataTable populated and maintained via Javascript, (no AJAX, no databases), with data organized in objects;
-
-- a DataTable populated via AJAX, to be used in connection with a databases, with data organized in objects.
-
-Examples can be browsed at <https://luca-vercelli.github.io/DataTable-AltEditor> .
-
-## AJAX Setup
-
-The datatable accepts the following callback functions as arguments:
-
-```
-onAddRow(alteditor, rowdata, success, error)
-onEditRow(alteditor, rowdata, success, error, originalrowdata)
-onDeleteRow(alteditor, rowdata, success, error)
+```sh
+npm ci
+npm run build
+npm pack
 ```
 
-In the most common case, these function should call `$.ajax` as expected by the webservice. The two functions `success` and `error` should be passed as arguments to `$.ajax`.
+The package retains the name `datatables.net-AltEditor`. To install the generated npm archive into an application:
 
-Within the procedures `onAddRow`, `onEditRow`, `onDeleteRow`, you can access datatable object using `alteditor.s.dt`.
+```sh
+npm install /path/to/datatables.net-AltEditor-4.0.0.tgz jquery@3.7.1 datatables.net@2.3.8
+```
 
-Webservice **must** return the modified row in JSON format, because the `success()` function expects this. Otherwise you have to write your own `success()` callback (e.g. refreshing the whole table).
+These instructions install a locally built archive; they do not require a published 4.0.0 registry release.
 
-## Row Key
+For browser usage, load jQuery, DataTables, optional extensions, and your dialog framework before AltEditor:
 
-There is no default key in the table. Inside your callback functions, probably you will need a row key to build URL's, in that case you can get them from the `rowdata` parameter.
+```html
+<link rel="stylesheet" href="dist/dataTables.altEditor.css" />
+<script src="dist/dataTables.altEditor.js"></script>
+```
 
-## Column ID
+Use `dist/dataTables.altEditor.min.js` for minified JavaScript. Both builds include source maps and an MIT license banner. AMD consumers map `jquery` and `datatables.net`. CommonJS consumers can load the package after initializing their browser environment, or call its exported factory with `(window, jQuery)` when no global window exists. The factory returns the AltEditor constructor.
 
-Please always keep in mind that DataTable framework allows two different kinds of "rows": Arrays and Objects. In first case columns are indexed through integers; in second case columns are indexed by their attribute name. Usually JSON's use the Object approach, but we cannot be sure.
+## Usage
 
-## Column Modifiers, and Validation
+```js
+const table = new DataTable('#people', {
+  data: [{ id: 'alice', user: { name: 'Alice' }, age: 30 }],
+  rowId: 'id',
+  columns: [
+    { data: 'user.name', title: 'Name', required: true },
+    { data: 'age', title: 'Age', type: 'number', min: 0 },
+  ],
+  altEditor: {
+    closeModalOnSuccess: true,
+    encodeFiles: true,
+    inlineEdit: { enabled: true },
+  },
+});
 
-Following column options are supported.
+const editor = table.altEditor();
+editor.openEditDialog('#alice');
+```
 
-Column option                                   | Accepted values                                    | Description
------------------------------------------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------
-`type`                                          | `"text" \| "select" \| "hidden" \| ...`            | Type of HTML input to be shown. The value `readonly` is accepted for backward compatibility, but deprecated.
-`readonly`                                      | `true \| false`                                    | Add `readonly` HTML attribute
-`disabled`                                      | `true \| false`                                    | Add `disabled` HTML attribute
-`required`                                      | `true \| false`                                    | Add `required` HTML attribute
-`hoverMsg`                                      | `"some msg"`                                       | The message will appear as a tooltip over the input field.
-`unique`                                        | `true \| false`                                    | Ensure that no two rows have the same value. The check is performed client side, not server side. Set HTML `"data-unique"` attribute.
-`uniqueMsg`                                     | `"some msg"`                                       | An error message that is displayed when the unique constraint is not respected. Set HTML `"data-uniqueMsg"` attribute.
-`special`                                       | `"any string"`                                     | Set HTML `"data-special"` attribute (don't know what's that needed for).
-`style`                                         | `"any string"`                                     | Set HTML `"style"` attribute.
-`editorOnChange`                                | function                                           | Custom onchange function. It will take as arguments the jquery event and the altEditor object.
-`value`											| `"some value"`									 | Set default value for add modal. Actual value used for edit modal
-**Options for columns with type `"text"`:**     |                                                    |
-`pattern`                                       | `r.e.`                                             | The typed text will be matched against given regular expression, before submit.
-`hoverMsg`                                      | `"some msg"`                                       | An error message is displayed in case `"pattern"` is not matched. It will be the same tooltip message.
-`maxLength`                                     | `integer`                                          | Set HTML `"maxlength"` attribute.
-`datepicker`                                    | `{}`                                               | Enable a datepicker component. jQuery-UI plugin must be linked. More datepicker configuration options may be passed within the object.
-`datetimepicker`                                | `{}`                                               | Enable a datetimepicker component. jQuery datetimepicker plugin must be linked. More datetimepicker configuration options may be passed within the object.
-**Options for columns with type `"select"`:**   |                                                    |
-`options`                                       | `["a", "b", "c"]` or `{"a":"A", "b":"B", "c":"C"}` | The options that shall be presented.
-`select2`                                       | `{}`                                               | Enable a select2 component. Select2 jQuery plugin must be linked. More select2 configuration options may be passed within the object.
-`multiple`                                      | `true \| false`                                    | Set HTML `"multiple"` attribute.
-`optionsSortByLabel`                            | `true \| false`                                    | Allows select to be sorted by label field.
-**Options for columns with type `"textarea"`:** |                                                    |
-`rows`                                          | `integer`                                          | Set HTML `"rows"` attribute.
-`cols`                                          | `integer`                                          | Set HTML `"cols"` attribute.
-**Options for columns with type `"date"`:**     |                                                    |
-`dateFormat`                                    | `"YYYY-MM-DD"`                                     | Set date format. Require moment.js library linked.
-**Options for columns with type `"number"`**		|													 |	
-`step`											| `float`											 | Set HTML `"step"` attribute
-`min`											| `float`											 | Set HTML `"min"` attribute
-`max`											| `float`											 | Set HTML `"max"` attribute
+Use `altEditor: true` for dialogs with inline editing disabled. Both `new DataTable()` and jQuery `$('#people').DataTable()` initialization are supported. `DataTable.altEditor` exposes the constructor. `table.altEditor()` returns the existing instance or `null`; `table.altEditor(options)` creates an instance when absent and never duplicates one already attached.
 
-# Global Modifiers
+To use toolbar actions, load Buttons and Select and add `layout: { topStart: 'buttons' }`, `select: 'single'`, and button definitions with names `add`, `edit`, `delete`, or `refresh`. Button names select the corresponding action. Dialog edit and delete methods use selected rows when no explicit row selector is given; editing requires one row and deletion accepts multiple rows.
 
-Following DataTable options are supported.
+### Configuration
 
-DataTable option      | Accepted values | Description
---------------------- | --------------- | ----------------------------
-`altEditor`           | `true \| false` | Enable editor. Default false.
-`onAddRow`            | function        | On-add callback function.
-`onEditRow`           | function        | On-edit callback function.
-`onDeleteRow`         | function        | On-delete callback function.
-`closeModalOnSuccess` | `true \| false` | Close modal after successful edit/add/delete. Default true.
-`encodeFiles` | `true \| false` | Encode files to Base64 format. Default true.
+Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`, root-level compatibility options, then the instance `altEditor` object. Explicit constructor options are applied last. Functions retain their references, arrays are copied and replaced, and unsafe object keys are rejected.
 
-## Credits
+| Option                | Default  | Behavior                                                                                                       |
+| --------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `closeModalOnSuccess` | `true`   | Close a successful dialog. When false, show success and disable further submission until another dialog opens. |
+| `encodeFiles`         | `true`   | Read files as data URLs; false passes the first selected File object.                                          |
+| `debug`               | `false`  | Retained compatibility option.                                                                                 |
+| `inlineEdit`          | disabled | Set true or configure enabled, submitOnBlur, selectText, and tabNavigation.                                    |
 
-See LICENSE and CHANGELOG for various credits.
+The callbacks and the first three options also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`.
+
+### Persistence callbacks
+
+```js
+onAddRow(editor, rowData, success, error);
+onEditRow(editor, rowData, success, error, originalRowData);
+onDeleteRow(editor, rowData, success, error);
+onInlineEditRow(editor, rowData, success, error, originalRowData, meta);
+```
+
+The first argument is always the AltEditor instance; `editor.api()` returns its DataTables API. Existing `editor.s.dt` access remains available for compatibility.
+
+Dialog add/edit callbacks receive enabled form values; disabled controls are omitted. Delete receives an array of the captured rows. Inline editing receives a complete candidate row and a snapshot of the original row. Inline editing uses `onEditRow` if `onInlineEditRow` is absent. If no applicable callback is supplied, the update succeeds locally.
+
+Call `success(persistedRow)` with a row object or array. Calling `success()` uses the submitted candidate; dialog editing preserves fields outside the form. JSON row strings are accepted. Delete ignores the response body. Call `error(errorValue)` to retain the form for correction and retry. Error content is rendered as text. Only the first success or error settlement is accepted, and callbacks completed after destruction are ignored.
+
+```js
+onEditRow(editor, rowData, success, error, originalRowData) {
+$.ajax({
+url: '/people/' + encodeURIComponent(originalRowData.id),
+method: 'PATCH',
+contentType: 'application/json',
+data: JSON.stringify(rowData),
+success,
+error,
+});
+}
+
+```
+
+The target is captured when editing starts and does not change if table selection changes. Row IDs are preferred when resolving asynchronous updates. A result is rejected if its target can no longer be identified safely.
+
+### Public methods
+
+| Method                           | Purpose                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| `api()`                          | Return the DataTables API.                                                           |
+| `openAddDialog()`                | Open an add form.                                                                    |
+| `openEditDialog(rowSelector?)`   | Edit one explicit or selected row.                                                   |
+| `openDeleteDialog(rowSelector?)` | Delete explicit or selected rows.                                                    |
+| `refresh()`                      | Reload Ajax data or redraw client data without resetting paging.                     |
+| `startInlineEdit(cellSelector)`  | Start an eligible visible cell; return a boolean.                                    |
+| `commitInlineEdit()`             | Validate and start persistence; return a boolean, not a persistence result.          |
+| `cancelInlineEdit()`             | Cancel an unsaved cell; return a boolean.                                            |
+| `isInlineEditing()`              | Report editing or pending cell persistence.                                          |
+| `reloadOptions(select, options)` | Replace options in a native or enhanced select; accepts an element or jQuery object. |
+| `destroy()`                      | Release listeners, plugins, and dialog elements; also called on table destruction.   |
+
+`_openAddModal`, `_openEditModal`, and `_openDeleteModal` are deprecated aliases for the corresponding public methods. Dialog submissions are bound automatically.
+
+### Column options
+
+| Options                                                                       | Behavior                                                                                                                                       |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `editable`, `visible`                                                         | Exclude a field from dialog editing or hide its dialog row.                                                                                    |
+| `type`                                                                        | Native input type, select, or textarea. The deprecated readonly type maps to a readonly text input.                                            |
+| `readonly`, `disabled`, `required`                                            | Standard control attributes; disabled controls are omitted from dialog submissions.                                                            |
+| `title`, `placeholder`, `hoverMsg`                                            | Field label, placeholder, and input tooltip. Text is not interpreted as HTML.                                                                  |
+| `pattern`, `maxLength`, `min`, `max`, `step`                                  | Native constraint validation where applicable to the input type.                                                                               |
+| `unique`, `uniqueMsg`                                                         | Validate uniqueness among loaded rows. The message uses uniqueMsg or language.error.unique.                                                    |
+| `value`                                                                       | Default add-dialog value; edit dialogs read the current row.                                                                                   |
+| `options`, `multiple`, `optionsSortByLabel`                                   | Select values, multiple selection, and label sorting. Options accept primitive arrays, value/label or id/text objects, or value-to-label maps. |
+| `rows`, `cols`                                                                | Textarea dimensions.                                                                                                                           |
+| `accept`                                                                      | File input accept attribute.                                                                                                                   |
+| `style`                                                                       | Dialog control inline styles, as a string or property object.                                                                                  |
+| `select2`, `datepicker`, `datetimepicker`                                     | Optional dialog plugin configuration; meaningful native controls remain usable when plugins are absent.                                        |
+| `dateFormat`                                                                  | Format dialog date values using moment when available.                                                                                         |
+| `editorOnChange(event, editor)`                                               | Handle a dialog field change.                                                                                                                  |
+| `inline`                                                                      | Compact dialog field layout; this is distinct from cell editing.                                                                               |
+| `special`                                                                     | Deprecated compatibility data attribute; has no built-in validation behavior.                                                                  |
+| `inlineEditable`, `inlineEditType`, `inlineEditOptions`, `inlineEditSetValue` | Cell editing eligibility, control type, control options, and explicit row setter.                                                              |
+
+Object rows, numeric array sources including 0, and dotted object paths are supported. Paths containing `__proto__`, `prototype`, or `constructor` are rejected. Complex DataTables sources need an explicit setter for inline editing; dialogs only infer setters for string and numeric paths.
+
+## Inline editing and events
+
+Double-click a supported cell to edit. Enter saves, Escape cancels, and Tab or Shift+Tab saves before moving to another editable visible cell in the same row. Composition input does not submit on Enter. By default, blur cancels; `submitOnBlur: true` saves instead. A pending save cannot be canceled. Failed saves remain editable, and the table cache changes only after success.
+
+See [inline editing](docs/inline-edit.md), [events](docs/events.md), and [migration from v3](docs/migration-v3-to-v4.md) for complete configuration and lifecycle behavior. Events use the DataTables/jQuery .dt channel; both pre-submit events support preventDefault(). Existing modal events remain available.
+
+## Server-side data
+
+With `serverSide: true`, the editor only has the currently loaded row snapshot. Unique validation covers loaded data, so applications must also validate on the server. Server draws remain authoritative. Use stable row IDs and reload with `editor.api().ajax.reload(null, false)` after persistence when necessary. A result for a row no longer available on the client is reported as an error instead of being applied elsewhere.
+
+## Examples and development
+
+Run `npm run dev` after building, then open [the example index](http://127.0.0.1:8080/). Examples include arrays, objects, Ajax, multiple tables, optional controls, dependent selects, validation, translations, files, Foundation, [custom action buttons](example/12_custom_action_buttons/example12.html), and [cell editing](example/13_inline_edit/example13.html). Examples load `dist/` and require internet access for CDN dependencies. Ajax examples use static demonstration responses; they do not persist changes to a server.
+
+```sh
+npm run format:check
+npm run lint
+npm run build
+npm test
+npx playwright install chromium
+npm run test:e2e
+```
+
+`npm run test:watch` runs interactive unit tests. `npm run test:coverage` reports coverage without a percentage requirement. `npm run build` reports readable, minified, and gzip sizes without a size threshold. Generated distribution, coverage, and browser output are not tracked.
+
+For compatibility verification, install all Playwright browsers and run `npm run test:compat`. This checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation. Run `npm pack --dry-run` to inspect the npm file list. Source is organized under core, data, dialog, crud, inline, and style directories; the build uses Rollup without Babel, TypeScript, or runtime polyfills.
+
+## License
+
+MIT. See [LICENSE](LICENSE) and [CHANGELOG.md](CHANGELOG.md) for attribution and release history.

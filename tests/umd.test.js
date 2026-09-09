@@ -13,7 +13,12 @@ for (const mode of ['browser', 'AMD', 'CommonJS']) {
     });
     const win = dom.window;
     win.eval(readFileSync(require.resolve('jquery'), 'utf8'));
-    win.eval(readFileSync(require.resolve('datatables.net'), 'utf8'));
+    win.eval(
+      readFileSync(
+        require.resolve(process.env.DATATABLES_PACKAGE || 'datatables.net'),
+        'utf8'
+      )
+    );
     if (mode === 'AMD') {
       win.define = (_deps, factory) => {
         win.AltEditor = factory(win.jQuery, win.DataTable);

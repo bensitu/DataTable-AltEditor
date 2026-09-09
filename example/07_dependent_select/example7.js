@@ -34,29 +34,29 @@ $(document).ready(function() {
         passing rowdatata.country as argument
         */
         if (country == "Italy"){
-            $(altEditor.modal_selector).find("#alteditor-row-town").show();
+            $(event.target).closest('.altEditor-modal').find("#alteditor-row-town").show();
             $.ajax({
                 url: url_ws_mock_prefix + 'mock_svc_italy.json',
                 type: 'GET',
                 success: function(options) {
                     console.log(options);
-                    var town = $(altEditor.modal_selector).find('#town');
+                    var town = $(event.target).closest('.altEditor-modal').find('#town');
                     altEditor.reloadOptions(town, options);
                 }
             });
         } else if (country == "France"){
-            $(altEditor.modal_selector).find("#alteditor-row-town").show();
+            $(event.target).closest('.altEditor-modal').find("#alteditor-row-town").show();
             $.ajax({
                 url: url_ws_mock_prefix + 'mock_svc_france.json',
                 type: 'GET',
                 success: function(options) {
                     console.log(options);
-                    var town = $(altEditor.modal_selector).find('#town');
+                    var town = $(event.target).closest('.altEditor-modal').find('#town');
                     altEditor.reloadOptions(town, options);
                 }
             });
         } else {
-            $(altEditor.modal_selector).find("#alteditor-row-town").hide();
+            $(event.target).closest('.altEditor-modal').find("#alteditor-row-town").hide();
         }
     }
   },
@@ -70,14 +70,14 @@ $(document).ready(function() {
 
   var myTable;
   myTable = $('#example').DataTable({
-    "sPaginationType": "full_numbers",
+    "pagingType": "full_numbers",
     ajax: {
         url : url_ws_mock_prefix + 'mock_svc_load.json',
         // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
         dataSrc : ''
     },
     columns: columnDefs,
-    dom: 'Bfrtip',        // Needs button container
+    layout: { topStart: 'buttons' },
     select: 'single',
     responsive: true,
     altEditor: true,     // Enable altEditor

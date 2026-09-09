@@ -19,4 +19,16 @@ export default [
       'constructor-super': 'error',
     },
   },
+  {
+    files: ['src/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2015,
+      globals: { window: 'readonly', console: 'readonly' },
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-unreachable': 'error',
+      'no-unsafe-finally': 'error',
+    },
+  },
 ];

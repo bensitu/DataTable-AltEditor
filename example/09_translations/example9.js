@@ -65,10 +65,10 @@ $(document).ready(function() {
   var myTable;
 
   myTable = $('#example').DataTable({
-    "sPaginationType": "full_numbers",
+    "pagingType": "full_numbers",
     data: dataSet,
     columns: columnDefs,
-    dom: 'Bfrtip',        // Needs button container
+    layout: { topStart: 'buttons' },
     select: 'single',
     responsive: true,
     altEditor: true,     // Enable altEditor
@@ -87,7 +87,7 @@ $(document).ready(function() {
         name: 'delete'      // do not change name
         }],
     language: {
-        url: 'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Italian.json',
+        url: 'https://cdn.datatables.net/plug-ins/2.3.8/i18n/it-IT.json',
         altEditorUrl: '../../translations/it.json'
     }
   });

@@ -1,3 +1,9 @@
+/**
+ * DataTables AltEditor v4.0.0
+ * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
+ * Copyright (c) 2026 Ben Situ and contributors
+ * SPDX-License-Identifier: MIT
+ */
 import $ from 'jquery';
 import DataTables from 'datatables.net';
 import { createAltEditor } from './core/alt-editor.js';

@@ -36,8 +36,8 @@ test('composition Enter does not save and sorting or paging removes unsaved cont
 }) => {
   await page.getByRole('cell', { name: 'Alice', exact: true }).dblclick();
   const input = page.locator('.alteditor-inline-control');
-  await input.dispatchEvent('compositionstart');
   await input.fill('東京');
+  await input.dispatchEvent('compositionstart');
   await input.press('Enter');
   await expect(input).toBeVisible();
   await input.dispatchEvent('compositionend');

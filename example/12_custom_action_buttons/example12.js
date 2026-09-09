@@ -82,10 +82,10 @@ $(document).ready(function() {
   var myTable;
 
   myTable = $('#example').DataTable({
-    "sPaginationType": "full_numbers",
+    "pagingType": "full_numbers",
     data: dataSet,
     columns: columnDefs,
-	dom: 'Bfrtip',        // Needs button container
+	layout: { topStart: 'buttons' },
     select: {
         style: 'single',
         toggleable: false

@@ -43,14 +43,14 @@ $(document).ready(function() {
   }
   
   myTable = $('#example').DataTable({
-    "sPaginationType": "full_numbers",
+    "pagingType": "full_numbers",
     ajax: {
         url : url_ws_mock_get,
         // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
         dataSrc : ''
     },
     columns: columnDefs,
-    dom: 'Bfrtip',        // Needs button container
+    layout: { topStart: 'buttons' },
     select: 'single',
     responsive: true,
     altEditor: true,     // Enable altEditor
@@ -131,14 +131,14 @@ $(document).ready(function() {
   }];
 
   var myOtherTable = $('#example2').DataTable({
-    "sPaginationType": "full_numbers",
+    "pagingType": "full_numbers",
     ajax: {
         url : url_ws_mock_get,
         // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
         dataSrc : ''
     },
     columns: columnDefs2,
-    dom: 'Bfrtip',        // Needs button container
+    layout: { topStart: 'buttons' },
     select: 'single',
     responsive: true,
     altEditor: true,     // Enable altEditor

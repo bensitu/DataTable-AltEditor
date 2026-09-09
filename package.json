@@ -1,7 +1,7 @@
 {
   "name": "datatables.net-AltEditor",
   "version": "4.0.0",
-  "description": "DataTables AltEditor for DataTables 2.10+",
+  "description": "Dialog CRUD and cell inline editing for DataTables 2.x",
   "author": {
     "name": "KasperOlesen",
     "url": "https://github.com/KasperOlesen/DataTable-AltEditor"
@@ -44,7 +44,9 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "docs",
+    "translations"
   ],
   "unpkg": "dist/dataTables.altEditor.min.js",
   "jsdelivr": "dist/dataTables.altEditor.min.js",
@@ -65,7 +67,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test --project=chromium --grep-invert compatibility",
-    "test:compat": "node scripts/compatibility.mjs"
+    "test:compat": "node scripts/compatibility.mjs",
+    "prepack": "npm run build"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
