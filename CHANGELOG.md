@@ -9,6 +9,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Added
 
+- Monthly Dependabot updates for npm development dependencies and GitHub Actions within their current major versions, preserving the DataTables 2.1.x compatibility dependency.
 - Simplified Chinese, Japanese, Spanish, French, German, Korean, and Turkish translations, with a language configuration and coverage guide.
 - Automatic light and dark editor themes, scoped CSS custom properties, and an Appearance selector shared by the examples.
 - Security policy covering supported versions, private vulnerability reporting, and application responsibilities.
@@ -21,6 +22,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- CI dependency installation enforces declared Node.js requirements on Node.js 24.
 - Generated JavaScript, source maps, and CSS in `dist/` are tracked in Git and shipped with the checkout.
 - Examples use consistent DataTables table styling without overlapping Bootstrap table classes.
 - Example pages share responsive navigation, typography, table containers, and an example directory. Long dialog forms scroll within the available mobile viewport.

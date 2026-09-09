@@ -184,6 +184,14 @@ npm run test:e2e
 
 For compatibility verification, install all Playwright browsers and run `npm run test:compat`. This checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation. Run `npm pack --dry-run` to inspect the npm file list. Source is organized under core, data, dialog, crud, inline, and style directories; the build uses Rollup without Babel, TypeScript, or runtime polyfills.
 
+## Dependency updates
+
+[Dependabot](.github/dependabot.yml) checks npm development dependencies and GitHub Actions monthly, on the first day of each month at 09:00 Asia/Tokyo. Updates are grouped into one pull request per ecosystem. Routine updates stay within the current major version; the `datatables21` compatibility dependency stays within DataTables 2.1.x. Major upgrades and changes to the public peer dependency support ranges require separate review. Exact npm versions and the lockfile remain tracked.
+
+Both CI workflows install dependencies with `npm ci --engine-strict` on Node.js 24, so dependencies declaring incompatible Node requirements fail installation. This validates the CI runtime, not every Node version allowed by `engines.node`. Passing installation alone does not establish compatibility; dependency pull requests also run the existing build and tests. Review release notes, run compatibility checks when relevant, and commit regenerated `dist/` files if build output changes. CDN dependencies in the examples are maintained separately.
+
+The configuration must reach the repository's default branch before scheduled updates take effect. It does not enable automatic merging or change repository security-update settings. See the [Dependabot configuration reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference) for scheduling and update rules.
+
 ## License
 
 MIT. See [LICENSE](LICENSE) and [CHANGELOG.md](CHANGELOG.md) for attribution and release history.

@@ -11,7 +11,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      - run: npm ci --engine-strict
       - run: npx playwright install --with-deps
       - run: npm run test:compat
       - run: npm pack --dry-run

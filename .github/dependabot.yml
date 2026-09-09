@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      time: '09:00'
+      timezone: Asia/Tokyo
+    versioning-strategy: increase-if-necessary
+    allow:
+      - dependency-type: development
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: datatables21
+        update-types: ['version-update:semver-minor']
+    groups:
+      npm-dependencies:
+        patterns: ['*']
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      time: '09:00'
+      timezone: Asia/Tokyo
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      github-actions:
+        patterns: ['*']
+        update-types: [minor, patch]
