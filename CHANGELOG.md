@@ -19,6 +19,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- Generated JavaScript, source maps, and CSS in `dist/` are tracked in Git and shipped with the checkout.
 - Examples use consistent DataTables table styling without overlapping Bootstrap table classes.
 - Example pages share responsive navigation, typography, table containers, and an example directory. Long dialog forms scroll within the available mobile viewport.
 - Historical changelog entries are grouped by change type and listed in reverse chronological order, preserving available dates and contributor credits.

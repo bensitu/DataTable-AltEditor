@@ -4,7 +4,7 @@
 
 Use DataTables `>=2.1.0 <3`. DataTables 1.x and 3.x are not supported. Examples use DataTables 2.3.8, Buttons 3.2.6, Select 3.1.3, jQuery 3.7.1, and Bootstrap 5. Foundation Reveal 6 and Bootstrap 4 integrations remain available. Bootstrap 3 compatibility is best effort.
 
-Replace `src/dataTables.altEditor.free.js` script references with `dist/dataTables.altEditor.js` or its minified variant, and include `dist/dataTables.altEditor.css`. Run `npm ci` and `npm run build` before serving a checkout. Source files are ES modules and must not be loaded as the browser distribution. jQuery and DataTables are peer dependencies and are not bundled.
+Replace `src/dataTables.altEditor.free.js` script references with `dist/dataTables.altEditor.js` or its minified variant, and include `dist/dataTables.altEditor.css`. The distribution is included in the repository. Run `npm ci` and `npm run build` when rebuilding after source changes, and commit the updated distribution. Source files are ES modules and must not be loaded as the browser distribution. jQuery and DataTables are peer dependencies and are not bundled.
 
 The package name remains `datatables.net-AltEditor`. The main entry now points to `dist/dataTables.altEditor.js`. The generated npm archive includes the distribution, source maps, translations, license, and user documentation. No TypeScript declarations are generated.
 

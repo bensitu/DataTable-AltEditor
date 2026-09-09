@@ -13,7 +13,7 @@ AltEditor 4.0.0 adds row dialogs and cell inline editing to DataTables 2.x. It i
 
 ## Installation
 
-Build the distribution from a checkout with Node.js 24 and npm:
+The repository includes ready-to-use files in `dist/`. Rebuild them after changing source files with Node.js 24 and npm:
 
 ```sh
 npm ci
@@ -167,7 +167,7 @@ Examples use a shared DataTables table presentation, with Bootstrap dialogs in e
 
 See [styling and themes](docs/styling.md) for color modes, CSS custom properties, and application overrides.
 
-Run `npm run dev` after building, then open [the example index](http://127.0.0.1:8080/). Examples include arrays, objects, Ajax, multiple tables, optional controls, dependent selects, validation, translations, files, Foundation, [custom action buttons](example/12_custom_action_buttons/example12.html), and [cell editing](example/13_inline_edit/example13.html). Examples load `dist/` and require internet access for CDN dependencies. Ajax examples use static demonstration responses; they do not persist changes to a server.
+Run `npm ci` and `npm run dev`, then open [the example index](http://127.0.0.1:8080/). Rebuild first if source files have changed. Examples include arrays, objects, Ajax, multiple tables, optional controls, dependent selects, validation, translations, files, Foundation, [custom action buttons](example/12_custom_action_buttons/example12.html), and [cell editing](example/13_inline_edit/example13.html). Examples load `dist/` and require internet access for CDN dependencies. Ajax examples use static demonstration responses; they do not persist changes to a server.
 
 ```sh
 npm run format:check
@@ -178,7 +178,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-`npm run test:watch` runs interactive unit tests. `npm run test:coverage` reports coverage without a percentage requirement. `npm run build` reports readable, minified, and gzip sizes without a size threshold. Generated distribution, coverage, and browser output are not tracked.
+`npm run test:watch` runs interactive unit tests. `npm run test:coverage` reports coverage without a percentage requirement. `npm run build` reports readable, minified, and gzip sizes without a size threshold. Commit the generated JavaScript, source maps, and CSS in `dist/` together with relevant source changes. Coverage and browser output are not tracked. Edit source files rather than generated distribution files.
 
 For compatibility verification, install all Playwright browsers and run `npm run test:compat`. This checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation. Run `npm pack --dry-run` to inspect the npm file list. Source is organized under core, data, dialog, crud, inline, and style directories; the build uses Rollup without Babel, TypeScript, or runtime polyfills.
 
