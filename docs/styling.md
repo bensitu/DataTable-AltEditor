@@ -1,5 +1,7 @@
 # Styling and themes
 
+`npm run build` produces the readable `dist/dataTables.altEditor.css`, the compressed `dist/dataTables.altEditor.min.css`, and its external `dist/dataTables.altEditor.min.css.map`. Load either CSS version, not both. The compressed stylesheet references its map, which includes the original CSS content for browser debugging without requiring the source directory to be deployed. Keep the map beside the compressed stylesheet when publishing it. Both CSS versions preserve the license notice and are included in the npm package.
+
 Load `dist/dataTables.altEditor.css` after your dialog framework's CSS and optional control stylesheets. Load application overrides last. AltEditor rules target its own dialog, inline control, and date picker classes; they do not style `body`, ordinary tables, unrelated forms, or other dialogs. The distribution stylesheet has no `!important` declarations.
 
 ## Color modes

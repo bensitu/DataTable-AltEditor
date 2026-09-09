@@ -9,6 +9,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Added
 
+- A minified distribution stylesheet with an external source map and embedded CSS source content.
 - Monthly Dependabot updates for npm development dependencies and GitHub Actions within their current major versions, preserving the DataTables 2.1.x compatibility dependency.
 - Simplified Chinese, Japanese, Spanish, French, German, Korean, and Turkish translations, with a language configuration and coverage guide.
 - Automatic light and dark editor themes, scoped CSS custom properties, and an Appearance selector shared by the examples.
