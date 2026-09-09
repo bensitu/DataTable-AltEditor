@@ -5,29 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
-## Unreleased
-
-### Fixed
-
-- Dialog close button alignment, form spacing, checkbox sizing, and stacked fields on small screens across supported dialog frameworks.
+## 4.0.0 - 2026-09-09
 
 ### Added
 
 - Automatic light and dark editor themes, scoped CSS custom properties, and an Appearance selector shared by the examples.
 - Security policy covering supported versions, private vulnerability reporting, and application responsibilities.
 - Code of conduct covering participation standards, reporting concerns, and maintainer responses.
-
-### Changed
-
-- Generated JavaScript, source maps, and CSS in `dist/` are tracked in Git and shipped with the checkout.
-- Examples use consistent DataTables table styling without overlapping Bootstrap table classes.
-- Example pages share responsive navigation, typography, table containers, and an example directory. Long dialog forms scroll within the available mobile viewport.
-- Historical changelog entries are grouped by change type and listed in reverse chronological order, preserving available dates and contributor credits.
-
-## 4.0.0 - 2026-09-09
-
-### Added
-
 - Cell inline editing with native controls, immutable candidate rows, keyboard navigation, IME composition handling, validation, and persistence retry.
 - onInlineEditRow callback with onEditRow fallback and structured DataTables lifecycle events.
 - Public table.altEditor() accessor, editor.api(), dialog methods, inline methods, refresh(), and destroy().
@@ -36,6 +20,10 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- Generated JavaScript, source maps, and CSS in `dist/` are tracked in Git and shipped with the checkout.
+- Examples use consistent DataTables table styling without overlapping Bootstrap table classes.
+- Example pages share responsive navigation, typography, table containers, and an example directory. Long dialog forms scroll within the available mobile viewport.
+- Historical changelog entries are grouped by change type and listed in reverse chronological order, preserving available dates and contributor credits.
 - JavaScript source is organized into ES modules using DataTables 2.x public initialization and column APIs.
 - Package version is 4.0.0; the package entry and example script paths now use dist/.
 - Examples use DataTables 2.3.8, Buttons 3.2.6, Select 3.1.3, and Bootstrap 5, with a separate Foundation example.
@@ -45,6 +33,8 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Example 6 retains submitted selections and dates after simulated saves, derives degree labels from the selected value, and uses the source timestamp format in its date/time control.
+- Dialog close button alignment, form spacing, checkbox sizing, and stacked fields on small screens across supported dialog frameworks.
 - Array fields with numeric source 0 and immutable nested row updates.
 - uniqueMsg validation, safe option merging, text-only error rendering, file read failures, and optional plugin cleanup.
 - Inactive dialogs remain hidden when using inline editing without a dialog framework.
