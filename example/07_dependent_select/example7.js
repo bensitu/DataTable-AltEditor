@@ -1,136 +1,162 @@
-
-var url_ws_mock_prefix = './';
-if (location.href.startsWith("file://")) {
-    // local URL's are not allowed
-    url_ws_mock_prefix = 'https://luca-vercelli.github.io/DataTable-AltEditor/example/07_dependent_select/';
-
-}
+var dataUrl = './';
 
 var countryOptions = ['Italy', 'France', 'Germany'];
-var allTownsOptions = [ "Torino", "Roma", "Milano", "Napoli", "Paris", "Lyon", "Toulose" ];
+var allTownsOptions = [
+  'Torino',
+  'Roma',
+  'Milano',
+  'Napoli',
+  'Paris',
+  'Lyon',
+  'Toulouse',
+];
 
-$(document).ready(function() {
-
-  var columnDefs = [{
-    data: "id",
-    title: "Id",
-    type: "readonly"
-  },
-  {
-    data: "name",
-    title: "Name"
-  },
-  {
-    data: "country",
-    title: "Country",
-    type : "select",
-    options : countryOptions,
-    select2 : { width: "100%"},
-    editorOnChange : function(event, altEditor) {
-        console.log(event, altEditor);
-        var country = $(event.currentTarget).val();
-        /*
-        In a real world application, this should just call a single webservice,
-        passing rowdatata.country as argument
-        */
-        if (country == "Italy"){
-            $(event.target).closest('.altEditor-modal').find("#alteditor-row-town").show();
-            $.ajax({
-                url: url_ws_mock_prefix + 'mock_svc_italy.json',
-                type: 'GET',
-                success: function(options) {
-                    console.log(options);
-                    var town = $(event.target).closest('.altEditor-modal').find('#town');
-                    altEditor.reloadOptions(town, options);
-                }
-            });
-        } else if (country == "France"){
-            $(event.target).closest('.altEditor-modal').find("#alteditor-row-town").show();
-            $.ajax({
-                url: url_ws_mock_prefix + 'mock_svc_france.json',
-                type: 'GET',
-                success: function(options) {
-                    console.log(options);
-                    var town = $(event.target).closest('.altEditor-modal').find('#town');
-                    altEditor.reloadOptions(town, options);
-                }
-            });
-        } else {
-            $(event.target).closest('.altEditor-modal').find("#alteditor-row-town").hide();
+$(document).ready(function () {
+  var columnDefs = [
+    {
+      data: 'id',
+      title: 'Id',
+      type: 'readonly',
+    },
+    {
+      data: 'name',
+      title: 'Name',
+    },
+    {
+      data: 'country',
+      title: 'Country',
+      type: 'select',
+      options: countryOptions,
+      value: 'Italy',
+      select2: { width: '100%' },
+      editorOnChange: function (event, editor) {
+        const country = event.currentTarget.value;
+        const modal = $(event.target).closest('.altEditor-modal');
+        const town = modal.find('[name="town"]');
+        const message = modal.find('#town-label');
+        const previousRequest = town.data('options-request');
+        if (previousRequest) previousRequest.abort();
+        message.text('');
+        const hasTowns = country === 'Italy' || country === 'France';
+        modal.find('#alteditor-row-town').toggle(hasTowns);
+        town.prop('required', hasTowns);
+        if (!hasTowns) {
+          editor.reloadOptions(town, ['']);
+          town[0].setCustomValidity('');
+          return;
         }
-    }
-  },
-  {
-    data: "town",
-    title: "Town",
-    type : "select",
-    options : allTownsOptions,
-    select2 : { width: "100%"}
-  }];
+        town[0].setCustomValidity('Wait for the towns to load.');
+        const request = $.ajax({
+          url:
+            dataUrl +
+            (country === 'Italy'
+              ? 'mock_svc_italy.json'
+              : 'mock_svc_france.json'),
+          dataType: 'json',
+          success: function (options) {
+            if (!town[0].isConnected || event.currentTarget.value !== country)
+              return;
+            editor.reloadOptions(town, options);
+            if (town.val() === null) town.val(options[0]).trigger('change');
+            town[0].setCustomValidity('');
+          },
+          error: function (_request, status) {
+            if (status === 'abort' || !town[0].isConnected) return;
+            const text =
+              'Unable to load towns. Select the country again to retry.';
+            town[0].setCustomValidity(text);
+            message.text(text);
+          },
+        });
+        town.data('options-request', request);
+      },
+    },
+    {
+      data: 'town',
+      title: 'Town',
+      type: 'select',
+      options: allTownsOptions,
+      select2: { width: '100%' },
+    },
+  ];
 
   var myTable;
   myTable = $('#example').DataTable({
-    "pagingType": "full_numbers",
+    pagingType: 'full_numbers',
     ajax: {
-        url : url_ws_mock_prefix + 'mock_svc_load.json',
-        // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
-        dataSrc : ''
+      url: dataUrl + 'mock_svc_load.json',
+      // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
+      dataSrc: '',
     },
     columns: columnDefs,
     layout: { topStart: 'buttons' },
     select: 'single',
     responsive: true,
-    altEditor: true,     // Enable altEditor
-    buttons: [{
-            text: 'Add',
-            name: 'add'        // do not change name
+    altEditor: true, // Enable altEditor
+    buttons: [
+      {
+        text: 'Add',
+        name: 'add', // do not change name
+      },
+      {
+        extend: 'selected', // Bind to Selected row
+        text: 'Edit',
+        name: 'edit', // do not change name
+      },
+      {
+        extend: 'selected', // Bind to Selected row
+        text: 'Delete',
+        name: 'delete', // do not change name
+      },
+      {
+        text: 'Refresh',
+        name: 'refresh', // do not change name
+      },
+    ],
+    onAddRow: function (datatable, rowdata, success, error) {
+      rowdata.id =
+        Math.max(
+          0,
+          ...datatable
+            .api()
+            .rows()
+            .data()
+            .toArray()
+            .map(function (row) {
+              return Number(row.id) || 0;
+            })
+        ) + 1;
+      $.ajax({
+        url: dataUrl + 'mock_svc_ok.json',
+        type: 'GET',
+        data: rowdata,
+        success: function () {
+          success();
         },
-        {
-            extend: 'selected', // Bind to Selected row
-            text: 'Edit',
-            name: 'edit'        // do not change name
-        },
-        {
-            extend: 'selected', // Bind to Selected row
-            text: 'Delete',
-            name: 'delete'      // do not change name
-        },
-        {
-            text: 'Refresh',
-            name: 'refresh'      // do not change name
-        }],
-    onAddRow: function(datatable, rowdata, success, error) {
-        $.ajax({
-            // a tipycal url would be / with type='PUT'
-            url: url_ws_mock_prefix + 'mock_svc_ok.json',
-            type: 'GET',
-            data: rowdata,
-            success: success,
-            error: error
-        });
+        error: error,
+      });
     },
-    onDeleteRow: function(datatable, rowdata, success, error) {
-        $.ajax({
-            // a tipycal url would be /{id} with type='DELETE'
-            url: url_ws_mock_prefix + 'mock_svc_ok.json',
-            type: 'GET',
-            data: rowdata,
-            success: success,
-            error: error
-        });
+    onDeleteRow: function (datatable, rowdata, success, error) {
+      $.ajax({
+        url: dataUrl + 'mock_svc_ok.json',
+        type: 'GET',
+        data: rowdata,
+        success: function () {
+          success();
+        },
+        error: error,
+      });
     },
-    onEditRow: function(datatable, rowdata, success, error) {
-        $.ajax({
-            // a tipycal url would be /{id} with type='POST'
-            url: url_ws_mock_prefix + 'mock_svc_ok.json',
-            type: 'GET',
-            data: rowdata,
-            success: success,
-            error: error
-        });
-    }
+    onEditRow: function (datatable, rowdata, success, error) {
+      $.ajax({
+        url: dataUrl + 'mock_svc_ok.json',
+        type: 'GET',
+        data: rowdata,
+        success: function () {
+          success();
+        },
+        error: error,
+      });
+    },
   });
-
-
 });
-
