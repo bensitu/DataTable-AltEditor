@@ -29,6 +29,111 @@ afterEach(() => {
 });
 const input = () => document.querySelector('.alteditor-inline-control');
 
+test('handles composition, Enter, Escape and keyboard navigation without duplicate submission', () => {
+  const { editor, table } = create();
+  const cell = table.cell(0, 0).node();
+  cell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+  expect(input()).not.toBeNull();
+  expect(editor.startInlineEdit(cell)).toBe(true);
+  input().value = 'Ann';
+  input().dispatchEvent(new Event('compositionstart'));
+  input().dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+  );
+  expect(editor.commitInlineEdit()).toBe(false);
+  expect(table.row(0).data().user.name).toBe('Alice');
+  input().dispatchEvent(new Event('compositionend'));
+  input().dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Tab', bubbles: true })
+  );
+  expect(table.row(0).data().user.name).toBe('Ann');
+  expect(input().type).toBe('number');
+  input().value = '32';
+  input().dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true })
+  );
+  expect(table.row(0).data().age).toBe(32);
+  expect(input().type).toBe('text');
+  input().value = 'Discarded';
+  input().dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+  );
+  expect(editor.isInlineEditing()).toBe(false);
+  expect(table.row(0).data().user.name).toBe('Ann');
+  editor.startInlineEdit({ row: 0, column: 1 });
+  input().dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Tab', bubbles: true })
+  );
+  expect(editor.isInlineEditing()).toBe(false);
+  expect(document.activeElement).toBe(table.cell(0, 1).node());
+  editor.startInlineEdit({ row: 0, column: 0 });
+  input().dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+  );
+  expect(editor.isInlineEditing()).toBe(false);
+});
+
+test.each([false, true])('honors submitOnBlur=%s', (submitOnBlur) => {
+  const { editor, table } = create({
+    altEditor: {
+      inlineEdit: { enabled: true, submitOnBlur, selectText: false },
+    },
+  });
+  editor.startInlineEdit({ row: 0, column: 0 });
+  input().value = 'Ann';
+  input().dispatchEvent(new Event('blur'));
+  expect(editor.isInlineEditing()).toBe(false);
+  expect(table.row(0).data().user.name).toBe(submitOnBlur ? 'Ann' : 'Alice');
+});
+
+test('validates uniqueness, clears stale errors and accepts corrected input', () => {
+  const { editor, table } = create({
+    columns: [{ data: 'user.name', title: 'Name', unique: true }],
+  });
+  editor.startInlineEdit({ row: 0, column: 0 });
+  input().value = 'Bob';
+  expect(editor.commitInlineEdit()).toBe(false);
+  expect(document.querySelector('.alteditor-inline-error').textContent).toBe(
+    editor.language.error.unique
+  );
+  input().value = 'Ann';
+  input().dispatchEvent(new Event('input'));
+  expect(input().hasAttribute('aria-invalid')).toBe(false);
+  expect(document.querySelector('.alteditor-inline-error').textContent).toBe(
+    ''
+  );
+  expect(editor.commitInlineEdit()).toBe(true);
+  expect(table.row(0).data().user.name).toBe('Ann');
+});
+
+test('reattaches a failed save after redraw and accepts a corrected server response', () => {
+  let accept, reject;
+  const { editor, table } = create({
+    onInlineEditRow: (_editor, _values, success, error) => {
+      accept = success;
+      reject = error;
+    },
+  });
+  editor.startInlineEdit({ row: 0, column: 0 });
+  input().value = 'Ann';
+  editor.commitInlineEdit();
+  expect(editor.cancelInlineEdit()).toBe(false);
+  expect(editor.startInlineEdit({ row: 1, column: 0 })).toBe(false);
+  expect(editor.commitInlineEdit()).toBe(false);
+  table.draw();
+  reject();
+  expect(input().value).toBe('Ann');
+  expect(document.querySelector('.alteditor-inline-error').textContent).toBe(
+    editor.language.error.message
+  );
+  editor.commitInlineEdit();
+  accept('invalid');
+  expect(editor.isInlineEditing()).toBe(true);
+  editor.commitInlineEdit();
+  accept('{"id":"a","user":{"name":"Accepted"},"age":30}');
+  expect(table.row(0).data().user.name).toBe('Accepted');
+});
+
 test('keeps nested row data unchanged until the first successful settlement', () => {
   let accept, reject;
   const callback = vi.fn((_editor, _row, success, error) => {

@@ -36,6 +36,156 @@ afterEach(() => {
 });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+test('renders field constraints and collects only enabled form values', async () => {
+  const { editor } = create({
+    data: [],
+    columns: [
+      { data: 'id', title: 'ID', type: 'hidden', value: 0 },
+      {
+        data: 'notes',
+        title: '<b>Notes</b>',
+        type: 'textarea',
+        value: 'First\nSecond',
+        rows: 3,
+        required: true,
+        style: { color: 'red' },
+        special: 'note',
+      },
+      {
+        data: 'role',
+        title: 'Role',
+        type: 'select',
+        options: [
+          { id: 'a', text: '<Admin>' },
+          { value: 'b', label: 'Reader' },
+        ],
+        value: 'b',
+        placeholder: 'Choose',
+        required: true,
+        unique: true,
+      },
+      {
+        data: 'enabled',
+        title: 'Enabled',
+        type: 'checkbox',
+        value: 'yes',
+        inline: true,
+      },
+      { data: 'secret', title: 'Secret', visible: false, value: 'hidden text' },
+      { data: 'locked', title: 'Locked', disabled: true, value: 'excluded' },
+      { data: 'fixed', title: 'Fixed', readonly: true, value: 'retained' },
+      { data: 'omitted', title: 'Omitted', editable: false, value: 'excluded' },
+      { data: 'empty', title: '' },
+    ],
+  });
+  editor.openAddDialog();
+  const form = $(editor.modal_selector).find('form');
+  expect(form.find('textarea').val()).toBe('First\nSecond');
+  expect(form.find('textarea')[0].style.color).toBe('red');
+  expect(form.find('textarea').attr('data-special')).toBe('note');
+  expect(form.find('label[for="notes"]').text()).toBe('Notes:');
+  expect(form.find('option').first().text()).toBe('<Admin>');
+  expect(form.find('[name="fixed"]').prop('readOnly')).toBe(true);
+  expect(form.find('.nonDisplay [name="secret"]').val()).toBe('hidden text');
+  expect(editor._validateFormData(form)).toEqual([]);
+  expect(await editor._collectFormData(form)).toEqual({
+    id: '0',
+    notes: 'First\nSecond',
+    role: 'b',
+    enabled: true,
+    secret: 'hidden text',
+    fixed: 'retained',
+  });
+});
+
+test.each([
+  [
+    {
+      responseJSON: {
+        errors: {
+          name: ['Invalid name', null],
+          age: 'Invalid age',
+          empty: undefined,
+        },
+      },
+    },
+    'Invalid name\nInvalid age',
+  ],
+  [{ responseJSON: { errors: {} } }, 'There was an unknown error!'],
+  [{ responseText: '<b>Unavailable</b>' }, '<b>Unavailable</b>'],
+  [{ status: 503 }, 'Response code: 503'],
+  [undefined, 'There was an unknown error!'],
+])(
+  'renders server failure details safely and permits retry (%j)',
+  async (failure, message) => {
+    const { editor, table } = create({
+      onAddRow: (_editor, _values, _success, error) => error(failure),
+    });
+    editor.openAddDialog();
+    $(editor.modal_selector).find('[name="name"]').val('Carol');
+    await editor._addRowData();
+    const alert = $(editor.modal_selector).find('.alert');
+    expect(alert.find('span').text()).toBe(message);
+    expect(alert.find('b')).toHaveLength(0);
+    expect(editor._submitting).toBe(false);
+    expect(table.rows().count()).toBe(2);
+  }
+);
+
+test.each(['', 'not JSON', '{invalid', 'null'])(
+  'rejects an invalid persisted row: %s',
+  async (response) => {
+    const { editor, table } = create({
+      onEditRow: (_editor, _values, success) => success(response),
+    });
+    editor.openEditDialog(0);
+    await editor._editRowData();
+    expect(table.row(0).data().name).toBe('Alice');
+    expect($(editor.modal_selector).find('.alert').text()).toContain(
+      'Persistence must return a row'
+    );
+    expect(editor._submitting).toBe(false);
+  }
+);
+
+test('accepts JSON persistence responses and ignores completion after a dialog closes', async () => {
+  let accept;
+  const { editor, table } = create({
+    onEditRow: (_editor, _values, success) => {
+      accept = success;
+    },
+  });
+  editor.openEditDialog(0);
+  await editor._editRowData();
+  accept('{"id":"a","name":"Ann"}');
+  expect(table.row(0).data().name).toBe('Ann');
+  editor.openEditDialog(0);
+  await editor._editRowData();
+  $(editor.modal_selector).trigger('hidden.bs.modal');
+  accept({ id: 'a', name: 'Late' });
+  expect(table.row(0).data().name).toBe('Ann');
+});
+
+test('requires valid selection and rejects deletion when a captured row disappears', async () => {
+  const { editor, table } = create();
+  editor.openEditDialog();
+  expect($(editor.modal_selector).find('.alert').text()).toContain(
+    'Exactly one row'
+  );
+  editor.openDeleteDialog();
+  expect($(editor.modal_selector).find('.alert').text()).toContain(
+    'At least one row'
+  );
+  editor.openDeleteDialog([0, 1]);
+  table.row(1).remove();
+  await editor._deleteRow();
+  expect(table.rows().count()).toBe(1);
+  expect(editor._submitting).toBe(false);
+  expect($(editor.modal_selector).find('.alert').text()).toContain(
+    'Target row is unavailable'
+  );
+});
+
 test('adds, edits and deletes the captured row despite selection changes', async () => {
   const { table, editor } = create();
   editor._openAddModal();

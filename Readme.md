@@ -180,7 +180,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-`npm run test:watch` runs interactive unit tests. `npm run test:coverage` reports coverage without a percentage requirement. `npm run build` reports readable, minified, and gzip sizes without a size threshold. Commit the generated JavaScript, source maps, and CSS in `dist/` together with relevant source changes. Coverage and browser output are not tracked. Edit source files rather than generated distribution files.
+`npm run test:watch` runs interactive unit tests. `npm run test:coverage` measures all JavaScript under `src/` and requires at least 80% aggregate statement, branch, function, and line coverage. CI runs this command; browser tests are verified separately and are not included in these percentages. Tests cover dialog and inline editing, value conversion, validation, persistence failures, optional controls, and framework lifecycle behavior. `npm run build` reports readable, minified, and gzip sizes without a size threshold. Commit the generated JavaScript, source maps, and CSS in `dist/` together with relevant source changes. Coverage and browser output are not tracked. Edit source files rather than generated distribution files.
 
 For compatibility verification, install all Playwright browsers and run `npm run test:compat`. This checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation. Run `npm pack --dry-run` to inspect the npm file list. Source is organized under core, data, dialog, crud, inline, and style directories; the build uses Rollup without Babel, TypeScript, or runtime polyfills.
 
