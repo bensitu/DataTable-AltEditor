@@ -1,6 +1,32 @@
 import { expect, test } from 'vitest';
 import { readPath, writePath, withValue } from '../src/data/path.js';
 import { mergeOptions, normalizeOptions } from '../src/core/options.js';
+import { cloneRow } from '../src/data/row-data.js';
+import { equalFieldValues } from '../src/data/field-values.js';
+
+test('copies unrelated metadata safely while preserving protected path validation', () => {
+  const row = JSON.parse(
+    '{"name":"Alice","constructor":"Maker","__proto__":{"custom":true}}'
+  );
+  const copy = cloneRow(row);
+  const edited = withValue(copy, 'name', 'Ann');
+  expect(Object.getPrototypeOf(edited)).toBe(Object.prototype);
+  expect(Object.prototype.custom).toBeUndefined();
+  expect(edited.constructor).toBe('Maker');
+  expect(Object.hasOwn(edited, '__proto__')).toBe(true);
+  expect(edited.__proto__).toEqual({ custom: true });
+  expect(row.name).toBe('Alice');
+  expect(() => withValue(row, '__proto__.custom', false)).toThrow();
+});
+
+test('compares unique values according to field type without treating blanks as zero', () => {
+  expect(equalFieldValues('', 0, 'number')).toBe(false);
+  expect(equalFieldValues('01', 1, 'text')).toBe(false);
+  expect(equalFieldValues('01', 1, 'number')).toBe(true);
+  expect(equalFieldValues('1', 1, 'select')).toBe(true);
+  expect(equalFieldValues(['a', 'b'], ['b', 'c'], 'select')).toBe(true);
+  expect(equalFieldValues(null, null, 'text')).toBe(false);
+});
 
 test('updates nested objects and numeric array sources immutably', () => {
   const original = {

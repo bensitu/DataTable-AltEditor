@@ -72,7 +72,7 @@ export function createAltEditor(DataTable) {
   Object.assign(AltEditor.prototype, dialogs, fields, plugins, actions, {
     selectionListener: function () {
       var dt = this.s.dt;
-      var toggleEditButton = function () {
+      var toggleEditButton = () => {
         if (typeof dt.buttons !== 'function') return;
         var buttons = dt.buttons('edit:name');
         if (
@@ -80,7 +80,7 @@ export function createAltEditor(DataTable) {
           (typeof buttons.count === 'function' && buttons.count() === 0)
         )
           return;
-        if (dt.rows({ selected: true }).count() === 1) buttons.enable();
+        if (this._selectedRows().count() === 1) buttons.enable();
         else buttons.disable();
       };
 
@@ -100,6 +100,13 @@ export function createAltEditor(DataTable) {
     _setValueByPath: writePath,
     _resolveSnapshotRow: function (snapshot) {
       return resolveRow(this.api(), snapshot);
+    },
+    _selectedRows: function (selector) {
+      const api = this.api();
+      if (selector !== undefined) return api.rows(selector);
+      return typeof api.rows().select === 'function'
+        ? api.rows({ selected: true })
+        : api.rows(() => false);
     },
     /** @deprecated Use openAddDialog(). */
     _openAddModal: function () {

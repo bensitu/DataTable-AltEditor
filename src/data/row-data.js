@@ -64,9 +64,12 @@ export function cloneRow(value, seen) {
   const result = Array.isArray(value) ? [] : {};
   seen.set(value, result);
   Object.keys(value).forEach((key) => {
-    if (['__proto__', 'prototype', 'constructor'].indexOf(key) !== -1)
-      throw new Error('Unsafe row key: ' + key);
-    result[key] = cloneRow(value[key], seen);
+    Object.defineProperty(result, key, {
+      value: cloneRow(value[key], seen),
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    });
   });
   return result;
 }

@@ -2,6 +2,7 @@ import { document } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { snapshotRow, resolveRow, invoke, cloneRow } from '../data/row-data.js';
 import { withValue } from '../data/path.js';
+import { equalFieldValues } from '../data/field-values.js';
 import {
   controlOptions,
   createControl,
@@ -217,9 +218,6 @@ export class InlineEditor {
     session.newValue = controlValue(control);
     control.setCustomValidity('');
     if (session.options.unique) {
-      const values = Array.isArray(session.newValue)
-        ? session.newValue
-        : [session.newValue];
       const row = resolveRow(this.api, session);
       const duplicate = this.api
         .rows()
@@ -228,9 +226,10 @@ export class InlineEditor {
         .some(
           (index) =>
             (!row || index !== row.index()) &&
-            values.some(
-              (value) =>
-                value == this.api.cell(index, session.columnIndex).data()
+            equalFieldValues(
+              session.newValue,
+              this.api.cell(index, session.columnIndex).data(),
+              session.options.type
             )
         );
       if (duplicate)

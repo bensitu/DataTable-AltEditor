@@ -151,6 +151,28 @@
     );
   }
 
+  function isFieldPath(path) {
+    try {
+      segments(path);
+      return !/[\[\]()\\]/.test(String(path));
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function copyProperties(source) {
+    const result = {};
+    Object.keys(source || {}).forEach((key) => {
+      Object.defineProperty(result, key, {
+        value: source[key],
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+    });
+    return result;
+  }
+
   function writePath(target, path, value) {
     const keys = segments(path);
     let cursor = target;
@@ -167,7 +189,7 @@
   function withValue(source, path, value) {
     const keys = segments(path);
     const copy = (item) =>
-      Array.isArray(item) ? item.slice() : Object.assign({}, item);
+      Array.isArray(item) ? item.slice() : copyProperties(item);
     const result = copy(source);
     let cursor = result;
     let original = source;
@@ -251,11 +273,38 @@
     const result = Array.isArray(value) ? [] : {};
     seen.set(value, result);
     Object.keys(value).forEach((key) => {
-      if (['__proto__', 'prototype', 'constructor'].indexOf(key) !== -1)
-        throw new Error('Unsafe row key: ' + key);
-      result[key] = cloneRow(value[key], seen);
+      Object.defineProperty(result, key, {
+        value: cloneRow(value[key], seen),
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
     });
     return result;
+  }
+
+  function fieldElement(container, name) {
+    return $(container)
+      .find('input, select, textarea')
+      .filter(function () {
+        return this.id === String(name);
+      });
+  }
+
+  function equalFieldValues(left, right, type) {
+    const values = (value) => (Array.isArray(value) ? value : [value]);
+    return values(left).some((a) =>
+      values(right).some((b) => {
+        if (a === '' || a == null || b === '' || b == null) return false;
+        if (type === 'number')
+          return (
+            Number.isFinite(Number(a)) &&
+            Number.isFinite(Number(b)) &&
+            Number(a) === Number(b)
+          );
+        return String(a) === String(b);
+      })
+    );
   }
 
   const methods$3 = {
@@ -264,7 +313,7 @@
       var dt = this.s.dt;
       if (this._destroyed) return;
 
-      this.random_id = String(Math.random()).replace('.', '');
+      this.random_id = this.s.namespace.slice(1);
       var modalId = 'altEditor-modal-' + this.random_id;
       var titleId = modalId + '-title';
       var bodyId = modalId + '-body';
@@ -324,6 +373,9 @@
       document.body.appendChild(modal);
 
       var $modal = $(this.modal_selector);
+      $modal.on('submit' + this.s.namespace, 'form', function (event) {
+        event.preventDefault();
+      });
       var cleanupDialog = function () {
         if (!that._dialogOpen) return;
         that._dialogOpen = false;
@@ -366,56 +418,38 @@
         });
       }
 
-      var getColumnNumberByName = function (name) {
-        if (!name) return null;
-        var index = null;
-        dt.columns().every(function (i) {
-          var headerNode = dt.column(i).header();
-          var $header =
-            headerNode && typeof headerNode.to$ === 'function'
-              ? headerNode.to$()
-              : $(headerNode);
-          if ($header.attr('name') === name) {
-            index = i;
-            return false;
-          }
-        });
-        if (index === null)
-          dt.columns().every(function (i) {
-            if (String(this.dataSrc()) === name) index = i;
-          });
-        return index;
-      };
-
       var checkUnique = function (event) {
         var target = $(event.target);
         if (target.attr('data-unique') !== 'true') return;
-        var index = getColumnNumberByName(target.attr('name'));
-        if (index === null) {
+        var column = (that.columnDefs || []).find(
+          (item) => String(item.name) === target.attr('name')
+        );
+        if (!column) {
           event.target.setCustomValidity('');
           return;
         }
 
         var candidate = target.val();
-        var candidates = Array.isArray(candidate) ? candidate : [candidate];
         var formName = target.closest('form').attr('name') || '';
-        var editIndex =
-          formName.indexOf('altEditor-edit-form-') === 0 && that._editSnapshot
-            ? that._editSnapshot.rowIndex
+        var editRow =
+          formName.indexOf('altEditor-edit-form-') === 0
+            ? that._resolveSnapshotRow(that._editSnapshot)
             : null;
+        var editIndex = editRow ? editRow.index() : null;
         var rowIndexes = dt.rows().indexes().toArray();
 
         event.target.setCustomValidity('');
-        var duplicate = candidates.some(function (value) {
-          return rowIndexes.some(function (rowIndex) {
-            if (editIndex !== null && rowIndex === editIndex) return false;
-            return value == dt.cell(rowIndex, index).data();
-          });
+        var duplicate = rowIndexes.some(function (rowIndex) {
+          if (editIndex !== null && rowIndex === editIndex) return false;
+          return equalFieldValues(
+            candidate,
+            dt.cell(rowIndex, column.index).data(),
+            column.type
+          );
         });
         if (duplicate)
           event.target.setCustomValidity(
-            that.completeColumnDefs()[index].uniqueMsg ||
-              that.language.error.unique
+            column.uniqueMsg || that.language.error.unique
           );
       };
 
@@ -459,13 +493,10 @@
       if (this._inline) this._inline.cancel('dialog', false);
       this._cleanupPlugins();
       var dt = this.s.dt;
-      var selectedRows =
-        rowSelector === undefined
-          ? dt.rows({ selected: true })
-          : dt.rows(rowSelector);
+      var selectedRows = this._selectedRows(rowSelector);
       if (!selectedRows || selectedRows.count() !== 1) {
         this._showErrorMessage('Exactly one row must be selected for editing.');
-        return;
+        return false;
       }
 
       var rowIndex = selectedRows.indexes().toArray()[0];
@@ -497,10 +528,9 @@
           columnDef.editable === false
         )
           return;
-        var selector = '#' + String(columnDef.name).replace(/\./g, '\\.');
-        var $element = $(that.modal_selector)
-          .find(selector)
-          .filter(':input[type!="file"]');
+        var $element = fieldElement(that.modal_selector, columnDef.name).filter(
+          ':input[type!="file"]'
+        );
         if (!$element.length) return;
         var value = that._getValueByPath(rowData, columnDef.name);
         that._setFieldValue($element, columnDef, value);
@@ -527,13 +557,10 @@
         return false;
       if (this._inline) this._inline.cancel('dialog', false);
       this._cleanupPlugins();
-      var selectedRows =
-        rowSelector === undefined
-          ? this.s.dt.rows({ selected: true })
-          : this.s.dt.rows(rowSelector);
+      var selectedRows = this._selectedRows(rowSelector);
       if (!selectedRows || selectedRows.count() === 0) {
         this._showErrorMessage('At least one row must be selected for deletion.');
-        return;
+        return false;
       }
 
       this._deleteSnapshot = {
@@ -641,10 +668,9 @@
           columnDef.value === undefined
         )
           return;
-        var selector = '#' + String(columnDef.name).replace(/\./g, '\\.');
-        var $element = $(that.modal_selector)
-          .find(selector)
-          .filter(':input[type!="file"]');
+        var $element = fieldElement(that.modal_selector, columnDef.name).filter(
+          ':input[type!="file"]'
+        );
         if (!$element.length) return;
         that._setFieldValue($element, columnDef, columnDef.value);
         $element.trigger('change');
@@ -757,11 +783,7 @@
         var title = String(columnDef.title || '')
           .replace(/(<([^>]+)>)/gi, '')
           .trim();
-        if (
-          typeof columnDef.name !== 'string' &&
-          typeof columnDef.name !== 'number'
-        )
-          return;
+        if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
 
         if (String(columnDef.type).indexOf('hidden') >= 0) {
           var hidden = document.createElement('input');
@@ -1092,11 +1114,6 @@
       if (!this.columnDefs || !Array.isArray(this.columnDefs)) return;
       var that = this;
       var selector = this.modal_selector;
-      var escapeSelector = function (value) {
-        var text = String(value === null || value === undefined ? '' : value);
-        if ($.escapeSelector) return $.escapeSelector(text);
-        return text.replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g, '\\$1');
-      };
 
       this.columnDefs.forEach(function (columnDef) {
         if (
@@ -1104,7 +1121,7 @@
           typeof columnDef.name !== 'number'
         )
           return;
-        var $element = $(selector).find('#' + escapeSelector(columnDef.name));
+        var $element = fieldElement(selector, columnDef.name);
         if (!$element.length) return;
 
         if (
@@ -1402,6 +1419,7 @@
                       if (
                         !this.disabled &&
                         this.name &&
+                        (this.type !== 'radio' || this.checked) &&
                         (this.type !== 'file' || this.files.length)
                       )
                         candidate = withValue(
@@ -1856,9 +1874,6 @@
       session.newValue = controlValue(control);
       control.setCustomValidity('');
       if (session.options.unique) {
-        const values = Array.isArray(session.newValue)
-          ? session.newValue
-          : [session.newValue];
         const row = resolveRow(this.api, session);
         const duplicate = this.api
           .rows()
@@ -1867,9 +1882,10 @@
           .some(
             (index) =>
               (!row || index !== row.index()) &&
-              values.some(
-                (value) =>
-                  value == this.api.cell(index, session.columnIndex).data()
+              equalFieldValues(
+                session.newValue,
+                this.api.cell(index, session.columnIndex).data(),
+                session.options.type
               )
           );
         if (duplicate)
@@ -2064,7 +2080,7 @@
     Object.assign(AltEditor.prototype, methods$3, methods$2, methods$1, methods, {
       selectionListener: function () {
         var dt = this.s.dt;
-        var toggleEditButton = function () {
+        var toggleEditButton = () => {
           if (typeof dt.buttons !== 'function') return;
           var buttons = dt.buttons('edit:name');
           if (
@@ -2072,7 +2088,7 @@
             (typeof buttons.count === 'function' && buttons.count() === 0)
           )
             return;
-          if (dt.rows({ selected: true }).count() === 1) buttons.enable();
+          if (this._selectedRows().count() === 1) buttons.enable();
           else buttons.disable();
         };
 
@@ -2092,6 +2108,13 @@
       _setValueByPath: writePath,
       _resolveSnapshotRow: function (snapshot) {
         return resolveRow(this.api(), snapshot);
+      },
+      _selectedRows: function (selector) {
+        const api = this.api();
+        if (selector !== undefined) return api.rows(selector);
+        return typeof api.rows().select === 'function'
+          ? api.rows({ selected: true })
+          : api.rows(() => false);
       },
       /** @deprecated Use openAddDialog(). */
       _openAddModal: function () {

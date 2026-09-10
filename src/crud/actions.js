@@ -152,6 +152,7 @@ export const methods = {
                     if (
                       !this.disabled &&
                       this.name &&
+                      (this.type !== 'radio' || this.checked) &&
                       (this.type !== 'file' || this.files.length)
                     )
                       candidate = withValue(

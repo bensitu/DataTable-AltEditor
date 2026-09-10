@@ -36,6 +36,35 @@ afterEach(() => {
 });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+test('preserves unsupported fields and edits names containing CSS punctuation', async () => {
+  const original = {
+    'first:name': 'Alice',
+    'postal code': '0123',
+    choice: 'yes',
+    values: ['a'],
+    constructor: 'Metadata',
+  };
+  const { editor, table } = create({
+    data: [original],
+    columns: [
+      { data: 'first:name', title: 'Name' },
+      { data: 'postal code', title: 'Postal code' },
+      { data: 'choice', title: 'Choice', type: 'radio' },
+      { data: 'values[, ]', title: 'Values' },
+      { data: 'constructor', title: 'Metadata' },
+    ],
+  });
+  expect(() => editor.openEditDialog(0)).not.toThrow();
+  const form = $(editor.modal_selector).find('form');
+  expect(form.find('[name="postal code"]').val()).toBe('0123');
+  expect(form.find('[type="radio"]')).toHaveLength(0);
+  expect(form.find('[name="constructor"]')).toHaveLength(0);
+  form.find('[name="first:name"]').val('Ann');
+  await editor._editRowData();
+  expect(table.row(0).data()).toEqual({ ...original, 'first:name': 'Ann' });
+  expect(original['first:name']).toBe('Alice');
+});
+
 test('renders field constraints and collects only enabled form values', async () => {
   const { editor } = create({
     data: [],

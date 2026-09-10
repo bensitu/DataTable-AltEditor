@@ -1,4 +1,5 @@
 import { $, root as window, document } from '../core/dependencies.js';
+import { isFieldPath } from '../data/path.js';
 
 export const methods = {
   createDialog: function (
@@ -28,11 +29,7 @@ export const methods = {
       var title = String(columnDef.title || '')
         .replace(/(<([^>]+)>)/gi, '')
         .trim();
-      if (
-        typeof columnDef.name !== 'string' &&
-        typeof columnDef.name !== 'number'
-      )
-        return;
+      if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
 
       if (String(columnDef.type).indexOf('hidden') >= 0) {
         var hidden = document.createElement('input');

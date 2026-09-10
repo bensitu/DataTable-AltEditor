@@ -16,6 +16,28 @@ export function readPath(source, path) {
   );
 }
 
+export function isFieldPath(path) {
+  try {
+    segments(path);
+    return !/[\[\]()\\]/.test(String(path));
+  } catch (_error) {
+    return false;
+  }
+}
+
+export function copyProperties(source) {
+  const result = {};
+  Object.keys(source || {}).forEach((key) => {
+    Object.defineProperty(result, key, {
+      value: source[key],
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    });
+  });
+  return result;
+}
+
 export function writePath(target, path, value) {
   const keys = segments(path);
   let cursor = target;
@@ -32,7 +54,7 @@ export function writePath(target, path, value) {
 export function withValue(source, path, value) {
   const keys = segments(path);
   const copy = (item) =>
-    Array.isArray(item) ? item.slice() : Object.assign({}, item);
+    Array.isArray(item) ? item.slice() : copyProperties(item);
   const result = copy(source);
   let cursor = result;
   let original = source;

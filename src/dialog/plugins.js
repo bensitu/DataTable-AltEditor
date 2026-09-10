@@ -1,15 +1,11 @@
 import { $, root as window, document } from '../core/dependencies.js';
+import { fieldElement } from '../data/field-values.js';
 
 export const methods = {
   _initializePlugins: function () {
     if (!this.columnDefs || !Array.isArray(this.columnDefs)) return;
     var that = this;
     var selector = this.modal_selector;
-    var escapeSelector = function (value) {
-      var text = String(value === null || value === undefined ? '' : value);
-      if ($.escapeSelector) return $.escapeSelector(text);
-      return text.replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g, '\\$1');
-    };
 
     this.columnDefs.forEach(function (columnDef) {
       if (
@@ -17,7 +13,7 @@ export const methods = {
         typeof columnDef.name !== 'number'
       )
         return;
-      var $element = $(selector).find('#' + escapeSelector(columnDef.name));
+      var $element = fieldElement(selector, columnDef.name);
       if (!$element.length) return;
 
       if (

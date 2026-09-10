@@ -4,6 +4,28 @@ import japanese from '../translations/ja.json';
 import DataTable from 'datatables.net';
 import AltEditor from '../src/index.js';
 
+test('requires explicit row selectors when Select is absent', async () => {
+  document.body.innerHTML = '<table id="table"></table>';
+  const table = new DataTable('#table', {
+    data: [{ name: 'Alice' }, { name: 'Bob' }],
+    columns: [{ data: 'name', title: 'Name' }],
+    altEditor: true,
+  });
+  try {
+    const editor = table.altEditor();
+    editor.internalOpenDialog = (_selector, fill) => fill();
+    expect(editor.openDeleteDialog()).toBe(false);
+    expect(editor._deleteSnapshot).toBeFalsy();
+    expect(editor.openEditDialog()).toBe(false);
+    expect(table.rows().count()).toBe(2);
+    editor.openDeleteDialog(0);
+    await editor._deleteRow();
+    expect(table.rows().data().toArray()).toEqual([{ name: 'Bob' }]);
+  } finally {
+    table.destroy();
+  }
+});
+
 test('registers an editor for automatic initialization', () => {
   document.body.innerHTML = '<table id="table"></table>';
   const table = new DataTable('#table', {
