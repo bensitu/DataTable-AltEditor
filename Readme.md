@@ -13,7 +13,7 @@ AltEditor 4.0.1 adds row dialogs and cell inline editing to DataTables 2.x. It i
 
 ## Installation
 
-The repository includes ready-to-use files in `dist/`. A compressed stylesheet, `dist/dataTables.altEditor.min.css`, is available with an external source map containing the original CSS. Use it in place of `dist/dataTables.altEditor.css` for production. Rebuild distribution files after changing source files with Node.js 24 and npm:
+The repository includes ready-to-use files in `dist/`. A compressed stylesheet, `dist/dataTables.altEditor.min.css`, is available with an external source map containing the original CSS. Use it in place of `dist/dataTables.altEditor.css` for production. Development dependencies require Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`; Node.js 24 is recommended. CI verifies a clean, strict dependency installation on Node.js 22.22.2 and Node.js 24. Rebuild distribution files after changing source files:
 
 ```sh
 npm ci

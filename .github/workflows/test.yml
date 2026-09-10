@@ -6,8 +6,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        node: ['22.13.0', '24']
+        node: ['22.22.2', '24']
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
