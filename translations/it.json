@@ -1,24 +1,33 @@
-{ 
-    "modalClose" : "Chiudi",
-    "edit" : {
-        "title" : "Modifica",
-        "button" : "Modifica"
+{
+    "modalClose": "Chiudi",
+    "edit": {
+        "title": "Modifica",
+        "button": "Modifica"
     },
-    "add" : {
-        "title" : "Nuovo",
-        "button" : "Crea"
+    "add": {
+        "title": "Nuovo",
+        "button": "Crea"
     },
-    "delete" : {
-        "title" : "Elimina",
-        "button" : "Elimina"
+    "delete": {
+        "title": "Elimina",
+        "button": "Elimina"
     },
-    "deleteMessage" : "Vuoi eliminare le righe selezionate?",
-    "success" : "Fatto.",
-    "error" : {
-        "message" : "Si è verificato un errore non previsto.",
-        "label" : "Errore",
-        "responseCode" : "Codice di risposta: ",
-        "required" : "Valore obbligatorio",
-        "unique" : "Valore duplicato"
+    "deleteMessage": "Vuoi eliminare le righe selezionate?",
+    "success": "Fatto.",
+    "error": {
+        "message": "Si è verificato un errore non previsto.",
+        "label": "Errore",
+        "responseCode": "Codice di risposta: ",
+        "required": "Valore obbligatorio",
+        "unique": "Valore duplicato",
+        "editSelection": "Selezionare esattamente una riga da modificare.",
+        "deleteSelection": "Selezionare almeno una riga da eliminare.",
+        "targetUnavailable": "La riga di destinazione non è disponibile",
+        "invalidResponse": "Il salvataggio deve restituire un oggetto o un array che rappresenti una riga",
+        "invalidSetter": "inlineEditSetValue deve restituire un oggetto o un array che rappresenti una riga",
+        "fileRead": "Impossibile leggere il file",
+        "fileAborted": "La lettura del file è stata interrotta",
+        "fileSize": "Il file supera il limite di dimensione configurato",
+        "dialogFramework": "Per aprire le finestre di dialogo AltEditor è necessario Bootstrap Modal o Foundation Reveal"
     }
 }

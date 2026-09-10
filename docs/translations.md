@@ -32,7 +32,7 @@ new DataTable('#table', {
 });
 ```
 
-`altEditorUrl` loads asynchronously. English defaults are available before the request completes and remain in use if it fails. To display translated text from the first interaction, load the file before constructing the table:
+`altEditorUrl` loads asynchronously with a 15-second timeout. English defaults are available before the request completes and remain in use if the request fails or the JSON structure is invalid. Failures emit `alteditor-error.dt` with `action: 'language'` and a console warning. Labels in an open dialog update when loading succeeds without replacing entered values. To display translated text from the first interaction, load the file before constructing the table:
 
 ```javascript
 const response = await fetch('/translations/ja.json');
@@ -54,8 +54,8 @@ new DataTable('#table', {
 
 ## Translation coverage
 
-Each supplied file contains all 14 string values from the AltEditor language defaults: `modalClose`, `edit.title`, `edit.button`, `add.title`, `add.button`, `delete.title`, `delete.button`, `deleteMessage`, `success`, `error.message`, `error.label`, `error.responseCode`, `error.required`, and `error.unique`.
+Each supplied file contains all 23 string values from the AltEditor language defaults: `modalClose`, `edit.title`, `edit.button`, `add.title`, `add.button`, `delete.title`, `delete.button`, `deleteMessage`, `success`, `error.message`, `error.label`, `error.responseCode`, `error.required`, `error.unique`, `error.editSelection`, `error.deleteSelection`, `error.targetUnavailable`, `error.invalidResponse`, `error.invalidSetter`, `error.fileRead`, `error.fileAborted`, `error.fileSize`, and `error.dialogFramework`.
 
 The files translate editor dialog labels, deletion confirmation, and applicable operation and uniqueness messages. DataTables search, pagination, and extension labels use DataTables language configuration, including `language.url`, independently. Applications supply toolbar button text, column titles, option labels, custom validation messages, and server error messages. Select2 and date pickers have their own localization settings.
 
-Native HTML constraint validation uses the browser's messages and language. The `error.required` key is retained for compatibility but does not override those native messages. Programmatic selection errors and other diagnostic messages are not all localized.
+Native HTML constraint validation uses the browser's messages and language. The `error.required` key is retained for compatibility but does not override those native messages. Selection, persistence response, file reading, and missing dialog framework messages use the corresponding `error` keys. Developer configuration exceptions and optional plugin warnings remain in English.

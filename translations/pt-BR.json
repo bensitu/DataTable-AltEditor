@@ -1,24 +1,33 @@
-{ 
-    "modalClose" : "Fechar",
-    "edit" : {
-        "title" : "Editar",
-        "button" : "Salvar"
+{
+    "modalClose": "Fechar",
+    "edit": {
+        "title": "Editar",
+        "button": "Salvar"
     },
-    "add" : {
-        "title" : "Adicionar Registro",
-        "button" : "Criar"
+    "add": {
+        "title": "Adicionar Registro",
+        "button": "Criar"
     },
-    "delete" : {
-        "title" : "Deletar Registro",
-        "button" : "Deletar"
+    "delete": {
+        "title": "Deletar Registro",
+        "button": "Deletar"
     },
-	"deleteMessage" : "Tem certeza que deseja deletar este registro?",
-    "success" : "Sucesso!",
-    "error" : {
-		"message" : "Ocorreu um erro.",
-		"label" : "Erro!",
-		"responseCode" : "Código de Resposta: ",
-		"required" : "Campo é obrigatório",
-		"unique" : "Valor duplicado"
+    "deleteMessage": "Tem certeza que deseja deletar este registro?",
+    "success": "Sucesso!",
+    "error": {
+        "message": "Ocorreu um erro.",
+        "label": "Erro!",
+        "responseCode": "Código de Resposta: ",
+        "required": "Campo é obrigatório",
+        "unique": "Valor duplicado",
+        "editSelection": "Selecione exatamente uma linha para editar.",
+        "deleteSelection": "Selecione pelo menos uma linha para excluir.",
+        "targetUnavailable": "A linha de destino não está disponível",
+        "invalidResponse": "A operação de salvamento deve retornar um objeto ou array de linha",
+        "invalidSetter": "inlineEditSetValue deve retornar um objeto ou array de linha",
+        "fileRead": "Não foi possível ler o arquivo",
+        "fileAborted": "A leitura do arquivo foi cancelada",
+        "fileSize": "O arquivo excede o limite de tamanho configurado",
+        "dialogFramework": "É necessário Bootstrap Modal ou Foundation Reveal para abrir as caixas de diálogo do AltEditor"
     }
 }

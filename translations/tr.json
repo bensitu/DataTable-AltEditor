@@ -19,6 +19,15 @@
     "label": "Hata",
     "responseCode": "Yanıt kodu: ",
     "required": "Bu alan zorunludur",
-    "unique": "Bu alanın değeri zaten mevcut"
+    "unique": "Bu alanın değeri zaten mevcut",
+    "editSelection": "Düzenlemek için tam olarak bir satır seçin.",
+    "deleteSelection": "Silmek için en az bir satır seçin.",
+    "targetUnavailable": "Hedef satır kullanılamıyor",
+    "invalidResponse": "Kaydetme işlemi bir satır nesnesi veya dizisi döndürmelidir",
+    "invalidSetter": "inlineEditSetValue bir satır nesnesi veya dizisi döndürmelidir",
+    "fileRead": "Dosya okunamadı",
+    "fileAborted": "Dosya okuma işlemi iptal edildi",
+    "fileSize": "Dosya, yapılandırılan boyut sınırını aşıyor",
+    "dialogFramework": "AltEditor iletişim kutularını açmak için Bootstrap Modal veya Foundation Reveal gereklidir"
   }
 }

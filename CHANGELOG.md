@@ -9,6 +9,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Selection, persistence, and file errors use configurable language strings, with complete translations in all twelve language files. Missing dialog frameworks report a visible error and reject opening without an uncaught exception.
 - Invalid or unavailable translations retain working labels and report failures. Asynchronously loaded labels update open dialogs without discarding input. Invalid automatic editor configuration no longer interrupts table initialization.
 - Date/time picker cleanup continues after plugin failures, optional file size limits reject oversized files before reading, and time fields support explicit date input formats.
 - Dialog errors remain visible without an open modal, focus moves to the first available field after opening, Bootstrap 3 cleanup avoids unsupported methods, and Foundation dialogs prevent backdrop and Escape dismissal during saves. Dialog fields are rendered once without unused error labels.

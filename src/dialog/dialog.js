@@ -175,6 +175,16 @@ export const methods = {
         responseCode: 'Response code: ',
         required: 'Field is required',
         unique: 'Duplicated field',
+        editSelection: 'Exactly one row must be selected for editing.',
+        deleteSelection: 'At least one row must be selected for deletion.',
+        targetUnavailable: 'Target row is unavailable',
+        invalidResponse: 'Persistence must return a row object or array',
+        invalidSetter: 'inlineEditSetValue must return a row object or array',
+        fileRead: 'Failed to read file',
+        fileAborted: 'File read was aborted',
+        fileSize: 'File exceeds the configured size limit',
+        dialogFramework:
+          'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs',
       },
     };
 
@@ -223,7 +233,7 @@ export const methods = {
     var dt = this.s.dt;
     var selectedRows = this._selectedRows(rowSelector);
     if (!selectedRows || selectedRows.count() !== 1) {
-      this._showErrorMessage('Exactly one row must be selected for editing.');
+      this._showErrorMessage(this.language.error.editSelection);
       return false;
     }
 
@@ -234,14 +244,17 @@ export const methods = {
     this._editSnapshot = snapshotRow(dt.row(rowIndex));
 
     var columnDefs = this.completeColumnDefs();
-    this.createDialog(
-      columnDefs,
-      this.language.edit.title,
-      this.language.edit.button,
-      this.language.modalClose,
-      'editRowBtn',
-      'altEditor-edit-form'
-    );
+    if (
+      this.createDialog(
+        columnDefs,
+        this.language.edit.title,
+        this.language.edit.button,
+        this.language.modalClose,
+        'editRowBtn',
+        'altEditor-edit-form'
+      ) === false
+    )
+      return false;
 
     var that = this;
     columnDefs.forEach(function (columnDef) {
@@ -250,12 +263,7 @@ export const methods = {
         typeof columnDef.name !== 'string'
       )
         return;
-      if (
-        columnDef.name === null ||
-        columnDef.name === undefined ||
-        columnDef.editable === false
-      )
-        return;
+      if (columnDef.editable === false) return;
       var $element = fieldElement(that.modal_selector, columnDef.name).filter(
         ':input[type!="file"]'
       );
@@ -287,7 +295,7 @@ export const methods = {
     this._cleanupPlugins();
     var selectedRows = this._selectedRows(rowSelector);
     if (!selectedRows || selectedRows.count() === 0) {
-      this._showErrorMessage('At least one row must be selected for deletion.');
+      this._showErrorMessage(this.language.error.deleteSelection);
       return false;
     }
 
@@ -351,7 +359,7 @@ export const methods = {
       }
     };
 
-    this.internalOpenDialog(selector, fill);
+    if (this.internalOpenDialog(selector, fill) === false) return false;
     this._focusFirstInput();
     $(selector)
       .trigger('alteditor:some_dialog_opened')
@@ -373,14 +381,17 @@ export const methods = {
     if (this._inline) this._inline.cancel('dialog', false);
     this._cleanupPlugins();
     var columnDefs = this.completeColumnDefs();
-    this.createDialog(
-      columnDefs,
-      this.language.add.title,
-      this.language.add.button,
-      this.language.modalClose,
-      'addRowBtn',
-      'altEditor-add-form'
-    );
+    if (
+      this.createDialog(
+        columnDefs,
+        this.language.add.title,
+        this.language.add.button,
+        this.language.modalClose,
+        'addRowBtn',
+        'altEditor-add-form'
+      ) === false
+    )
+      return false;
 
     var that = this;
     columnDefs.forEach(function (columnDef) {
@@ -389,13 +400,7 @@ export const methods = {
         typeof columnDef.name !== 'string'
       )
         return;
-      if (
-        columnDef.name === null ||
-        columnDef.name === undefined ||
-        columnDef.value === null ||
-        columnDef.value === undefined
-      )
-        return;
+      if (columnDef.value === null || columnDef.value === undefined) return;
       var $element = fieldElement(that.modal_selector, columnDef.name).filter(
         ':input[type!="file"]'
       );

@@ -243,7 +243,7 @@ export class InlineEditor {
     }
     try {
       if (!resolveRow(this.api, session))
-        throw new Error('Target row is unavailable');
+        throw new Error(this.editor.language.error.targetUnavailable);
       session.candidate =
         typeof session.options.inlineEditSetValue === 'function'
           ? session.options.inlineEditSetValue(
@@ -253,7 +253,7 @@ export class InlineEditor {
             )
           : withValue(session.originalRow, session.dataSrc, session.newValue);
       if (!session.candidate || typeof session.candidate !== 'object')
-        throw new Error('inlineEditSetValue must return a row object or array');
+        throw new Error(this.editor.language.error.invalidSetter);
     } catch (error) {
       this.fail(session, error);
       return false;
@@ -282,13 +282,14 @@ export class InlineEditor {
         if (this.session !== session || this.editor._destroyed) return;
         try {
           const row = resolveRow(this.api, session);
-          if (!row) throw new Error('Target row is unavailable');
+          if (!row)
+            throw new Error(this.editor.language.error.targetUnavailable);
           const candidate =
             response === undefined
               ? session.candidate
               : this.editor._normalizeResponseData(response);
           if (!candidate || typeof candidate !== 'object')
-            throw new Error('Persistence must return a row object or array');
+            throw new Error(this.editor.language.error.invalidResponse);
           const rowIndex = row.index();
           this.release(session);
           this.session = null;

@@ -19,6 +19,15 @@
     "label": "错误",
     "responseCode": "响应代码：",
     "required": "此字段为必填项",
-    "unique": "此字段的值已存在"
+    "unique": "此字段的值已存在",
+    "editSelection": "请选择一行进行编辑。",
+    "deleteSelection": "请至少选择一行进行删除。",
+    "targetUnavailable": "目标行不可用",
+    "invalidResponse": "保存操作必须返回行对象或数组",
+    "invalidSetter": "inlineEditSetValue 必须返回行对象或数组",
+    "fileRead": "无法读取文件",
+    "fileAborted": "文件读取已中止",
+    "fileSize": "文件超过配置的大小限制",
+    "dialogFramework": "打开 AltEditor 对话框需要 Bootstrap Modal 或 Foundation Reveal"
   }
 }

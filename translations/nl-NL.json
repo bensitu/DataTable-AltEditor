@@ -1,24 +1,33 @@
-{ 
-    "modalClose" : "Sluiten",
-    "edit" : {
-        "title" : "Wijzigen",
-        "button" : "Wijzig"
+{
+    "modalClose": "Sluiten",
+    "edit": {
+        "title": "Wijzigen",
+        "button": "Wijzig"
     },
-    "add" : {
-        "title" : "Nieuw",
-        "button" : "Aanmaken"
+    "add": {
+        "title": "Nieuw",
+        "button": "Aanmaken"
     },
-    "delete" : {
-        "title" : "Verwijderen",
-        "button" : "Verwijder"
+    "delete": {
+        "title": "Verwijderen",
+        "button": "Verwijder"
     },
-    "success" : "Gelukt.",
-    "error" : {
-        "message" : "Er is een onverwachte fout opgetreden.",
-        "label" : "Fout",
-        "responseCode" : "Reactiecode:",
-        "required" : "Verplichte waarde",
-        "unique" : "Dubbele waarde"
-    }, 
-	"deleteMessage": "Ben je zeker dat je deze rij(en) wilt verwijderen?"
+    "success": "Gelukt.",
+    "error": {
+        "message": "Er is een onverwachte fout opgetreden.",
+        "label": "Fout",
+        "responseCode": "Reactiecode:",
+        "required": "Verplichte waarde",
+        "unique": "Dubbele waarde",
+        "editSelection": "Selecteer precies één rij om te bewerken.",
+        "deleteSelection": "Selecteer ten minste één rij om te verwijderen.",
+        "targetUnavailable": "De doelrij is niet beschikbaar",
+        "invalidResponse": "De opslagbewerking moet een rijobject of array teruggeven",
+        "invalidSetter": "inlineEditSetValue moet een rijobject of array teruggeven",
+        "fileRead": "Het bestand kon niet worden gelezen",
+        "fileAborted": "Het lezen van het bestand is afgebroken",
+        "fileSize": "Het bestand overschrijdt de ingestelde groottelimiet",
+        "dialogFramework": "Bootstrap Modal of Foundation Reveal is vereist om AltEditor-dialoogvensters te openen"
+    },
+    "deleteMessage": "Ben je zeker dat je deze rij(en) wilt verwijderen?"
 }

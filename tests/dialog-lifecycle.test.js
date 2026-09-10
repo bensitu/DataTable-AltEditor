@@ -112,8 +112,14 @@ test('reports missing dialog frameworks without marking a dialog open', () => {
   vi.stubGlobal('Foundation', undefined);
   $.fn.modal = undefined;
   const editor = create();
-  expect(() => editor.openAddDialog()).toThrow(
-    'Bootstrap Modal or Foundation Reveal'
-  );
+  const failure = vi.fn();
+  editor.api().on('alteditor-error.dt', failure);
+  for (const open of ['openAddDialog', 'openEditDialog', 'openDeleteDialog']) {
+    expect(editor[open](0)).toBe(false);
+    expect(document.querySelector('.altEditor-message').textContent).toContain(
+      'Bootstrap Modal or Foundation Reveal'
+    );
+  }
+  expect(failure).toHaveBeenCalledTimes(3);
   expect(editor._dialogOpen).toBeFalsy();
 });

@@ -83,7 +83,7 @@ export const methods = {
       }
     };
     if (action !== 'add' && !snapshot) {
-      fail(new Error('Target row is unavailable'));
+      fail(new Error(this.language.error.targetUnavailable));
       return;
     }
     const form = $(this.modal_selector).find('form');
@@ -113,12 +113,12 @@ export const methods = {
         }
         if (!active()) return;
         if (action === 'edit' && !resolveRow(editor.api(), snapshot))
-          throw new Error('Target row is unavailable');
+          throw new Error(editor.language.error.targetUnavailable);
         if (
           action === 'delete' &&
           snapshot.targets.some((target) => !resolveRow(editor.api(), target))
         )
-          throw new Error('Target row is unavailable');
+          throw new Error(editor.language.error.targetUnavailable);
         emit(editor, 'submit', payload);
         const callback =
           editor[
@@ -142,7 +142,7 @@ export const methods = {
                   resolveRow(api, target)
                 );
                 if (rows.some((row) => !row))
-                  throw new Error('Target row is unavailable');
+                  throw new Error(editor.language.error.targetUnavailable);
                 api.rows(rows.map((row) => row.index())).remove();
               } else {
                 let candidate =
@@ -167,13 +167,12 @@ export const methods = {
                     ? candidate
                     : editor._normalizeResponseData(response);
                 if (!data || typeof data !== 'object')
-                  throw new Error(
-                    'Persistence must return a row object or array'
-                  );
+                  throw new Error(editor.language.error.invalidResponse);
                 if (action === 'add') api.row.add(data);
                 else {
                   const row = resolveRow(api, snapshot);
-                  if (!row) throw new Error('Target row is unavailable');
+                  if (!row)
+                    throw new Error(editor.language.error.targetUnavailable);
                   row.data(data);
                 }
               }

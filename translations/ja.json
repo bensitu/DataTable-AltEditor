@@ -19,6 +19,15 @@
     "label": "エラー",
     "responseCode": "応答コード：",
     "required": "この項目は必須です",
-    "unique": "この項目の値は既に存在します"
+    "unique": "この項目の値は既に存在します",
+    "editSelection": "編集する行を1行選択してください。",
+    "deleteSelection": "削除する行を1行以上選択してください。",
+    "targetUnavailable": "対象の行を利用できません",
+    "invalidResponse": "保存処理は行のオブジェクトまたは配列を返す必要があります",
+    "invalidSetter": "inlineEditSetValue は行のオブジェクトまたは配列を返す必要があります",
+    "fileRead": "ファイルを読み取れませんでした",
+    "fileAborted": "ファイルの読み取りが中止されました",
+    "fileSize": "ファイルが設定されたサイズ制限を超えています",
+    "dialogFramework": "AltEditor のダイアログを開くには Bootstrap Modal または Foundation Reveal が必要です"
   }
 }

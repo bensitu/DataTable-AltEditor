@@ -199,7 +199,7 @@ export const methods = {
       }
     };
 
-    this.internalOpenDialog(selector, fill);
+    if (this.internalOpenDialog(selector, fill) === false) return false;
     this._initializePlugins();
     this._focusFirstInput();
 
@@ -264,7 +264,7 @@ export const methods = {
             column.maxFileSize < 0 ||
             file.size > column.maxFileSize)
         )
-          throw new Error('File exceeds the configured size limit');
+          throw new Error(that.language.error.fileSize);
         if (that.encodeFiles) {
           fileTasks.push(
             new Promise(function (resolve, reject) {
@@ -338,16 +338,17 @@ export const methods = {
     });
   },
   getBase64: function (file, onSuccess, onError) {
+    var language = this.language.error;
     var reader = new window.FileReader();
     reader.onload = function () {
       if (onSuccess) onSuccess(reader.result);
     };
     reader.onerror = function () {
-      var error = reader.error || new Error('Failed to read file');
+      var error = reader.error || new Error(language.fileRead);
       if (onError) onError(error);
     };
     reader.onabort = function () {
-      if (onError) onError(new Error('File read was aborted'));
+      if (onError) onError(new Error(language.fileAborted));
     };
     try {
       reader.readAsDataURL(file);

@@ -19,6 +19,15 @@
     "label": "Erreur",
     "responseCode": "Code de réponse : ",
     "required": "Ce champ est obligatoire",
-    "unique": "La valeur de ce champ existe déjà"
+    "unique": "La valeur de ce champ existe déjà",
+    "editSelection": "Sélectionnez exactement une ligne à modifier.",
+    "deleteSelection": "Sélectionnez au moins une ligne à supprimer.",
+    "targetUnavailable": "La ligne cible est indisponible",
+    "invalidResponse": "La sauvegarde doit renvoyer un objet ou un tableau représentant une ligne",
+    "invalidSetter": "inlineEditSetValue doit renvoyer un objet ou un tableau représentant une ligne",
+    "fileRead": "Impossible de lire le fichier",
+    "fileAborted": "La lecture du fichier a été annulée",
+    "fileSize": "Le fichier dépasse la taille maximale configurée",
+    "dialogFramework": "Bootstrap Modal ou Foundation Reveal est nécessaire pour ouvrir les boîtes de dialogue AltEditor"
   }
 }

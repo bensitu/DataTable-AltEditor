@@ -176,10 +176,12 @@ export function createAltEditor(DataTable) {
         : foundation.available()
           ? foundation
           : null;
-      if (!adapter)
-        throw new Error(
-          'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs'
-        );
+      if (!adapter) {
+        const error = new Error(this.language.error.dialogFramework);
+        this._showErrorMessage(error.message);
+        emit(this, 'error', { action: 'open', mode: 'dialog', error });
+        return false;
+      }
       this._adapter = adapter;
       fill();
       adapter.show($(selector)[0]);

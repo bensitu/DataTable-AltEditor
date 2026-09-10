@@ -19,6 +19,15 @@
     "label": "Error",
     "responseCode": "Código de respuesta: ",
     "required": "Este campo es obligatorio",
-    "unique": "El valor de este campo ya existe"
+    "unique": "El valor de este campo ya existe",
+    "editSelection": "Seleccione exactamente una fila para editar.",
+    "deleteSelection": "Seleccione al menos una fila para eliminar.",
+    "targetUnavailable": "La fila de destino no está disponible",
+    "invalidResponse": "La operación de guardado debe devolver un objeto o un array de fila",
+    "invalidSetter": "inlineEditSetValue debe devolver un objeto o un array de fila",
+    "fileRead": "No se pudo leer el archivo",
+    "fileAborted": "Se canceló la lectura del archivo",
+    "fileSize": "El archivo supera el límite de tamaño configurado",
+    "dialogFramework": "Se requiere Bootstrap Modal o Foundation Reveal para abrir los diálogos de AltEditor"
   }
 }

@@ -479,6 +479,16 @@
           responseCode: 'Response code: ',
           required: 'Field is required',
           unique: 'Duplicated field',
+          editSelection: 'Exactly one row must be selected for editing.',
+          deleteSelection: 'At least one row must be selected for deletion.',
+          targetUnavailable: 'Target row is unavailable',
+          invalidResponse: 'Persistence must return a row object or array',
+          invalidSetter: 'inlineEditSetValue must return a row object or array',
+          fileRead: 'Failed to read file',
+          fileAborted: 'File read was aborted',
+          fileSize: 'File exceeds the configured size limit',
+          dialogFramework:
+            'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs',
         },
       };
 
@@ -527,7 +537,7 @@
       var dt = this.s.dt;
       var selectedRows = this._selectedRows(rowSelector);
       if (!selectedRows || selectedRows.count() !== 1) {
-        this._showErrorMessage('Exactly one row must be selected for editing.');
+        this._showErrorMessage(this.language.error.editSelection);
         return false;
       }
 
@@ -538,14 +548,17 @@
       this._editSnapshot = snapshotRow(dt.row(rowIndex));
 
       var columnDefs = this.completeColumnDefs();
-      this.createDialog(
-        columnDefs,
-        this.language.edit.title,
-        this.language.edit.button,
-        this.language.modalClose,
-        'editRowBtn',
-        'altEditor-edit-form'
-      );
+      if (
+        this.createDialog(
+          columnDefs,
+          this.language.edit.title,
+          this.language.edit.button,
+          this.language.modalClose,
+          'editRowBtn',
+          'altEditor-edit-form'
+        ) === false
+      )
+        return false;
 
       var that = this;
       columnDefs.forEach(function (columnDef) {
@@ -554,12 +567,7 @@
           typeof columnDef.name !== 'string'
         )
           return;
-        if (
-          columnDef.name === null ||
-          columnDef.name === undefined ||
-          columnDef.editable === false
-        )
-          return;
+        if (columnDef.editable === false) return;
         var $element = fieldElement(that.modal_selector, columnDef.name).filter(
           ':input[type!="file"]'
         );
@@ -591,7 +599,7 @@
       this._cleanupPlugins();
       var selectedRows = this._selectedRows(rowSelector);
       if (!selectedRows || selectedRows.count() === 0) {
-        this._showErrorMessage('At least one row must be selected for deletion.');
+        this._showErrorMessage(this.language.error.deleteSelection);
         return false;
       }
 
@@ -655,7 +663,7 @@
         }
       };
 
-      this.internalOpenDialog(selector, fill);
+      if (this.internalOpenDialog(selector, fill) === false) return false;
       this._focusFirstInput();
       $(selector)
         .trigger('alteditor:some_dialog_opened')
@@ -677,14 +685,17 @@
       if (this._inline) this._inline.cancel('dialog', false);
       this._cleanupPlugins();
       var columnDefs = this.completeColumnDefs();
-      this.createDialog(
-        columnDefs,
-        this.language.add.title,
-        this.language.add.button,
-        this.language.modalClose,
-        'addRowBtn',
-        'altEditor-add-form'
-      );
+      if (
+        this.createDialog(
+          columnDefs,
+          this.language.add.title,
+          this.language.add.button,
+          this.language.modalClose,
+          'addRowBtn',
+          'altEditor-add-form'
+        ) === false
+      )
+        return false;
 
       var that = this;
       columnDefs.forEach(function (columnDef) {
@@ -693,13 +704,7 @@
           typeof columnDef.name !== 'string'
         )
           return;
-        if (
-          columnDef.name === null ||
-          columnDef.name === undefined ||
-          columnDef.value === null ||
-          columnDef.value === undefined
-        )
-          return;
+        if (columnDef.value === null || columnDef.value === undefined) return;
         var $element = fieldElement(that.modal_selector, columnDef.name).filter(
           ':input[type!="file"]'
         );
@@ -986,7 +991,7 @@
         }
       };
 
-      this.internalOpenDialog(selector, fill);
+      if (this.internalOpenDialog(selector, fill) === false) return false;
       this._initializePlugins();
       this._focusFirstInput();
 
@@ -1051,7 +1056,7 @@
               column.maxFileSize < 0 ||
               file.size > column.maxFileSize)
           )
-            throw new Error('File exceeds the configured size limit');
+            throw new Error(that.language.error.fileSize);
           if (that.encodeFiles) {
             fileTasks.push(
               new Promise(function (resolve, reject) {
@@ -1125,16 +1130,17 @@
       });
     },
     getBase64: function (file, onSuccess, onError) {
+      var language = this.language.error;
       var reader = new root.FileReader();
       reader.onload = function () {
         if (onSuccess) onSuccess(reader.result);
       };
       reader.onerror = function () {
-        var error = reader.error || new Error('Failed to read file');
+        var error = reader.error || new Error(language.fileRead);
         if (onError) onError(error);
       };
       reader.onabort = function () {
-        if (onError) onError(new Error('File read was aborted'));
+        if (onError) onError(new Error(language.fileAborted));
       };
       try {
         reader.readAsDataURL(file);
@@ -1400,7 +1406,7 @@
         }
       };
       if (action !== 'add' && !snapshot) {
-        fail(new Error('Target row is unavailable'));
+        fail(new Error(this.language.error.targetUnavailable));
         return;
       }
       const form = $(this.modal_selector).find('form');
@@ -1430,12 +1436,12 @@
           }
           if (!active()) return;
           if (action === 'edit' && !resolveRow(editor.api(), snapshot))
-            throw new Error('Target row is unavailable');
+            throw new Error(editor.language.error.targetUnavailable);
           if (
             action === 'delete' &&
             snapshot.targets.some((target) => !resolveRow(editor.api(), target))
           )
-            throw new Error('Target row is unavailable');
+            throw new Error(editor.language.error.targetUnavailable);
           emit(editor, 'submit', payload);
           const callback =
             editor[
@@ -1459,7 +1465,7 @@
                     resolveRow(api, target)
                   );
                   if (rows.some((row) => !row))
-                    throw new Error('Target row is unavailable');
+                    throw new Error(editor.language.error.targetUnavailable);
                   api.rows(rows.map((row) => row.index())).remove();
                 } else {
                   let candidate =
@@ -1484,13 +1490,12 @@
                       ? candidate
                       : editor._normalizeResponseData(response);
                   if (!data || typeof data !== 'object')
-                    throw new Error(
-                      'Persistence must return a row object or array'
-                    );
+                    throw new Error(editor.language.error.invalidResponse);
                   if (action === 'add') api.row.add(data);
                   else {
                     const row = resolveRow(api, snapshot);
-                    if (!row) throw new Error('Target row is unavailable');
+                    if (!row)
+                      throw new Error(editor.language.error.targetUnavailable);
                     row.data(data);
                   }
                 }
@@ -1955,7 +1960,7 @@
       }
       try {
         if (!resolveRow(this.api, session))
-          throw new Error('Target row is unavailable');
+          throw new Error(this.editor.language.error.targetUnavailable);
         session.candidate =
           typeof session.options.inlineEditSetValue === 'function'
             ? session.options.inlineEditSetValue(
@@ -1965,7 +1970,7 @@
               )
             : withValue(session.originalRow, session.dataSrc, session.newValue);
         if (!session.candidate || typeof session.candidate !== 'object')
-          throw new Error('inlineEditSetValue must return a row object or array');
+          throw new Error(this.editor.language.error.invalidSetter);
       } catch (error) {
         this.fail(session, error);
         return false;
@@ -1994,13 +1999,14 @@
           if (this.session !== session || this.editor._destroyed) return;
           try {
             const row = resolveRow(this.api, session);
-            if (!row) throw new Error('Target row is unavailable');
+            if (!row)
+              throw new Error(this.editor.language.error.targetUnavailable);
             const candidate =
               response === undefined
                 ? session.candidate
                 : this.editor._normalizeResponseData(response);
             if (!candidate || typeof candidate !== 'object')
-              throw new Error('Persistence must return a row object or array');
+              throw new Error(this.editor.language.error.invalidResponse);
             const rowIndex = row.index();
             this.release(session);
             this.session = null;
@@ -2240,10 +2246,12 @@
           : available()
             ? foundation
             : null;
-        if (!adapter)
-          throw new Error(
-            'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs'
-          );
+        if (!adapter) {
+          const error = new Error(this.language.error.dialogFramework);
+          this._showErrorMessage(error.message);
+          emit(this, 'error', { action: 'open', mode: 'dialog', error });
+          return false;
+        }
         this._adapter = adapter;
         fill();
         adapter.show($(selector)[0]);
