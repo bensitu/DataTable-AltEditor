@@ -1,4 +1,4 @@
-/*! DataTables AltEditor v4.0.0 | MIT License */.altEditor-message .alert{margin-block:0.75rem;padding:.75rem;border:1px solid currentColor;border-radius:.375rem}:where(.altEditor-modal,.alteditor-inline-cell,.altEditor-datetimepicker){color-scheme:light dark}:is(
+/*! DataTables AltEditor v4.0.1 | MIT License */.altEditor-message .alert{margin-block:0.75rem;padding:.75rem;border:1px solid currentColor;border-radius:.375rem}:where(.altEditor-modal,.alteditor-inline-cell,.altEditor-datetimepicker){color-scheme:light dark}:is(
 .altEditor-modal,.alteditor-inline-cell,.altEditor-datetimepicker
 )[data-alteditor-theme=light],:where([data-bs-theme=light],[data-alteditor-theme=light]) :is(.altEditor-modal,.alteditor-inline-cell,.altEditor-datetimepicker){color-scheme:light}:is(
 .altEditor-modal,.alteditor-inline-cell,.altEditor-datetimepicker

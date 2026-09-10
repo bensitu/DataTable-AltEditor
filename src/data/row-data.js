@@ -45,6 +45,8 @@ export function invoke(callback, editor, values, extra, success, error) {
       );
     else resolve(values);
   } catch (failure) {
+    if (settled && editor.debug)
+      console.error('Persistence callback failed after completion:', failure);
     reject(failure);
   }
 }

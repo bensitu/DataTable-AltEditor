@@ -1,4 +1,4 @@
-import { $, root as window, document } from './dependencies.js';
+import { $, document } from './dependencies.js';
 
 export function register(DataTable, AltEditor) {
   DataTable.Api.register('altEditor()', function (options) {

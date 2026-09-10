@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
-## 4.0.1 - 2026-09-11
+## 4.0.1 - 2026-09-12
 
 ### Fixed
 
+- Ajax examples use stable row identifiers, name callback arguments consistently, and avoid sending row values to static response URLs. The file example limits attachment size. Escaped DataTables source paths require an explicit inline setter. Debug mode reports callback exceptions after completion without changing the accepted result.
+- The dependent select example owns its loading error message instead of relying on an unused internal form label.
+- Removed unused imports, enabled unused-variable checks, and standardized text file line endings across platforms. Continuous integration verifies builds and unit tests on the minimum supported Node.js version in addition to Node.js 24.
 - Selection, persistence, and file errors use configurable language strings, with complete translations in all twelve language files. Missing dialog frameworks report a visible error and reject opening without an uncaught exception.
 - Invalid or unavailable translations retain working labels and report failures. Asynchronously loaded labels update open dialogs without discarding input. Invalid automatic editor configuration no longer interrupts table initialization.
 - Date/time picker cleanup continues after plugin failures, optional file size limits reject oversized files before reading, and time fields support explicit date input formats.

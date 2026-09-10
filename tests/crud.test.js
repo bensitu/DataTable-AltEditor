@@ -332,6 +332,7 @@ test('loads configured language and releases dialog elements on destroy', () => 
 });
 
 test('supports cancelable submission, duplicate settlement and retry after failure', async () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
   let reject = true;
   const callback = vi.fn((_editor, values, success, error) => {
     if (reject) {
@@ -341,9 +342,10 @@ test('supports cancelable submission, duplicate settlement and retry after failu
       success(values);
       success(values);
       error(new Error('Late error'));
+      throw new Error('Callback failed');
     }
   });
-  const { editor, table } = create({ onEditRow: callback });
+  const { editor, table } = create({ onEditRow: callback, debug: true });
   editor.openEditDialog(0);
   $(editor.modal_selector).find('[name="name"]').val('Ann');
   $(table.table().node()).one('alteditor-pre-submit.dt', (event) =>
@@ -357,6 +359,7 @@ test('supports cancelable submission, duplicate settlement and retry after failu
   await editor._editRowData();
   expect(table.row(0).data().name).toBe('Ann');
   expect(editor._submitting).toBe(false);
+  expect(log).toHaveBeenCalledOnce();
 });
 
 test('rejects a removed target and keeps delete failures retryable', async () => {

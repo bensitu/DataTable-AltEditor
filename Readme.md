@@ -1,6 +1,6 @@
 # DataTables AltEditor
 
-AltEditor 4.0.0 adds row dialogs and cell inline editing to DataTables 2.x. It is a JavaScript library with modular source and readable or minified UMD distribution files. jQuery and DataTables remain external peer dependencies.
+AltEditor 4.0.1 adds row dialogs and cell inline editing to DataTables 2.x. It is a JavaScript library with modular source and readable or minified UMD distribution files. jQuery and DataTables remain external peer dependencies.
 
 ## Requirements
 
@@ -24,10 +24,10 @@ npm pack
 The package retains the name `datatables.net-AltEditor`. To install the generated npm archive into an application:
 
 ```sh
-npm install /path/to/datatables.net-AltEditor-4.0.0.tgz jquery@3.7.1 datatables.net@2.3.8
+npm install /path/to/datatables.net-AltEditor-4.0.1.tgz jquery@3.7.1 datatables.net@2.3.8
 ```
 
-These instructions install a locally built archive; they do not require a published 4.0.0 registry release.
+These instructions install a locally built archive; they do not require a published 4.0.1 registry release.
 
 For browser usage, load jQuery, DataTables, optional extensions, and your dialog framework before AltEditor:
 
@@ -37,6 +37,8 @@ For browser usage, load jQuery, DataTables, optional extensions, and your dialog
 ```
 
 Use `dist/dataTables.altEditor.min.js` for minified JavaScript. Both builds include source maps and an MIT license banner. AMD consumers map `jquery` and `datatables.net`. CommonJS consumers can load the package after initializing their browser environment, or call its exported factory with `(window, jQuery)` when no global window exists. The factory returns the AltEditor constructor.
+
+Each loaded module uses one window and jQuery context. Load a separate copy within each iframe; do not reuse one CommonJS module factory across multiple active windows.
 
 ## Usage
 
@@ -63,6 +65,8 @@ Use `altEditor: true` for dialogs with inline editing disabled. Both `new DataTa
 
 To use toolbar actions, load Buttons and Select and add `layout: { topStart: 'buttons' }`, `select: 'single'`, and button definitions with names `add`, `edit`, `delete`, or `refresh`. Button names select the corresponding action. Dialog edit and delete methods use selected rows when no explicit row selector is given; editing requires one row and deletion accepts multiple rows.
 
+Without Select, edit and delete methods require an explicit row selector. Invalid selection and missing dialog framework errors are visible beside the table when no dialog is open. Dialog opening returns `false` when rejected; successful opening has no return value.
+
 ### Configuration
 
 Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`, root-level compatibility options, then the instance `altEditor` object. Explicit constructor options are applied last. Functions retain their references, arrays are copied and replaced, and unsafe object keys are rejected.
@@ -71,10 +75,12 @@ Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`,
 | --------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
 | `closeModalOnSuccess` | `true`   | Close a successful dialog. When false, show success and disable further submission until another dialog opens. |
 | `encodeFiles`         | `true`   | Read files as data URLs; false passes the first selected File object.                                          |
-| `debug`               | `false`  | Retained compatibility option.                                                                                 |
+| `debug`               | `false`  | Log exceptions thrown by persistence callbacks after their first completion.                                   |
 | `inlineEdit`          | disabled | Set true or configure enabled, submitOnBlur, selectText, and tabNavigation.                                    |
 
 The callbacks and the first three options also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`; see the [supported languages and configuration guide](docs/translations.md).
+
+Invalid automatic editor configuration is logged to the console and leaves DataTables usable without an editor. Explicit constructor or accessor initialization throws configuration errors to the caller.
 
 ### Persistence callbacks
 
@@ -105,7 +111,7 @@ error,
 
 ```
 
-The target is captured when editing starts and does not change if table selection changes. Row IDs are preferred when resolving asynchronous updates. A result is rejected if its target can no longer be identified safely.
+The target is captured when editing starts and does not change if table selection changes. Configure DataTables `rowId` with a unique, stable identifier when data can reload during editing or persistence. Without it, replacing row objects through Ajax or `clear().rows.add()` can make the original target unidentifiable, even if the new row has similar values. Such results are rejected instead of being applied to another row. Tables on the same page should use distinct row ID prefixes when their identifiers overlap.
 
 ### Public methods
 
@@ -130,7 +136,7 @@ The target is captured when editing starts and does not change if table selectio
 | Options                                                                       | Behavior                                                                                                                                       |
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `editable`, `visible`                                                         | Exclude a field from dialog editing or hide its dialog row.                                                                                    |
-| `type`                                                                        | Native input type, select, or textarea. The deprecated readonly type maps to a readonly text input.                                            |
+| `type`                                                                        | Native input type, select, or textarea. Radio fields are excluded. The deprecated readonly type maps to a readonly text input.                 |
 | `readonly`, `disabled`, `required`                                            | Standard control attributes; disabled controls are omitted from dialog submissions.                                                            |
 | `title`, `placeholder`, `hoverMsg`                                            | Field label, placeholder, and input tooltip. Text is not interpreted as HTML.                                                                  |
 | `pattern`, `maxLength`, `min`, `max`, `step`                                  | Native constraint validation where applicable to the input type.                                                                               |
@@ -138,16 +144,22 @@ The target is captured when editing starts and does not change if table selectio
 | `value`                                                                       | Default add-dialog value; edit dialogs read the current row.                                                                                   |
 | `options`, `multiple`, `optionsSortByLabel`                                   | Select values, multiple selection, and label sorting. Options accept primitive arrays, value/label or id/text objects, or value-to-label maps. |
 | `rows`, `cols`                                                                | Textarea dimensions.                                                                                                                           |
-| `accept`                                                                      | File input accept attribute.                                                                                                                   |
+| `accept`, `maxFileSize`                                                       | File input type hint and optional nonnegative size limit in bytes.                                                                             |
 | `style`                                                                       | Dialog control inline styles, as a string or property object.                                                                                  |
 | `select2`, `datepicker`, `datetimepicker`                                     | Optional dialog plugin configuration; meaningful native controls remain usable when plugins are absent.                                        |
-| `dateFormat`                                                                  | Format dialog date values using moment when available.                                                                                         |
+| `dateFormat`, `dateInputFormat`                                               | Format dialog date/time values using Moment when available; parse strictly with the input format or ISO 8601.                                  |
 | `editorOnChange(event, editor)`                                               | Handle a dialog field change.                                                                                                                  |
 | `inline`                                                                      | Compact dialog field layout; this is distinct from cell editing.                                                                               |
 | `special`                                                                     | Deprecated compatibility data attribute; has no built-in validation behavior.                                                                  |
 | `inlineEditable`, `inlineEditType`, `inlineEditOptions`, `inlineEditSetValue` | Cell editing eligibility, control type, control options, and explicit row setter.                                                              |
 
-Object rows, numeric array sources including 0, and dotted object paths are supported. Paths containing `__proto__`, `prototype`, or `constructor` are rejected. Complex DataTables sources need an explicit setter for inline editing; dialogs only infer setters for string and numeric paths.
+Object rows, numeric array sources including 0, and dotted object paths are supported. Writable paths containing `__proto__`, `prototype`, or `constructor` are rejected, while unrelated metadata with those names is preserved when rows are copied. Complex DataTables sources, including bracket, function, and escaped-dot notation, need an explicit setter for inline editing and are excluded from dialogs. Dialogs also exclude radio fields and fields with an empty title, except hidden inputs. Use a titled select for a single choice or `editable: false` to explicitly exclude a column.
+
+Uniqueness compares text and select values as strings, number fields numerically, and multiple selections by overlapping values. Empty values do not count as duplicates; use `required` when a value is mandatory. `optionsSortByLabel` uses the browser's default locale. Supply options in the desired order without this option when applications require a fixed ordering.
+
+Native date, time, and datetime-local controls require values such as `2026-09-11`, `14:30`, and `2026-09-11T14:30`. Store native-compatible values and use a DataTables renderer for presentation. Dialog `dateFormat` also applies to time fields; custom source formats require `dateInputFormat` to avoid ambiguous parsing. Inline controls use raw values without Moment conversion.
+
+`maxFileSize` applies before reading files with either `encodeFiles` setting. Omitting it preserves unrestricted file size behavior. For large files, use `encodeFiles: false` and upload the File separately rather than storing a data URL in table data. Applications must enforce file restrictions on the server as well.
 
 ## Inline editing and events
 

@@ -64,13 +64,15 @@ $(document).ready(function () {
   ];
 
   var loadUrl = './mock_svc_load.json';
+  // Static JSON simulates a successful save. Production code must use a write endpoint.
   var saveUrl = './mock_svc_ok.json';
 
   $('#example').DataTable({
+    rowId: 'id',
     pagingType: 'full_numbers',
     ajax: {
       url: loadUrl,
-      // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
+      // The response is a JSON array rather than an object with a data property.
       dataSrc: '',
     },
     columns: columnDefs,
@@ -98,11 +100,11 @@ $(document).ready(function () {
         name: 'refresh', // do not change name
       },
     ],
-    onAddRow: function (datatable, rowdata, success, error) {
-      rowdata.id =
+    onAddRow: function (editor, values, success, error) {
+      values.id =
         Math.max(
           0,
-          ...datatable
+          ...editor
             .api()
             .rows()
             .data()
@@ -115,7 +117,6 @@ $(document).ready(function () {
         // A production endpoint should return the persisted row.
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           // Static responses acknowledge the request; retain the submitted values.
           success();
@@ -123,12 +124,11 @@ $(document).ready(function () {
         error: error,
       });
     },
-    onDeleteRow: function (datatable, rowdata, success, error) {
+    onDeleteRow: function (editor, values, success, error) {
       $.ajax({
         // A production endpoint should delete the requested rows.
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           // Static responses acknowledge the request; retain the submitted values.
           success();
@@ -136,12 +136,11 @@ $(document).ready(function () {
         error: error,
       });
     },
-    onEditRow: function (datatable, rowdata, success, error) {
+    onEditRow: function (editor, values, success, error) {
       $.ajax({
         // A production endpoint should return the persisted row.
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           // Static responses acknowledge the request; retain the submitted values.
           success();

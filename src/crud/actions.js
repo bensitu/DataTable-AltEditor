@@ -1,4 +1,4 @@
-import { $, root as window, document } from '../core/dependencies.js';
+import { $ } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { invoke, resolveRow } from '../data/row-data.js';
 import { withValue } from '../data/path.js';

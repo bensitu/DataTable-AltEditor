@@ -4,6 +4,8 @@
 
 Load `dist/dataTables.altEditor.css` after your dialog framework's CSS and optional control stylesheets. Load application overrides last. AltEditor rules target its own dialog, inline control, and date picker classes; they do not style `body`, ordinary tables, unrelated forms, or other dialogs. The distribution stylesheet has no `!important` declarations.
 
+Errors shown outside an open dialog use an editor-owned `.altEditor-message` container immediately before the table. Override that selector to customize their spacing and presentation.
+
 ## Color modes
 
 AltEditor follows the system color preference by default. To choose a mode explicitly, set `data-alteditor-theme="light"` or `data-alteditor-theme="dark"` on the document element. Bootstrap's `data-bs-theme` attribute on an ancestor is also supported. Use one convention consistently; remove the explicit attribute to follow the system again.
@@ -13,6 +15,8 @@ AltEditor follows the system color preference by default. To choose a mode expli
 ```
 
 Themes use native `color-scheme` and CSS `light-dark()`, supported by current Chrome, Edge, Firefox, and Safari. Native input controls follow the selected color mode. AltEditor also styles its Select2 controls and its jquery-datetimepicker popups. Other optional plugins may require their own theme stylesheets.
+
+The ES2015 JavaScript syntax target and jQuery dependency range do not imply support for older browser styling engines. The default stylesheet requires modern CSS, including `light-dark()`, `:is()`, `:where()`, and dynamic viewport units; legacy browser themes require application-provided CSS.
 
 Setting a theme does not change application-wide colors. Applications should theme their own tables, page backgrounds, and other components separately.
 

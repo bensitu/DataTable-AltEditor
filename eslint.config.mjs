@@ -29,6 +29,7 @@ export default [
       'no-undef': 'error',
       'no-unreachable': 'error',
       'no-unsafe-finally': 'error',
+      'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }],
     },
   },
 ];

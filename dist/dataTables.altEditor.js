@@ -1,4 +1,4 @@
-/*! DataTables AltEditor v4.0.0
+/*! DataTables AltEditor v4.0.1
  * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
  * Copyright (c) 2026 Ben Situ and contributors
  * MIT License */
@@ -254,6 +254,8 @@
         );
       else resolve(values);
     } catch (failure) {
+      if (settled && editor.debug)
+        console.error('Persistence callback failed after completion:', failure);
       reject(failure);
     }
   }
@@ -1634,7 +1636,7 @@
       }
       if (
         typeof column.name === 'string' &&
-        /[\[\]()]/.test(column.name) &&
+        /[\[\]()\\]/.test(column.name) &&
         typeof column.inlineEditSetValue !== 'function'
       )
         return null;
@@ -2299,7 +2301,7 @@
         this.destroy();
       },
     });
-    AltEditor.version = '4.0.0';
+    AltEditor.version = '4.0.1';
     AltEditor.defaults = defaults;
     AltEditor.classes = { btn: 'btn' };
     return AltEditor;
@@ -2328,7 +2330,7 @@
   }
 
   /**
-   * DataTables AltEditor v4.0.0
+   * DataTables AltEditor v4.0.1
    * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
    * Copyright (c) 2026 Ben Situ and contributors
    * SPDX-License-Identifier: MIT

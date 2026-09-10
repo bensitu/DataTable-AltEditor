@@ -10,7 +10,7 @@ Run `npm run build:pages` locally to rebuild `dist/` and assemble `.pages/`. The
 
 ## GitHub release drafts
 
-Merge the intended release code into the default branch with matching versions in `package.json` and `package-lock.json`. Add the release notes under the corresponding version heading in `CHANGELOG.md`. Both `## 4.0.0 - YYYY-MM-DD` and `## [4.0.0] - YYYY-MM-DD` heading formats are accepted.
+Merge the intended release code into the default branch with matching versions in `package.json` and `package-lock.json`. Add the release notes under the corresponding version heading in `CHANGELOG.md`. Both `## 4.0.1 - YYYY-MM-DD` and `## [4.0.1] - YYYY-MM-DD` heading formats are accepted.
 
 From Actions, run **Draft GitHub release** on the default branch and enter the package version, optionally prefixed with `v`. The workflow checks the version and notes, installs dependencies with Node.js 24, runs formatting, lint, coverage, DataTables compatibility, and browser checks, then packages the built distribution. It creates an annotated `v<version>` tag at the selected commit and a draft release containing the npm `.tgz` archive and its SHA-256 checksum. Versions containing a prerelease identifier are marked as prereleases.
 

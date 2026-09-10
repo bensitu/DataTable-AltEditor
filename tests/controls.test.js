@@ -100,6 +100,7 @@ test('restricts inline controls to writable sources and honors explicit override
     { name: undefined },
     { name: '__proto__.value' },
     { name: 'items[].name' },
+    { name: 'user\\.name' },
     { type: 'select2' },
     { inlineEditOptions: { disabled: true } },
   ])

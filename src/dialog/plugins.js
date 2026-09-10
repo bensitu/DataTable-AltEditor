@@ -1,4 +1,4 @@
-import { $, root as window, document } from '../core/dependencies.js';
+import { $, root as window } from '../core/dependencies.js';
 import { fieldElement } from '../data/field-values.js';
 
 export const methods = {

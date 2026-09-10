@@ -1,4 +1,4 @@
-import { $, root as window, document } from './dependencies.js';
+import { $, document } from './dependencies.js';
 import { defaults, normalizeOptions } from './options.js';
 import { normalizeColumns } from './columns.js';
 import { emit } from './events.js';
@@ -229,7 +229,7 @@ export function createAltEditor(DataTable) {
       this.destroy();
     },
   });
-  AltEditor.version = '4.0.0';
+  AltEditor.version = '4.0.1';
   AltEditor.defaults = defaults;
   AltEditor.classes = { btn: 'btn' };
   return AltEditor;

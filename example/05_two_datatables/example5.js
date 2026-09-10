@@ -34,13 +34,17 @@ $(document).ready(function () {
   var myTable;
 
   var loadUrl = '../03_ajax_objects/mock_svc_load.json';
+  // Static JSON simulates a successful save. Production code must use a write endpoint.
   var saveUrl = '../03_ajax_objects/mock_svc_ok.json';
 
   myTable = $('#example').DataTable({
+    rowId: function (row) {
+      return 'employees-' + row.id;
+    },
     pagingType: 'full_numbers',
     ajax: {
       url: loadUrl,
-      // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
+      // The response is a JSON array rather than an object with a data property.
       dataSrc: '',
     },
     columns: columnDefs,
@@ -68,11 +72,11 @@ $(document).ready(function () {
         name: 'refresh', // do not change name
       },
     ],
-    onAddRow: function (datatable, rowdata, success, error) {
-      rowdata.id =
+    onAddRow: function (editor, values, success, error) {
+      values.id =
         Math.max(
           0,
-          ...datatable
+          ...editor
             .api()
             .rows()
             .data()
@@ -84,29 +88,26 @@ $(document).ready(function () {
       $.ajax({
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },
         error: error,
       });
     },
-    onDeleteRow: function (datatable, rowdata, success, error) {
+    onDeleteRow: function (editor, values, success, error) {
       $.ajax({
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },
         error: error,
       });
     },
-    onEditRow: function (datatable, rowdata, success, error) {
+    onEditRow: function (editor, values, success, error) {
       $.ajax({
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },
@@ -115,7 +116,7 @@ $(document).ready(function () {
     },
   });
 
-  // ======================================================================================
+  // Configure the second table independently.
 
   var columnDefs2 = [
     {
@@ -142,10 +143,13 @@ $(document).ready(function () {
   ];
 
   var myOtherTable = $('#example2').DataTable({
+    rowId: function (row) {
+      return 'contacts-' + row.id;
+    },
     pagingType: 'full_numbers',
     ajax: {
       url: loadUrl,
-      // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
+      // The response is a JSON array rather than an object with a data property.
       dataSrc: '',
     },
     columns: columnDefs2,
@@ -173,11 +177,11 @@ $(document).ready(function () {
         name: 'refresh', // do not change name
       },
     ],
-    onAddRow: function (datatable, rowdata, success, error) {
-      rowdata.id =
+    onAddRow: function (editor, values, success, error) {
+      values.id =
         Math.max(
           0,
-          ...datatable
+          ...editor
             .api()
             .rows()
             .data()
@@ -189,29 +193,26 @@ $(document).ready(function () {
       $.ajax({
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },
         error: error,
       });
     },
-    onDeleteRow: function (datatable, rowdata, success, error) {
+    onDeleteRow: function (editor, values, success, error) {
       $.ajax({
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },
         error: error,
       });
     },
-    onEditRow: function (datatable, rowdata, success, error) {
+    onEditRow: function (editor, values, success, error) {
       $.ajax({
         url: saveUrl,
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },

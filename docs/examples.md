@@ -4,6 +4,12 @@ Install development dependencies with `npm ci`, then run `npm run dev` and open 
 
 All changes are temporary. In-memory examples reset on page reload. Ajax examples load static JSON and acknowledge writes without a persistent backend; their Refresh buttons restore the original rows. Newly added records receive a generated identifier within their table.
 
+Ajax examples configure stable DataTables row identifiers so updates can find the same record after a reload. The multiple-table example prefixes identifiers to keep DOM IDs distinct. Client-generated identifiers and GET requests to static response files are demonstration techniques. Production applications should assign identifiers on the server, use appropriate write methods, and validate and authorize every operation.
+
+Simulated save requests do not send row values in query strings. They call `success()` to accept the entered values locally after the static request completes. For a real persistence callback, see the PATCH example in the [README](../Readme.md#persistence-callbacks).
+
+CDN resources are convenient for these examples. For production deployments, manage dependencies locally or pin resources with matching Subresource Integrity metadata and a suitable Content Security Policy.
+
 | Example                                                                  | What to try                                                                                                                                                                                                     |
 | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [01: Arrays](../example/01_in_memory_arrays/example1.html)               | Add, edit, and delete array rows; edit multiline text in the Position field.                                                                                                                                    |
@@ -21,3 +27,5 @@ All changes are temporary. In-memory examples reset on page reload. Ajax example
 | [13: Cell editing](../example/13_inline_edit/example13.html)             | Double-click a cell, save with Enter, cancel with Escape, or save and move with Tab. Enable Fail the next save to try error handling and retry. The second table demonstrates numeric array sources.            |
 
 The Appearance selector supports system, light, and dark modes. See [styling and themes](styling.md) for application customization.
+
+The file example limits each attachment to 2 MiB through `maxFileSize`. This client-side check prevents unnecessary reads; an upload service must enforce its own limits.

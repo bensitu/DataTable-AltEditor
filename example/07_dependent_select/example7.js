@@ -33,7 +33,13 @@ $(document).ready(function () {
         const country = event.currentTarget.value;
         const modal = $(event.target).closest('.altEditor-modal');
         const town = modal.find('[name="town"]');
-        const message = modal.find('#town-label');
+        let message = modal.find('#town-label');
+        if (!message.length) {
+          message = $('<div>', { id: 'town-label', role: 'status' }).appendTo(
+            town.parent()
+          );
+          town.attr('aria-describedby', 'town-label');
+        }
         const previousRequest = town.data('options-request');
         if (previousRequest) previousRequest.abort();
         message.text('');
@@ -83,10 +89,11 @@ $(document).ready(function () {
 
   var myTable;
   myTable = $('#example').DataTable({
+    rowId: 'id',
     pagingType: 'full_numbers',
     ajax: {
       url: dataUrl + 'mock_svc_load.json',
-      // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
+      // The response is a JSON array rather than an object with a data property.
       dataSrc: '',
     },
     columns: columnDefs,
@@ -114,11 +121,12 @@ $(document).ready(function () {
         name: 'refresh', // do not change name
       },
     ],
-    onAddRow: function (datatable, rowdata, success, error) {
-      rowdata.id =
+    onAddRow: function (editor, values, success, error) {
+      // Static JSON simulates persistence; production code must use a write endpoint.
+      values.id =
         Math.max(
           0,
-          ...datatable
+          ...editor
             .api()
             .rows()
             .data()
@@ -130,29 +138,26 @@ $(document).ready(function () {
       $.ajax({
         url: dataUrl + 'mock_svc_ok.json',
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },
         error: error,
       });
     },
-    onDeleteRow: function (datatable, rowdata, success, error) {
+    onDeleteRow: function (editor, values, success, error) {
       $.ajax({
         url: dataUrl + 'mock_svc_ok.json',
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },
         error: error,
       });
     },
-    onEditRow: function (datatable, rowdata, success, error) {
+    onEditRow: function (editor, values, success, error) {
       $.ajax({
         url: dataUrl + 'mock_svc_ok.json',
         type: 'GET',
-        data: rowdata,
         success: function () {
           success();
         },

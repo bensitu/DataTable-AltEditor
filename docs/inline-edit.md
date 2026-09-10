@@ -23,6 +23,8 @@ Supported controls are text, number, email, date, time, datetime-local, textarea
 
 The raw value comes from `cell.data()`, independently of formatted cell HTML. Successful updates use DataTables rendering. Numeric sources, including array index 0, and dotted paths such as `user.email` are supported. Unsafe prototype paths are rejected.
 
+Native date, time, and datetime-local controls require values in their HTML formats, such as `2026-09-11`, `14:30`, and `2026-09-11T14:30`. Inline editing does not apply dialog `dateFormat` or Moment conversion. Keep raw values in native-compatible formats and use DataTables renderers for localized display.
+
 For function or complex object sources, provide a setter:
 
 ```js
@@ -59,6 +61,8 @@ onInlineEditRow(editor, rowData, success, error, originalRowData, meta);
 The callback falls back to `onEditRow`. Without either callback, the row updates locally. The candidate is not written into DataTables before success. Call `success()` to accept it, `success(persistedRow)` to supply a server result, or `error(errorValue)` to permit correction and retry. Only the first settlement is accepted. `commitInlineEdit()` returns whether submission began; subscribe to events for its outcome.
 
 `meta` includes rowIndex, columnIndex, dataSrc, oldValue, newValue, rowData, and cellNode. `originalRowData` is a snapshot. Row identity is captured independently of table selection. A stable DataTables rowId is recommended for asynchronous persistence.
+
+Configure `rowId` when Ajax reloads can replace row objects while saving. Without a stable identifier, the editor rejects results for replaced objects because it cannot reliably associate them with the original row.
 
 Validation and callback failures keep the value available for retry while the target remains available. If a pending operation's cell is detached by a draw, persistence continues independently; failures reattach the control when its target is visible. If the row can no longer be identified, an error is emitted and the edit closes.
 

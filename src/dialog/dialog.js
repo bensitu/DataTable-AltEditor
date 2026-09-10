@@ -1,6 +1,6 @@
 import { emit } from '../core/events.js';
 import { mergeOptions, isPlainObject } from '../core/options.js';
-import { $, root as window, document } from '../core/dependencies.js';
+import { $, document } from '../core/dependencies.js';
 import { snapshotRow } from '../data/row-data.js';
 import { fieldElement, equalFieldValues } from '../data/field-values.js';
 export const methods = {

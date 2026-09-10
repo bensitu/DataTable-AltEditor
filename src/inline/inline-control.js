@@ -40,7 +40,7 @@ export function controlOptions(column) {
     }
     if (
       typeof column.name === 'string' &&
-      /[\[\]()]/.test(column.name) &&
+      /[\[\]()\\]/.test(column.name) &&
       typeof column.inlineEditSetValue !== 'function'
     )
       return null;
