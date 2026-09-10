@@ -1,4 +1,10 @@
 /*! DataTables AltEditor v4.0.0 | MIT License */
+.altEditor-message .alert {
+  margin-block: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 0.375rem;
+}
 :where(.altEditor-modal, .alteditor-inline-cell, .altEditor-datetimepicker) {
   color-scheme: light dark;
 }
@@ -199,9 +205,6 @@
 }
 .altEditor-modal .select2-selection--single .select2-selection__arrow {
   height: 2.375rem;
-}
-.altEditor-modal .errorLabel:empty {
-  display: none;
 }
 .altEditor-modal .modal-footer {
   display: flex;

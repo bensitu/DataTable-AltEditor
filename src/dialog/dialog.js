@@ -69,6 +69,15 @@ export const methods = {
     document.body.appendChild(modal);
 
     var $modal = $(this.modal_selector);
+    $modal.on(
+      'shown.bs.modal' +
+        this.s.namespace +
+        ' open.zf.reveal' +
+        this.s.namespace,
+      function () {
+        that._focusFirstInput();
+      }
+    );
     $modal.on('submit' + this.s.namespace, 'form', function (event) {
       event.preventDefault();
     });
@@ -378,17 +387,6 @@ export const methods = {
       .trigger('alteditor:add_dialog_opened');
     this._bindDialog('add');
   },
-  _applyDialogFragment: function () {
-    if (!this._currentDialogFragment) return;
-    var $modal = $(this.modal_selector);
-    var body = $modal.find('.modal-body')[0];
-    if (!body) return;
-    this._removeModalEvents($modal);
-    body.innerHTML = '';
-    body.appendChild(this._currentDialogFragment.cloneNode(true));
-    this._currentDialogFragment = null;
-    this._initializePlugins();
-  },
   _removeModalEvents: function (modal) {
     var $modal = modal && modal.jquery ? modal : $(modal);
     if ($modal.length) $modal.off(this.s.modalNamespace);
@@ -396,9 +394,14 @@ export const methods = {
   _focusFirstInput: function () {
     if (!this.modal_selector) return;
     var $target = $(this.modal_selector)
-      .find('input, select, textarea, button')
+      .find('input, select, textarea')
       .filter(':visible:enabled')
       .first();
+    if (!$target.length)
+      $target = $(this.modal_selector)
+        .find('button')
+        .filter(':visible:enabled')
+        .first();
     if ($target.length) $target.trigger('focus');
   },
   _setDialogSubmitting: function (submitting) {
@@ -437,6 +440,13 @@ export const methods = {
       return;
     }
     var $body = $(this.modal_selector).find('.modal-body');
+    if (!this._dialogOpen) {
+      if (!this._message)
+        this._message = $('<div/>', {
+          class: 'altEditor-message',
+        }).insertBefore(this.api().table().node());
+      $body = this._message;
+    }
     $body.find('.alert').remove();
     var $alert = $('<div/>', { class: 'alert alert-danger', role: 'alert' });
     $('<strong/>').text(this.language.error.label).appendTo($alert);

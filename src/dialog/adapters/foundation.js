@@ -4,7 +4,10 @@ export function available() {
 }
 export function show(element) {
   if (!element._altEditorReveal)
-    element._altEditorReveal = new window.Foundation.Reveal($(element));
+    element._altEditorReveal = new window.Foundation.Reveal($(element), {
+      closeOnClick: false,
+      closeOnEsc: false,
+    });
   element._altEditorReveal.open();
 }
 export function hide(element) {

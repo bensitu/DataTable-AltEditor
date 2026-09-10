@@ -21,7 +21,16 @@ for (const framework of ['bootstrap4', 'foundation-sites']) {
     }
     await page.getByRole('button', { name: 'Add', exact: true }).click();
     await page.locator('.modal [name="name"]').fill('Carol');
+    await page.evaluate(() => {
+      table.altEditor().onAddRow = (_editor, values, success) => {
+        window.finishSave = () => success(values);
+      };
+    });
     await page.locator('.modal button[type="submit"]').click();
+    await expect(page.locator('.altEditor-close')).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.modal')).toBeVisible();
+    await page.evaluate(() => window.finishSave());
     await expect(page.locator('tbody')).toContainText('Carol');
     await expect(page.locator('.modal')).toBeHidden();
     await page.evaluate(() => table.altEditor().destroy());

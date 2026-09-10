@@ -147,24 +147,16 @@ export const methods = {
         inputCol.appendChild(input);
       }
 
-      var errorLabel = document.createElement('label');
-      errorLabel.id = String(columnDef.name) + '-label';
-      errorLabel.className = 'errorLabel';
-      inputCol.appendChild(errorLabel);
       col.appendChild(formGroup);
       inlineCount++;
     });
 
     this.columnDefs = columnDefs;
-    this._currentDialogFragment = fragment.cloneNode(true);
     var selector = this.modal_selector;
     var fill = function () {
       var $modal = $(selector);
       $modal.find('.modal-title').text(modalTitle);
-      $modal
-        .find('.modal-body')
-        .empty()
-        .append(that._currentDialogFragment.cloneNode(true));
+      $modal.find('.modal-body').empty().append(fragment.cloneNode(true));
       $modal
         .find('.modal-footer')
         .empty()
@@ -208,7 +200,7 @@ export const methods = {
     };
 
     this.internalOpenDialog(selector, fill);
-    this._applyDialogFragment();
+    this._initializePlugins();
     this._focusFirstInput();
 
     var temp = document.createElement('div');

@@ -62,7 +62,10 @@ test('dialog controls fit desktop and mobile viewports', async ({ page }) => {
 
 test('adds, edits and deletes through Bootstrap dialogs', async ({ page }) => {
   await page.goto('/tests/browser/table.html');
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(page.locator('.altEditor-message [role="alert"]')).toBeVisible();
   await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.locator('.modal [name="name"]')).toBeFocused();
   await page.locator('.modal [name="name"]').fill('Carol');
   await page.locator('.modal button[type="submit"]').click();
   await expect(page.locator('tbody')).toContainText('Carol');

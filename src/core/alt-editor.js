@@ -35,7 +35,6 @@ export function createAltEditor(DataTable) {
       namespace: '.altEditor' + id,
       modalNamespace: '.altEditorModal' + id,
     };
-    this.dom = { modal: $('<div class="dt-altEditor-handle"/>') };
     this._destroyed = false;
     this._submitting = false;
     this._buttonActions = [];
@@ -121,6 +120,7 @@ export function createAltEditor(DataTable) {
       return this.openDeleteDialog(selector);
     },
     _bindDialog: function (action) {
+      if (this._message) this._message.empty();
       this._action = action;
       this._completed = false;
       this._dialogOpen = true;
@@ -206,6 +206,7 @@ export function createAltEditor(DataTable) {
         this._adapter.dispose(modal[0]);
       }
       modal.off(this.s.namespace).remove();
+      if (this._message) this._message.remove();
       this.api().off(this.s.namespace);
       delete this.api().table().node().altEditor;
       emit(this, 'destroy', {});

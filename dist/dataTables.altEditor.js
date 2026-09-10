@@ -373,6 +373,15 @@
       document.body.appendChild(modal);
 
       var $modal = $(this.modal_selector);
+      $modal.on(
+        'shown.bs.modal' +
+          this.s.namespace +
+          ' open.zf.reveal' +
+          this.s.namespace,
+        function () {
+          that._focusFirstInput();
+        }
+      );
       $modal.on('submit' + this.s.namespace, 'form', function (event) {
         event.preventDefault();
       });
@@ -682,17 +691,6 @@
         .trigger('alteditor:add_dialog_opened');
       this._bindDialog('add');
     },
-    _applyDialogFragment: function () {
-      if (!this._currentDialogFragment) return;
-      var $modal = $(this.modal_selector);
-      var body = $modal.find('.modal-body')[0];
-      if (!body) return;
-      this._removeModalEvents($modal);
-      body.innerHTML = '';
-      body.appendChild(this._currentDialogFragment.cloneNode(true));
-      this._currentDialogFragment = null;
-      this._initializePlugins();
-    },
     _removeModalEvents: function (modal) {
       var $modal = modal && modal.jquery ? modal : $(modal);
       if ($modal.length) $modal.off(this.s.modalNamespace);
@@ -700,9 +698,14 @@
     _focusFirstInput: function () {
       if (!this.modal_selector) return;
       var $target = $(this.modal_selector)
-        .find('input, select, textarea, button')
+        .find('input, select, textarea')
         .filter(':visible:enabled')
         .first();
+      if (!$target.length)
+        $target = $(this.modal_selector)
+          .find('button')
+          .filter(':visible:enabled')
+          .first();
       if ($target.length) $target.trigger('focus');
     },
     _setDialogSubmitting: function (submitting) {
@@ -741,6 +744,13 @@
         return;
       }
       var $body = $(this.modal_selector).find('.modal-body');
+      if (!this._dialogOpen) {
+        if (!this._message)
+          this._message = $('<div/>', {
+            class: 'altEditor-message',
+          }).insertBefore(this.api().table().node());
+        $body = this._message;
+      }
       $body.find('.alert').remove();
       var $alert = $('<div/>', { class: 'alert alert-danger', role: 'alert' });
       $('<strong/>').text(this.language.error.label).appendTo($alert);
@@ -901,24 +911,16 @@
           inputCol.appendChild(input);
         }
 
-        var errorLabel = document.createElement('label');
-        errorLabel.id = String(columnDef.name) + '-label';
-        errorLabel.className = 'errorLabel';
-        inputCol.appendChild(errorLabel);
         col.appendChild(formGroup);
         inlineCount++;
       });
 
       this.columnDefs = columnDefs;
-      this._currentDialogFragment = fragment.cloneNode(true);
       var selector = this.modal_selector;
       var fill = function () {
         var $modal = $(selector);
         $modal.find('.modal-title').text(modalTitle);
-        $modal
-          .find('.modal-body')
-          .empty()
-          .append(that._currentDialogFragment.cloneNode(true));
+        $modal.find('.modal-body').empty().append(fragment.cloneNode(true));
         $modal
           .find('.modal-footer')
           .empty()
@@ -962,7 +964,7 @@
       };
 
       this.internalOpenDialog(selector, fill);
-      this._applyDialogFragment();
+      this._initializePlugins();
       this._focusFirstInput();
 
       var temp = document.createElement('div');
@@ -1497,8 +1499,11 @@
     ) {
       const modal = root.bootstrap.Modal.getInstance(element);
       if (modal) modal.dispose();
-    } else if ($.fn.modal && $(element).data('bs.modal'))
-      $(element).modal('dispose');
+    } else {
+      const modal = $(element).data('bs.modal');
+      if (modal && typeof modal.dispose === 'function') modal.dispose();
+      else $(element).off('.bs.modal').removeData('bs.modal');
+    }
   }
 
   var bootstrap = /*#__PURE__*/Object.freeze({
@@ -1514,7 +1519,10 @@
   }
   function show(element) {
     if (!element._altEditorReveal)
-      element._altEditorReveal = new root.Foundation.Reveal($(element));
+      element._altEditorReveal = new root.Foundation.Reveal($(element), {
+        closeOnClick: false,
+        closeOnEsc: false,
+      });
     element._altEditorReveal.open();
   }
   function hide(element) {
@@ -2043,7 +2051,6 @@
         namespace: '.altEditor' + id,
         modalNamespace: '.altEditorModal' + id,
       };
-      this.dom = { modal: $('<div class="dt-altEditor-handle"/>') };
       this._destroyed = false;
       this._submitting = false;
       this._buttonActions = [];
@@ -2129,6 +2136,7 @@
         return this.openDeleteDialog(selector);
       },
       _bindDialog: function (action) {
+        if (this._message) this._message.empty();
         this._action = action;
         this._completed = false;
         this._dialogOpen = true;
@@ -2214,6 +2222,7 @@
           this._adapter.dispose(modal[0]);
         }
         modal.off(this.s.namespace).remove();
+        if (this._message) this._message.remove();
         this.api().off(this.s.namespace);
         delete this.api().table().node().altEditor;
         emit(this, 'destroy', {});

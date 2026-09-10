@@ -24,7 +24,7 @@ function create() {
   return table.altEditor();
 }
 
-test.each(['bootstrap5', 'bootstrap4', 'foundation'])(
+test.each(['bootstrap5', 'bootstrap4', 'bootstrap3', 'foundation'])(
   '%s dialogs block closing during persistence and release resources',
   async (framework) => {
     const hide = vi.fn();
@@ -45,11 +45,11 @@ test.each(['bootstrap5', 'bootstrap4', 'foundation'])(
           getInstance: () => instance,
         },
       });
-    } else if (framework === 'bootstrap4') {
+    } else if (framework === 'bootstrap4' || framework === 'bootstrap3') {
       $.fn.modal = function (action) {
         element = this[0];
-        this.data('bs.modal', {});
-        ({ show, hide, dispose })[action]();
+        this.data('bs.modal', framework === 'bootstrap3' ? {} : { dispose });
+        ({ show, hide })[action]();
         return this;
       };
     } else {
@@ -102,7 +102,7 @@ test.each(['bootstrap5', 'bootstrap4', 'foundation'])(
     editor.openEditDialog(0);
     expect(show).toHaveBeenCalledTimes(2);
     editor.destroy();
-    expect(dispose).toHaveBeenCalledOnce();
+    expect(dispose).toHaveBeenCalledTimes(framework === 'bootstrap3' ? 0 : 1);
     expect(element.isConnected).toBe(false);
   }
 );

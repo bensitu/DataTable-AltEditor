@@ -198,13 +198,9 @@ test('accepts JSON persistence responses and ignores completion after a dialog c
 test('requires valid selection and rejects deletion when a captured row disappears', async () => {
   const { editor, table } = create();
   editor.openEditDialog();
-  expect($(editor.modal_selector).find('.alert').text()).toContain(
-    'Exactly one row'
-  );
+  expect($('.altEditor-message').text()).toContain('Exactly one row');
   editor.openDeleteDialog();
-  expect($(editor.modal_selector).find('.alert').text()).toContain(
-    'At least one row'
-  );
+  expect($('.altEditor-message').text()).toContain('At least one row');
   editor.openDeleteDialog([0, 1]);
   table.row(1).remove();
   await editor._deleteRow();

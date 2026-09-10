@@ -9,6 +9,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Dialog errors remain visible without an open modal, focus moves to the first available field after opening, Bootstrap 3 cleanup avoids unsupported methods, and Foundation dialogs prevent backdrop and Escape dismissal during saves. Dialog fields are rendered once without unused error labels.
 - Dialog editing and deletion require explicit row selectors when Select is unavailable. Unsupported field paths and radio fields are excluded from dialog forms without overwriting their original values.
 - Field lookup handles CSS punctuation consistently. Row copies preserve unrelated metadata without assigning object prototypes, and uniqueness checks distinguish text, numbers, empty values, and multiple selections.
 

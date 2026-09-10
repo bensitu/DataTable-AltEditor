@@ -36,6 +36,9 @@ export function dispose(element) {
   ) {
     const modal = window.bootstrap.Modal.getInstance(element);
     if (modal) modal.dispose();
-  } else if ($.fn.modal && $(element).data('bs.modal'))
-    $(element).modal('dispose');
+  } else {
+    const modal = $(element).data('bs.modal');
+    if (modal && typeof modal.dispose === 'function') modal.dispose();
+    else $(element).off('.bs.modal').removeData('bs.modal');
+  }
 }
