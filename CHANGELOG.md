@@ -9,6 +9,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Added
 
+- GitHub Pages deployment for the example site and a manual release draft workflow with version validation, release notes, an npm archive, and a SHA-256 checksum.
 - Tests for control value conversion, optional plugin cleanup, dialog framework lifecycle, persistence errors, and inline keyboard interactions. CI checks aggregate JavaScript coverage of at least 80% for statements, branches, functions, and lines.
 - A minified distribution stylesheet with an external source map and embedded CSS source content.
 - Monthly Dependabot updates for npm development dependencies and GitHub Actions within their current major versions, preserving the DataTables 2.1.x compatibility dependency.

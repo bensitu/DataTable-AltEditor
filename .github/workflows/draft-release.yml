@@ -1,0 +1,75 @@
+name: Draft GitHub release
+run-name: Draft release ${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic version matching package.json, with an optional v prefix
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: draft-release
+  cancel-in-progress: false
+
+jobs:
+  draft-release:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Prepare release metadata
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: node scripts/prepare-release.mjs
+      - name: Check release tag availability
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git show-ref --verify --quiet "refs/tags/${TAG_NAME}"; then
+            echo "Tag ${TAG_NAME} already exists." >&2
+            exit 1
+          fi
+          if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            echo "Release ${TAG_NAME} already exists." >&2
+            exit 1
+          fi
+      - run: npm ci --engine-strict
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test:coverage
+      - run: npx --no-install playwright install --with-deps chromium firefox webkit
+      - run: npm run test:compat
+      - name: Pack release files
+        shell: bash
+        run: |
+          npm pack --ignore-scripts --pack-destination artifacts
+          cd artifacts
+          sha256sum "${PACKAGE_TARBALL}" > "${PACKAGE_TARBALL}.sha256"
+      - name: Create tag and draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG_NAME}" "${GITHUB_SHA}" -m "Release ${TAG_NAME}"
+          git push origin "refs/tags/${TAG_NAME}"
+          args=("${TAG_NAME}" "artifacts/${PACKAGE_TARBALL}" "artifacts/${PACKAGE_TARBALL}.sha256"
+            --draft --verify-tag --title "${TAG_NAME}" --notes-file artifacts/release-notes.md)
+          if [[ "${VERSION%%+*}" == *-* ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "${args[@]}"

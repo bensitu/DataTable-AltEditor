@@ -59,6 +59,7 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "build:pages": "npm run build && node scripts/build-pages.mjs",
     "dev": "http-server . -p 8080 -c-1",
     "lint": "eslint .",
     "format": "prettier --write .",
