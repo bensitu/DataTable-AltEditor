@@ -20,6 +20,8 @@ The ES2015 JavaScript syntax target and jQuery dependency range do not imply sup
 
 Setting a theme does not change application-wide colors. Applications should theme their own tables, page backgrounds, and other components separately.
 
+Foundation Reveal dialogs use the same `--alteditor-surface` and `--alteditor-border` values for their outer container as for the editor content. These rules apply only to AltEditor dialogs inside the Reveal overlay.
+
 ## Custom properties
 
 Set the following properties on `html` or `body` for all editors, or on an individual editor element for a local override. Defaults adapt to light and dark modes unless a single color is listed.

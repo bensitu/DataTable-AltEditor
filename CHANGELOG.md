@@ -9,6 +9,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Foundation dialogs apply theme colors to their outer surface and border, with spacing between the header, fields, and actions. Application color overrides also apply to the outer surface.
 - Node.js requirements and the CI matrix match the locked development dependencies. Matrix jobs finish independently when another Node.js version fails.
 - Ajax examples use stable row identifiers, name callback arguments consistently, and avoid sending row values to static response URLs. The file example limits attachment size. Escaped DataTables source paths require an explicit inline setter. Debug mode reports callback exceptions after completion without changing the accepted result.
 - The dependent select example owns its loading error message instead of relying on an unused internal form label.

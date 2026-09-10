@@ -12,6 +12,9 @@ for (const framework of ['bootstrap4', 'foundation-sites']) {
         url: '/node_modules/bootstrap4/dist/js/bootstrap.bundle.js',
       });
     } else {
+      await page
+        .locator('link[href*="bootstrap/dist/css"]')
+        .evaluate((link) => link.remove());
       await page.addStyleTag({
         url: '/node_modules/foundation-sites/dist/css/foundation.css',
       });
@@ -20,6 +23,34 @@ for (const framework of ['bootstrap4', 'foundation-sites']) {
       });
     }
     await page.getByRole('button', { name: 'Add', exact: true }).click();
+    if (framework === 'foundation-sites') {
+      await page.evaluate(() => {
+        document.documentElement.dataset.alteditorTheme = 'dark';
+        const unrelated = document.createElement('div');
+        unrelated.className = 'reveal';
+        unrelated.id = 'other-dialog';
+        document.body.appendChild(unrelated);
+      });
+      const modal = page.locator('.altEditor-modal');
+      await expect(modal).toHaveCSS('background-color', 'rgb(24, 34, 49)');
+      await expect(modal).toHaveCSS('border-top-color', 'rgb(82, 97, 120)');
+      await expect(page.locator('#other-dialog')).toHaveCSS(
+        'background-color',
+        'rgb(254, 254, 254)'
+      );
+      await page.evaluate(() => {
+        document.documentElement.dataset.alteditorTheme = 'light';
+      });
+      await expect(modal).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+      await modal.evaluate((element) => {
+        element.style.setProperty('--alteditor-surface', 'rgb(20, 40, 30)');
+      });
+      await expect(modal).toHaveCSS('background-color', 'rgb(20, 40, 30)');
+      await expect(modal.locator('.modal-content')).toHaveCSS(
+        'background-color',
+        'rgb(20, 40, 30)'
+      );
+    }
     await page.locator('.modal [name="name"]').fill('Carol');
     await page.evaluate(() => {
       table.altEditor().onAddRow = (_editor, values, success) => {

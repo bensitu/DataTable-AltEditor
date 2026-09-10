@@ -31,8 +31,17 @@
   color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
 }
 .altEditor-modal .modal-content,
-.altEditor-modal.reveal.is-open {
+.reveal-overlay > .altEditor-modal.reveal {
   background-color: var(--alteditor-surface, light-dark(#fff, #182231));
+}
+.reveal-overlay > .altEditor-modal.reveal {
+  border-color: var(--alteditor-border, light-dark(#cbd5e1, #526178));
+}
+.reveal-overlay > .altEditor-modal .modal-header {
+  padding-bottom: var(--alteditor-spacing, 1rem);
+}
+.reveal-overlay > .altEditor-modal .modal-footer {
+  padding-top: var(--alteditor-spacing, 1rem);
 }
 .altEditor-modal .modal-header,
 .altEditor-modal .modal-footer {
