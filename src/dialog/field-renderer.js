@@ -243,6 +243,7 @@ export const methods = {
       ? []
       : {};
     var fileTasks = [];
+    var columns = this.columnDefs || this.completeColumnDefs();
 
     $form.find('select, textarea, input').each(function () {
       if (this.disabled) return;
@@ -255,6 +256,15 @@ export const methods = {
         var files = $input.prop('files');
         var file = files && files[0];
         if (!file) return;
+        const column = columns.find((item) => String(item.name) === id);
+        if (
+          column &&
+          column.maxFileSize !== undefined &&
+          (!Number.isFinite(column.maxFileSize) ||
+            column.maxFileSize < 0 ||
+            file.size > column.maxFileSize)
+        )
+          throw new Error('File exceeds the configured size limit');
         if (that.encodeFiles) {
           fileTasks.push(
             new Promise(function (resolve, reject) {

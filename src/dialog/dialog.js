@@ -1,5 +1,5 @@
 import { emit } from '../core/events.js';
-import { mergeOptions } from '../core/options.js';
+import { mergeOptions, isPlainObject } from '../core/options.js';
 import { $, root as window, document } from '../core/dependencies.js';
 import { snapshotRow } from '../data/row-data.js';
 import { fieldElement, equalFieldValues } from '../data/field-values.js';
@@ -161,7 +161,7 @@ export const methods = {
     $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
     $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
   },
-  _initLanguage: function () {
+  _initLanguage: function (source) {
     var defaults = {
       modalClose: 'Close',
       edit: { title: 'Edit record', button: 'Edit' },
@@ -178,10 +178,33 @@ export const methods = {
       },
     };
 
-    this.language = mergeOptions(defaults, this.language || {});
+    const input = source === undefined ? this.language : source;
+    if (!isPlainObject(input))
+      throw new TypeError('Language configuration must be an object');
+    const language = mergeOptions(defaults, input);
+    const validate = (expected, actual) =>
+      Object.keys(expected).every((key) =>
+        typeof expected[key] === 'string'
+          ? typeof actual[key] === 'string'
+          : isPlainObject(actual[key]) && validate(expected[key], actual[key])
+      );
+    if (!validate(defaults, language))
+      throw new TypeError('Language values must be strings');
+    this.language = language;
     $(this.modal_selector)
       .find('.altEditor-close')
       .attr('aria-label', this.language.modalClose);
+    if (this._dialogOpen) {
+      const modal = $(this.modal_selector);
+      modal.find('.modal-title').text(this.language[this._action].title);
+      modal
+        .find('.modal-footer [type="submit"]')
+        .text(this.language[this._action].button);
+      modal
+        .find('.modal-footer [type="button"]')
+        .text(this.language.modalClose);
+      modal.find('.altEditor-delete-message').text(this.language.deleteMessage);
+    }
   },
   /** Open the edit dialog.
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.

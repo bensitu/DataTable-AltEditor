@@ -83,7 +83,7 @@
   }
 
   const keys =
-    'editable visible type readonly disabled required hoverMsg pattern unique uniqueMsg maxLength multiple select2 datepicker datetimepicker editorOnChange style dateFormat optionsSortByLabel inline step min max value options rows cols accept special placeholder inlineEditable inlineEditType inlineEditOptions inlineEditSetValue'.split(
+    'editable visible type readonly disabled required hoverMsg pattern unique uniqueMsg maxLength multiple select2 datepicker datetimepicker editorOnChange style dateFormat dateInputFormat optionsSortByLabel inline step min max value options rows cols accept maxFileSize special placeholder inlineEditable inlineEditType inlineEditOptions inlineEditSetValue'.split(
       ' '
     );
 
@@ -465,7 +465,7 @@
       $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
       $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
     },
-    _initLanguage: function () {
+    _initLanguage: function (source) {
       var defaults = {
         modalClose: 'Close',
         edit: { title: 'Edit record', button: 'Edit' },
@@ -482,10 +482,33 @@
         },
       };
 
-      this.language = mergeOptions(defaults, this.language || {});
+      const input = source === undefined ? this.language : source;
+      if (!isPlainObject(input))
+        throw new TypeError('Language configuration must be an object');
+      const language = mergeOptions(defaults, input);
+      const validate = (expected, actual) =>
+        Object.keys(expected).every((key) =>
+          typeof expected[key] === 'string'
+            ? typeof actual[key] === 'string'
+            : isPlainObject(actual[key]) && validate(expected[key], actual[key])
+        );
+      if (!validate(defaults, language))
+        throw new TypeError('Language values must be strings');
+      this.language = language;
       $(this.modal_selector)
         .find('.altEditor-close')
         .attr('aria-label', this.language.modalClose);
+      if (this._dialogOpen) {
+        const modal = $(this.modal_selector);
+        modal.find('.modal-title').text(this.language[this._action].title);
+        modal
+          .find('.modal-footer [type="submit"]')
+          .text(this.language[this._action].button);
+        modal
+          .find('.modal-footer [type="button"]')
+          .text(this.language.modalClose);
+        modal.find('.altEditor-delete-message').text(this.language.deleteMessage);
+      }
     },
     /** Open the edit dialog.
      * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
@@ -1007,6 +1030,7 @@
         ? []
         : {};
       var fileTasks = [];
+      var columns = this.columnDefs || this.completeColumnDefs();
 
       $form.find('select, textarea, input').each(function () {
         if (this.disabled) return;
@@ -1019,6 +1043,15 @@
           var files = $input.prop('files');
           var file = files && files[0];
           if (!file) return;
+          const column = columns.find((item) => String(item.name) === id);
+          if (
+            column &&
+            column.maxFileSize !== undefined &&
+            (!Number.isFinite(column.maxFileSize) ||
+              column.maxFileSize < 0 ||
+              file.size > column.maxFileSize)
+          )
+            throw new Error('File exceeds the configured size limit');
           if (that.encodeFiles) {
             fileTasks.push(
               new Promise(function (resolve, reject) {
@@ -1184,7 +1217,9 @@
           .each(function () {
             try {
               $(this).select2('destroy');
-            } catch (_error) {}
+            } catch (error) {
+              console.warn('AltEditor could not destroy Select2', error);
+            }
           });
       }
       if (typeof $.fn.datepicker === 'function') {
@@ -1193,16 +1228,25 @@
           .each(function () {
             try {
               $(this).datepicker('destroy');
-            } catch (_error) {}
+            } catch (error) {
+              console.warn('AltEditor could not destroy the date picker', error);
+            }
           });
       }
       if (typeof $.fn.datetimepicker === 'function')
         $(selector)
           .find('[data-alteditor-datetimepicker]')
           .each(function () {
-            const picker = $(this).data('DateTimePicker');
-            if (picker && picker.destroy) picker.destroy();
-            else $(this).datetimepicker('destroy');
+            try {
+              const picker = $(this).data('DateTimePicker');
+              if (picker && picker.destroy) picker.destroy();
+              else $(this).datetimepicker('destroy');
+            } catch (error) {
+              console.warn(
+                'AltEditor could not destroy the date/time picker',
+                error
+              );
+            }
             $(this).removeAttr('data-alteditor-datetimepicker');
           });
       $(selector).find('[alt-editor-id]').off(this.s.modalNamespace);
@@ -1241,11 +1285,15 @@
       }
 
       if (
-        type.indexOf('date') >= 0 &&
+        ['date', 'datetime-local', 'time'].indexOf(type) >= 0 &&
         columnDef.dateFormat &&
         typeof root.moment === 'function'
       ) {
-        var date = root.moment(String(normalized));
+        var date = root.moment(
+          String(normalized),
+          columnDef.dateInputFormat || root.moment.ISO_8601,
+          true
+        );
         if (date && date.isValid()) {
           $element.val(date.format(columnDef.dateFormat));
           return;
@@ -2065,21 +2113,33 @@
       ].forEach((key) => {
         if (this.c[key] !== undefined) this[key] = this.c[key];
       });
-      table.altEditor = this;
-      this.selectionListener();
       const language = api.init().language || {};
       this.language = language.altEditor || {};
+      this._initLanguage();
+      table.altEditor = this;
+      this.selectionListener();
       this._setup();
       this._inline = new InlineEditor(this);
       if (!language.altEditor && language.altEditorUrl)
         this._languageRequest = $.ajax({
           url: language.altEditorUrl,
           dataType: 'json',
+          timeout: 15000,
           success: (json) => {
             if (!this._destroyed) {
-              this.language = json;
-              this._initLanguage();
+              try {
+                this._initLanguage(json);
+              } catch (error) {
+                emit(this, 'error', { action: 'language', error });
+                console.warn('AltEditor could not apply the translation', error);
+              }
             }
+          },
+          error: (_response, status, error) => {
+            if (this._destroyed || status === 'abort') return;
+            const failure = new Error(String(error || status));
+            emit(this, 'error', { action: 'language', error: failure });
+            console.warn('AltEditor could not load the translation', failure);
           },
         });
       api.on('destroy' + this.s.namespace, () => this.destroy());
@@ -2248,8 +2308,13 @@
       if (event.namespace !== 'dt') return;
       const api = new DataTable.Api(settings);
       const option = api.init().altEditor;
-      if (option !== false && (option || DataTable.defaults.altEditor))
-        api.altEditor(option || {});
+      if (option !== false && (option || DataTable.defaults.altEditor)) {
+        try {
+          api.altEditor(option || {});
+        } catch (error) {
+          console.error('AltEditor initialization failed', error);
+        }
+      }
     });
     DataTable.altEditor = AltEditor;
   }

@@ -49,21 +49,33 @@ export function createAltEditor(DataTable) {
     ].forEach((key) => {
       if (this.c[key] !== undefined) this[key] = this.c[key];
     });
-    table.altEditor = this;
-    this.selectionListener();
     const language = api.init().language || {};
     this.language = language.altEditor || {};
+    this._initLanguage();
+    table.altEditor = this;
+    this.selectionListener();
     this._setup();
     this._inline = new InlineEditor(this);
     if (!language.altEditor && language.altEditorUrl)
       this._languageRequest = $.ajax({
         url: language.altEditorUrl,
         dataType: 'json',
+        timeout: 15000,
         success: (json) => {
           if (!this._destroyed) {
-            this.language = json;
-            this._initLanguage();
+            try {
+              this._initLanguage(json);
+            } catch (error) {
+              emit(this, 'error', { action: 'language', error });
+              console.warn('AltEditor could not apply the translation', error);
+            }
           }
+        },
+        error: (_response, status, error) => {
+          if (this._destroyed || status === 'abort') return;
+          const failure = new Error(String(error || status));
+          emit(this, 'error', { action: 'language', error: failure });
+          console.warn('AltEditor could not load the translation', failure);
         },
       });
     api.on('destroy' + this.s.namespace, () => this.destroy());

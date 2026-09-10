@@ -11,8 +11,13 @@ export function register(DataTable, AltEditor) {
     if (event.namespace !== 'dt') return;
     const api = new DataTable.Api(settings);
     const option = api.init().altEditor;
-    if (option !== false && (option || DataTable.defaults.altEditor))
-      api.altEditor(option || {});
+    if (option !== false && (option || DataTable.defaults.altEditor)) {
+      try {
+        api.altEditor(option || {});
+      } catch (error) {
+        console.error('AltEditor initialization failed', error);
+      }
+    }
   });
   DataTable.altEditor = AltEditor;
 }

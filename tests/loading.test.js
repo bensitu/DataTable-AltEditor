@@ -4,6 +4,64 @@ import japanese from '../translations/ja.json';
 import DataTable from 'datatables.net';
 import AltEditor from '../src/index.js';
 
+test('keeps default labels and reports invalid or unavailable remote translations', () => {
+  let requestOptions;
+  const request = vi.spyOn($, 'ajax').mockImplementation((options) => {
+    requestOptions = options;
+    return { abort() {} };
+  });
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  document.body.innerHTML = '<table id="table"></table>';
+  const table = new DataTable('#table', {
+    data: [[1]],
+    columns: [{ title: 'Value' }],
+    altEditor: true,
+    language: { altEditorUrl: '/language.json' },
+  });
+  try {
+    const editor = table.altEditor();
+    const error = vi.fn();
+    $(table.table().node()).on('alteditor-error.dt', error);
+    for (const value of [
+      { error: null },
+      ['invalid'],
+      JSON.parse('{"__proto__":{}}'),
+    ])
+      expect(() => requestOptions.success(value)).not.toThrow();
+    requestOptions.error({}, 'timeout', 'Timed out');
+    expect(editor.language.error.message).toBe('There was an unknown error!');
+    expect(error).toHaveBeenCalledTimes(4);
+    expect(warning).toHaveBeenCalledTimes(4);
+    editor.destroy();
+    requestOptions.error({}, 'abort');
+    expect(error).toHaveBeenCalledTimes(4);
+  } finally {
+    table.destroy();
+    warning.mockRestore();
+    request.mockRestore();
+  }
+});
+
+test('keeps the DataTable usable when automatic editor configuration is invalid', () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+  document.body.innerHTML = '<table id="table"></table>';
+  const table = new DataTable('#table', {
+    data: [[1]],
+    columns: [{ title: 'Value' }],
+    altEditor: true,
+    language: { altEditor: { error: null } },
+  });
+  try {
+    expect(table.rows().count()).toBe(1);
+    expect(table.altEditor()).toBeNull();
+    expect(document.querySelector('.altEditor-modal')).toBeNull();
+    expect(log).toHaveBeenCalledOnce();
+  } finally {
+    table.destroy();
+    log.mockRestore();
+  }
+});
+
 test('requires explicit row selectors when Select is absent', async () => {
   document.body.innerHTML = '<table id="table"></table>';
   const table = new DataTable('#table', {
@@ -77,12 +135,13 @@ test('loads translated dialog labels and close accessibility text asynchronously
     expect(
       modal.querySelector('.altEditor-close').getAttribute('aria-label')
     ).toBe('Close');
+    editor.internalOpenDialog = (_selector, fill) => fill();
+    editor.openEditDialog(0);
+    modal.querySelector('input').value = 'Unsaved';
     complete(japanese);
     expect(
       modal.querySelector('.altEditor-close').getAttribute('aria-label')
     ).toBe(japanese.modalClose);
-    editor.internalOpenDialog = (_selector, fill) => fill();
-    editor.openEditDialog(0);
     expect(modal.querySelector('.modal-title').textContent).toBe(
       japanese.edit.title
     );
@@ -92,7 +151,7 @@ test('loads translated dialog labels and close accessibility text asynchronously
     expect(
       modal.querySelector('.modal-footer [type="button"]').textContent
     ).toBe(japanese.modalClose);
-    expect(modal.querySelector('input').value).toBe('Alice');
+    expect(modal.querySelector('input').value).toBe('Unsaved');
   } finally {
     table?.destroy();
     request.mockRestore();

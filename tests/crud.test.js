@@ -36,6 +36,40 @@ afterEach(() => {
 });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+test('rejects oversized files before encoding and permits a smaller replacement', async () => {
+  const { editor, table } = create({
+    columns: [
+      { data: 'name', title: 'Name' },
+      {
+        data: 'attachment',
+        title: 'File',
+        type: 'file',
+        maxFileSize: 4,
+        defaultContent: '',
+      },
+    ],
+  });
+  editor.openAddDialog();
+  const fileInput = $(editor.modal_selector).find('[type="file"]')[0];
+  const reader = vi.spyOn(editor, 'getBase64');
+  Object.defineProperty(fileInput, 'files', {
+    value: [new File(['large'], 'file.txt')],
+    configurable: true,
+  });
+  await editor._addRowData();
+  expect(reader).not.toHaveBeenCalled();
+  expect(table.rows().count()).toBe(2);
+  expect($(editor.modal_selector).find('.alert').text()).toContain(
+    'File exceeds'
+  );
+  Object.defineProperty(fileInput, 'files', {
+    value: [new File(['ok'], 'file.txt')],
+    configurable: true,
+  });
+  await editor._addRowData();
+  expect(table.rows().count()).toBe(3);
+});
+
 test('preserves unsupported fields and edits names containing CSS punctuation', async () => {
   const original = {
     'first:name': 'Alice',

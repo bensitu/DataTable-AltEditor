@@ -101,10 +101,39 @@ test('supports serialized select values and optional date formatting without cha
   expect(input.val()).toBe('10/09/2026');
   methods._setFieldValue(
     input,
+    { type: 'time', dateFormat: 'HH:mm', dateInputFormat: 'HH:mm:ss' },
+    '13:05:00'
+  );
+  expect(window.moment).toHaveBeenLastCalledWith('13:05:00', 'HH:mm:ss', true);
+  methods._setFieldValue(
+    input,
     { type: 'date', dateFormat: 'DD/MM/YYYY' },
     'invalid'
   );
   expect(input.val()).toBe('invalid');
   methods._setFieldValue(input, {}, undefined);
   expect(input.val()).toBe('');
+});
+
+test('continues cleanup when a date/time plugin fails to destroy', () => {
+  const original = $.fn.datetimepicker;
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  $.fn.datetimepicker = vi.fn(() => {
+    throw new Error('Unavailable');
+  });
+  document.body.innerHTML =
+    '<div id="editor"><input data-alteditor-datetimepicker="true"><input data-alteditor-datetimepicker="true"></div>';
+  try {
+    methods._cleanupPlugins.call({
+      modal_selector: '#editor',
+      s: { modalNamespace: '.example' },
+    });
+    expect($.fn.datetimepicker).toHaveBeenCalledTimes(2);
+    expect(warning).toHaveBeenCalledTimes(2);
+    expect(
+      document.querySelector('[data-alteditor-datetimepicker]')
+    ).toBeNull();
+  } finally {
+    $.fn.datetimepicker = original;
+  }
 });

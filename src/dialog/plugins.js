@@ -74,7 +74,9 @@ export const methods = {
         .each(function () {
           try {
             $(this).select2('destroy');
-          } catch (_error) {}
+          } catch (error) {
+            console.warn('AltEditor could not destroy Select2', error);
+          }
         });
     }
     if (typeof $.fn.datepicker === 'function') {
@@ -83,16 +85,25 @@ export const methods = {
         .each(function () {
           try {
             $(this).datepicker('destroy');
-          } catch (_error) {}
+          } catch (error) {
+            console.warn('AltEditor could not destroy the date picker', error);
+          }
         });
     }
     if (typeof $.fn.datetimepicker === 'function')
       $(selector)
         .find('[data-alteditor-datetimepicker]')
         .each(function () {
-          const picker = $(this).data('DateTimePicker');
-          if (picker && picker.destroy) picker.destroy();
-          else $(this).datetimepicker('destroy');
+          try {
+            const picker = $(this).data('DateTimePicker');
+            if (picker && picker.destroy) picker.destroy();
+            else $(this).datetimepicker('destroy');
+          } catch (error) {
+            console.warn(
+              'AltEditor could not destroy the date/time picker',
+              error
+            );
+          }
           $(this).removeAttr('data-alteditor-datetimepicker');
         });
     $(selector).find('[alt-editor-id]').off(this.s.modalNamespace);
@@ -131,11 +142,15 @@ export const methods = {
     }
 
     if (
-      type.indexOf('date') >= 0 &&
+      ['date', 'datetime-local', 'time'].indexOf(type) >= 0 &&
       columnDef.dateFormat &&
       typeof window.moment === 'function'
     ) {
-      var date = window.moment(String(normalized));
+      var date = window.moment(
+        String(normalized),
+        columnDef.dateInputFormat || window.moment.ISO_8601,
+        true
+      );
       if (date && date.isValid()) {
         $element.val(date.format(columnDef.dateFormat));
         return;
