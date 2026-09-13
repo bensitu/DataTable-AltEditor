@@ -101,6 +101,8 @@ Native date, time, and datetime-local controls require values such as `2026-09-1
 
 `maxFileSize` applies before reading files with either `encodeFiles` setting. Omitting it preserves unrestricted file size behavior. For large files, use `encodeFiles: false` and upload the File separately rather than storing a data URL in table data. Applications must enforce file restrictions on the server as well.
 
+For forms with multiple file fields, all field values and file size limits are checked before encoded file reads start. Correct an invalid file selection and submit again to retry.
+
 ## Server-side data
 
 With `serverSide: true`, the editor only has the currently loaded row snapshot. Unique validation covers loaded data, so applications must also validate on the server. Server draws remain authoritative. Use stable row IDs and reload with `editor.api().ajax.reload(null, false)` after persistence when necessary. A result for a row no longer available on the client is reported as an error instead of being applied elsewhere.

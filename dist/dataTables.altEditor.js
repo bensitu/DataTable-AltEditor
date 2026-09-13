@@ -1060,8 +1060,8 @@
           )
             throw new Error(that.language.error.fileSize);
           if (that.encodeFiles) {
-            fileTasks.push(
-              new Promise(function (resolve, reject) {
+            fileTasks.push(function () {
+              return new Promise(function (resolve, reject) {
                 that.getBase64(
                   file,
                   function (content) {
@@ -1074,8 +1074,8 @@
                   },
                   reject
                 );
-              })
-            );
+              });
+            });
           } else {
             that._setValueByPath(values, id, file);
           }
@@ -1093,7 +1093,11 @@
         that._setValueByPath(values, id, $input.val());
       });
 
-      return Promise.all(fileTasks).then(function () {
+      return Promise.all(
+        fileTasks.map(function (readFile) {
+          return readFile();
+        })
+      ).then(function () {
         return values;
       });
     },

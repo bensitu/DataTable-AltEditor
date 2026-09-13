@@ -40,6 +40,7 @@ test('rejects oversized files before encoding and permits a smaller replacement'
   const { editor, table } = create({
     columns: [
       { data: 'name', title: 'Name' },
+      { data: 'preview', title: 'Preview', type: 'file', defaultContent: '' },
       {
         data: 'attachment',
         title: 'File',
@@ -50,7 +51,12 @@ test('rejects oversized files before encoding and permits a smaller replacement'
     ],
   });
   editor.openAddDialog();
-  const fileInput = $(editor.modal_selector).find('[type="file"]')[0];
+  const fileInputs = $(editor.modal_selector).find('[type="file"]');
+  Object.defineProperty(fileInputs[0], 'files', {
+    value: [new File(['preview'], 'preview.txt')],
+    configurable: true,
+  });
+  const fileInput = fileInputs[1];
   const reader = vi.spyOn(editor, 'getBase64');
   Object.defineProperty(fileInput, 'files', {
     value: [new File(['large'], 'file.txt')],

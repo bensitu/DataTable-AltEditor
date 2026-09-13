@@ -11,6 +11,9 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Multi-file forms validate field collection before starting encoded reads, avoiding unfinished reads when another file exceeds its limit.
+- Foundation example search and page-length labels follow the selected theme. Local distribution archives include contribution and policy documents linked from the README.
+- Object-based examples use salary values consistent with the array example instead of employee names in salary fields.
 - English bug report, feature request, usage question, and pull request templates collect relevant context without requiring unrelated checks.
 - Documentation includes an index, API reference, troubleshooting, live example links, consistent light-mode screenshots, and contribution guidance.
 - Foundation dialogs apply theme colors to their outer surface and border, with spacing between the header, fields, and actions. Application color overrides also apply to the outer surface.

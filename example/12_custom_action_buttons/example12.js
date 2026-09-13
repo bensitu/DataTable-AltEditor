@@ -7,7 +7,7 @@ $(document).ready(function () {
       office: 'Edinburgh',
       extension: '5421',
       startDate: '2011/04/25',
-      salary: 'Tiger Nixon',
+      salary: '$320,800',
     },
     {
       id: 2,
@@ -16,7 +16,7 @@ $(document).ready(function () {
       office: 'Tokyo',
       extension: '8422',
       startDate: '2011/07/25',
-      salary: 'Garrett Winters',
+      salary: '$170,750',
     },
     {
       id: 3,
@@ -25,7 +25,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '1562',
       startDate: '2009/01/12',
-      salary: 'Ashton Cox',
+      salary: '$86,000',
     },
     {
       id: 4,
@@ -34,7 +34,7 @@ $(document).ready(function () {
       office: 'Edinburgh',
       extension: '6224',
       startDate: '2012/03/29',
-      salary: 'Cedric Kelly',
+      salary: '$433,060',
     },
     {
       id: 5,
@@ -43,7 +43,7 @@ $(document).ready(function () {
       office: 'Tokyo',
       extension: '5407',
       startDate: '2008/11/28',
-      salary: 'Airi Satou',
+      salary: '$162,700',
     },
     {
       id: 6,
@@ -52,7 +52,7 @@ $(document).ready(function () {
       office: 'New York',
       extension: '4804',
       startDate: '2012/12/02',
-      salary: 'Brielle Williamson',
+      salary: '$372,000',
     },
     {
       id: 7,
@@ -61,7 +61,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '9608',
       startDate: '2012/08/06',
-      salary: 'Herrod Chandler',
+      salary: '$137,500',
     },
     {
       id: 8,
@@ -70,7 +70,7 @@ $(document).ready(function () {
       office: 'Tokyo',
       extension: '6200',
       startDate: '2010/10/14',
-      salary: 'Rhona Davidson',
+      salary: '$327,900',
     },
     {
       id: 9,
@@ -79,7 +79,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '2360',
       startDate: '2009/09/15',
-      salary: 'Colleen Hurst',
+      salary: '$205,500',
     },
     {
       id: 10,
@@ -88,7 +88,7 @@ $(document).ready(function () {
       office: 'Edinburgh',
       extension: '1667',
       startDate: '2008/12/13',
-      salary: 'Sonya Frost',
+      salary: '$103,600',
     },
     {
       id: 11,
@@ -97,7 +97,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '3814',
       startDate: '2008/12/19',
-      salary: 'Jena Gaines',
+      salary: '$90,560',
     },
     {
       id: 12,
@@ -106,7 +106,7 @@ $(document).ready(function () {
       office: 'Edinburgh',
       extension: '9497',
       startDate: '2013/03/03',
-      salary: 'Quinn Flynn',
+      salary: '$342,000',
     },
     {
       id: 13,
@@ -115,7 +115,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '6741',
       startDate: '2008/10/16',
-      salary: 'Charde Marshall',
+      salary: '$470,600',
     },
     {
       id: 14,
@@ -124,7 +124,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '3597',
       startDate: '2012/12/18',
-      salary: 'Haley Kennedy',
+      salary: '$313,500',
     },
     {
       id: 15,
@@ -133,7 +133,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '1965',
       startDate: '2010/03/17',
-      salary: 'Tatyana Fitzpatrick',
+      salary: '$385,750',
     },
     {
       id: 16,
@@ -142,7 +142,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '1581',
       startDate: '2012/11/27',
-      salary: 'Michael Silva',
+      salary: '$198,500',
     },
     {
       id: 17,
@@ -151,7 +151,7 @@ $(document).ready(function () {
       office: 'New York',
       extension: '3059',
       startDate: '2010/06/09',
-      salary: 'Paul Byrd',
+      salary: '$725,000',
     },
     {
       id: 18,
@@ -160,7 +160,7 @@ $(document).ready(function () {
       office: 'New York',
       extension: '1721',
       startDate: '2009/04/10',
-      salary: 'Gloria Little',
+      salary: '$237,500',
     },
     {
       id: 19,
@@ -169,7 +169,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '2558',
       startDate: '2012/10/13',
-      salary: 'Bradley Greer',
+      salary: '$132,000',
     },
     {
       id: 20,
@@ -178,7 +178,7 @@ $(document).ready(function () {
       office: 'Edinburgh',
       extension: '2290',
       startDate: '2012/09/26',
-      salary: 'Dai Rios',
+      salary: '$217,500',
     },
     {
       id: 21,
@@ -187,7 +187,7 @@ $(document).ready(function () {
       office: 'New York',
       extension: '1937',
       startDate: '2011/09/03',
-      salary: 'Jenette Caldwell',
+      salary: '$345,000',
     },
     {
       id: 22,
@@ -196,7 +196,7 @@ $(document).ready(function () {
       office: 'New York',
       extension: '6154',
       startDate: '2009/06/25',
-      salary: 'Yuri Berry',
+      salary: '$675,000',
     },
     {
       id: 23,
@@ -205,7 +205,7 @@ $(document).ready(function () {
       office: 'New York',
       extension: '8330',
       startDate: '2011/12/12',
-      salary: 'Caesar Vance',
+      salary: '$106,450',
     },
     {
       id: 24,
@@ -214,7 +214,7 @@ $(document).ready(function () {
       office: 'Sidney',
       extension: '3023',
       startDate: '2010/09/20',
-      salary: 'Doris Wilder',
+      salary: '$85,600',
     },
     {
       id: 25,
@@ -223,7 +223,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '5797',
       startDate: '2009/10/09',
-      salary: 'Angelica Ramos',
+      salary: '$1,200,000',
     },
     {
       id: 26,
@@ -232,7 +232,7 @@ $(document).ready(function () {
       office: 'Edinburgh',
       extension: '8822',
       startDate: '2010/12/22',
-      salary: 'Gavin Joyce',
+      salary: '$92,575',
     },
     {
       id: 27,
@@ -241,7 +241,7 @@ $(document).ready(function () {
       office: 'Singapore',
       extension: '9239',
       startDate: '2010/11/14',
-      salary: 'Jennifer Chang',
+      salary: '$357,650',
     },
     {
       id: 28,
@@ -250,7 +250,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '1314',
       startDate: '2011/06/07',
-      salary: 'Brenden Wagner',
+      salary: '$206,850',
     },
     {
       id: 29,
@@ -259,7 +259,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '2947',
       startDate: '2010/03/11',
-      salary: 'Fiona Green',
+      salary: '$850,000',
     },
     {
       id: 30,
@@ -268,7 +268,7 @@ $(document).ready(function () {
       office: 'Tokyo',
       extension: '8899',
       startDate: '2011/08/14',
-      salary: 'Shou Itou',
+      salary: '$163,000',
     },
     {
       id: 31,
@@ -277,7 +277,7 @@ $(document).ready(function () {
       office: 'Sidney',
       extension: '2769',
       startDate: '2011/06/02',
-      salary: 'Michelle House',
+      salary: '$95,400',
     },
     {
       id: 32,
@@ -286,7 +286,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '6832',
       startDate: '2009/10/22',
-      salary: 'Suki Burks',
+      salary: '$114,500',
     },
     {
       id: 33,
@@ -295,7 +295,7 @@ $(document).ready(function () {
       office: 'London',
       extension: '3606',
       startDate: '2011/05/07',
-      salary: 'Prescott Bartlett',
+      salary: '$145,000',
     },
     {
       id: 34,
@@ -304,7 +304,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '2860',
       startDate: '2008/10/26',
-      salary: 'Gavin Cortez',
+      salary: '$235,500',
     },
     {
       id: 35,
@@ -313,7 +313,7 @@ $(document).ready(function () {
       office: 'Edinburgh',
       extension: '8240',
       startDate: '2011/03/09',
-      salary: 'Martena Mccray',
+      salary: '$324,050',
     },
     {
       id: 36,
@@ -322,7 +322,7 @@ $(document).ready(function () {
       office: 'San Francisco',
       extension: '5384',
       startDate: '2009/12/09',
-      salary: 'Unity Butler',
+      salary: '$85,675',
     },
   ];
 

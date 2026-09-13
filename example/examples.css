@@ -199,6 +199,8 @@
 }
 .example-table .dt-info,
 .example-table .dt-search,
+.example-table .dt-search label,
+.example-table .dt-length label,
 .example-table .dt-length {
   color: var(--example-muted);
   font-size: 0.875rem;

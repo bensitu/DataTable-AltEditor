@@ -10,7 +10,7 @@ All changes are temporary. In-memory examples reset on page reload. Ajax example
 
 Ajax examples configure stable DataTables row identifiers so updates can find the same record after a reload. The multiple-table example prefixes identifiers to keep DOM IDs distinct. Client-generated identifiers and GET requests to static response files are demonstration techniques. Production applications should assign identifiers on the server, use appropriate write methods, and validate and authorize every operation.
 
-Simulated save requests do not send row values in query strings. They call `success()` to accept the entered values locally after the static request completes. For a real persistence callback, see the PATCH example in the [README](api.md#persistence-callbacks).
+Simulated save requests do not send row values in query strings. They call `success()` to accept the entered values locally after the static request completes. For a real persistence callback, see the PATCH example in the [API reference](api.md#persistence-callbacks).
 
 CDN resources are convenient for these examples. For production deployments, manage dependencies locally or pin resources with matching Subresource Integrity metadata and a suitable Content Security Policy.
 
