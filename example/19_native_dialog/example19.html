@@ -11,7 +11,20 @@
       href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css"
     />
 
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/css/select2.css"
+    />
     <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="./example19.css" />
     <link rel="stylesheet" href="../examples.css" />
     <script src="../theme.js"></script>
   </head>
@@ -30,16 +43,13 @@
         <p class="example-eyebrow">DataTable-AltEditor / Example 19</p>
         <h1>Native browser dialogs</h1>
         <p>
-          This optional dialog mode uses no Bootstrap or Foundation assets. Add
-          a person, edit Alice, or delete Alice using explicit row selectors.
-          Changes reset on reload.
+          This optional dialog mode uses no Bootstrap or Foundation assets.
+          Select a row and edit text, email, numbers, dates, a checkbox,
+          multiple Select2 skills, and notes inside a custom template. Formatted
+          cells use the original values when editing. Select several rows to
+          preview deletion. Changes reset on reload.
         </p>
       </header>
-      <p class="example-actions">
-        <button id="add-person" type="button">Add person</button>
-        <button id="edit-alice" type="button">Edit Alice</button>
-        <button id="delete-alice" type="button">Delete Alice</button>
-      </p>
       <div
         class="example-table"
         tabindex="0"
@@ -52,15 +62,28 @@
     </main>
 
     <template id="person-fields">
-      <fieldset>
-        <legend>Person details</legend>
-        <div data-alteditor-field="name"></div>
-        <div data-alteditor-field="email"></div>
-      </fieldset>
+      <section class="native-person-layout">
+        <fieldset>
+          <legend>Contact</legend>
+          <div data-alteditor-field="name"></div>
+          <div data-alteditor-field="email"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Work preferences</legend>
+          <div data-alteditor-field="budget"></div>
+          <div data-alteditor-field="startDate"></div>
+          <div data-alteditor-field="active"></div>
+          <div data-alteditor-field="skills"></div>
+          <div data-alteditor-field="notes"></div>
+        </fieldset>
+      </section>
     </template>
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
 
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/select/3.1.3/js/dataTables.select.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.js"></script>
     <script src="../../dist/dataTables.altEditor.js"></script>
     <script src="./example19.js"></script>
   </body>

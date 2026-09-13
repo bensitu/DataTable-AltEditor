@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
+## 4.1.0 - 2026-09-14
+
+### Added
+
+- Independent add and edit dialog templates with cloned layouts, named field slots, identifier remapping, and the existing field validation and persistence behavior.
+- Optional deletion details for single and multiple selected records, rendered as plain text or application-provided DOM content.
+- Synchronous before-open, render, and close callbacks with structured context, plus cancelable before-open and dialog-render events.
+- Explicit Bootstrap and Foundation selection and optional native browser dialogs with feature detection, scoped styles, and no additional runtime dependencies.
+- Examples 18 and 19 and a dialog guide covering custom layouts, deletion summaries, lifecycle callbacks, framework selection, and browser compatibility.
+
+### Fixed
+
+- Native dialog templates have consistent field spacing and scroll long forms while keeping the title and actions visible. Example 19 demonstrates typed fields, Select2, selection, and custom table rendering.
+- Fast Bootstrap saves wait for the show transition before closing. Opening during a close transition is rejected until closure completes.
+- Explicit Foundation dialogs avoid Bootstrap component classes and dismiss handlers when both frameworks are loaded.
+
 ## 4.0.2 - 2026-09-13
 
 ### Added

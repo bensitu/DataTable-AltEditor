@@ -1,0 +1,21 @@
+.altEditor-modal .native-person-layout fieldset {
+  min-width: 0;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--alteditor-border, light-dark(#cbd5e1, #526178));
+  border-radius: var(--alteditor-radius, 0.375rem);
+}
+.altEditor-modal .native-person-layout fieldset:last-child {
+  margin-bottom: 0;
+}
+.altEditor-modal .native-person-layout legend {
+  padding-inline: 0.5rem;
+  font-size: 1rem;
+}
+.examples-page .person-status {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}

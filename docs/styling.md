@@ -79,3 +79,5 @@ Keep custom controls, text, focus indicators, and error messages legible in both
 [Dialog templates](dialogs.md) arrange generated fields within application-owned markup. Scope custom CSS to a class in the template. Shared shell classes (`.altEditor-header`, `.altEditor-title`, `.altEditor-body`, `.altEditor-footer`, and `.altEditor-content`) are available with every adapter. Legacy Bootstrap classes remain on Bootstrap dialogs.
 
 Explicit native mode uses `.altEditor-native`, `.altEditor-control`, and `.altEditor-button` without Bootstrap or Foundation component classes. It shares the existing theme variables; `--alteditor-backdrop` additionally sets its backdrop color (default `rgb(0 0 0 / 50%)`). The native adapter is optional and does not alter the default dialog browser requirements.
+
+Template field slots receive `--alteditor-spacing` between adjacent fields by default. Application layout rules can override this low-specificity spacing. Native dialogs constrain long forms to the viewport and scroll the body while retaining visible header and footer actions.

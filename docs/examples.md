@@ -55,7 +55,7 @@ For toolbar-based examples, select a row before choosing Edit or Delete. Add ope
 | [16: Server persistence and files](https://bensitu.github.io/DataTable-AltEditor/example/16_server_files/example16.html) | Run the local server to create, edit, delete, upload, download, and reload real saved data. Try a duplicate name to see server validation.                                                                                  |
 | [17: Advanced inline editing](https://bensitu.github.io/DataTable-AltEditor/example/17_inline_options/example17.html)    | Try blur saving, public edit controls, formatted numbers, checkboxes, and a function-based source with an explicit setter.                                                                                                  |
 | [18: Dialog templates](https://bensitu.github.io/DataTable-AltEditor/example/18_dialog_templates/example18.html)         | Compare Add and Edit layouts, validate an email, select one or several rows for deletion, and toggle the deletion summary.                                                                                                  |
-| [19: Native dialogs](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)              | Open a native form without a UI framework, edit Alice, and delete her with a text summary.                                                                                                                                  |
+| [19: Native dialogs](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)              | Select rows, edit numeric/date/checkbox/textarea fields and Select2 skills, then reopen to verify raw values behind custom table renderers. Delete one or several rows with a text summary.                                 |
 
 The Appearance selector supports system, light, and dark modes. See [styling and themes](styling.md) for application customization.
 
@@ -85,7 +85,7 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 | 16      | [HTML](../example/16_server_files/example16.html) · [JavaScript](../example/16_server_files/example16.js)                   | Server persistence and files.                                                                      |
 | 17      | [HTML](../example/17_inline_options/example17.html) · [JavaScript](../example/17_inline_options/example17.js)               | Advanced inline editing.                                                                           |
 | 18      | [HTML](../example/18_dialog_templates/example18.html) · [JavaScript](../example/18_dialog_templates/example18.js)           | Independent templates, DOM deletion summaries, and render / close callbacks.                       |
-| 19      | [HTML](../example/19_native_dialog/example19.html) · [JavaScript](../example/19_native_dialog/example19.js)                 | Native dialogs, feature detection, and explicit row selectors without Buttons or Select.           |
+| 19      | [HTML](../example/19_native_dialog/example19.html) · [JavaScript](../example/19_native_dialog/example19.js)                 | Native dialog templates, typed values, Select2, DataTables Select, and custom display renderers.   |
 
 ## Adapt an example to your application
 
