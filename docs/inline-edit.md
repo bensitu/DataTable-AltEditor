@@ -17,6 +17,26 @@ altEditor: {
 
 Inline editing is disabled by default. An enabled table uses one delegated double-click listener and permits one active cell. Different tables remain independent. Use `editor.startInlineEdit({ row: 0, column: 1 })` for programmatic activation. It returns false for an unavailable or unsupported cell, or while persistence or a row dialog is active.
 
+## Rendered interactive controls
+
+A column can display its own dropdown through `columns.render` while other columns use AltEditor inline editing. AltEditor skips cells containing native inputs, selects, textareas, buttons, links, or editable content. Double-clicks, Tab navigation, and `startInlineEdit()` do not replace those controls. Ordinary text and noninteractive markup remain editable. Tab navigation continues to the next eligible cell; the browser's normal focus navigation can reach the rendered controls.
+
+Set `inlineEditable: false` on a column owned by a custom control to make that intent explicit, including when the control is not currently rendered. This does not disable the field in row dialogs. Custom widgets that do not use native interactive elements should also set this option.
+
+Rendering a dropdown does not update the DataTables data source when its selection changes. Use a delegated change handler so it continues working after sorting, paging, and redraws:
+
+```js
+$('#example').on('change', '.status-dropdown', function () {
+  table.cell(this.closest('td')).data(this.value).draw(false);
+});
+```
+
+Here, `table` is the DataTables API instance returned by initialization. Resolve the cell from the current DOM node instead of keeping a row index in the rendered HTML. This example assumes the dropdown is in a normal table cell; controls copied into Responsive child rows need their original cell resolved separately.
+
+The change handler above saves only to the local table. Custom controls do not automatically invoke `onInlineEditRow`, AltEditor validation, or inline lifecycle events. For remote persistence, handle the request and errors in the change handler and update table data after the server accepts the value. Avoid allowing overlapping writes to the same row while a save is pending.
+
+Return the raw value for non-display rendering so sorting and searching use the stored status. DataTables 2 permits a DOM node for display rendering; creating a select with `new Option()` avoids interpolating option values into HTML. See the third table in [Example 13](../example/13_inline_edit/example13.js) for a complete configuration and [DataTables rendering](https://datatables.net/reference/option/columns.render) for the rendering contract.
+
 ## Controls
 
 Supported controls are text, number, email, date, time, datetime-local, textarea, select, and checkbox. Optional dialog plugins are not applied to inline controls. Native constraints such as required, pattern, min, max, step, and maxLength apply where supported by the control. Number inputs return numbers or an empty string; checkboxes return booleans; other inputs return strings, and multiple selects return arrays of strings.

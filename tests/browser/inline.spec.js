@@ -100,6 +100,70 @@ test('blur cancels by default and submits once when configured', async ({
   await expect(page.locator('tbody')).toContainText('Ann');
 });
 
+test('rendered selects remain interactive and are skipped by inline navigation', async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    table.destroy();
+    document.querySelector('#table').innerHTML = '';
+    window.table = new DataTable('#table', {
+      data: [{ name: 'Alice', status: 'Active', note: 'First' }],
+      columns: [
+        { data: 'name', title: 'Name' },
+        {
+          data: 'status',
+          title: 'Status',
+          render(data, type) {
+            if (type !== 'display') return data;
+            return (
+              '<select aria-label="Status">' +
+              ['Active', 'Inactive']
+                .map(
+                  (value) =>
+                    '<option' +
+                    (value === data ? ' selected' : '') +
+                    '>' +
+                    value +
+                    '</option>'
+                )
+                .join('') +
+              '</select>'
+            );
+          },
+        },
+        { data: 'note', title: 'Note' },
+      ],
+      altEditor: { inlineEdit: true },
+    });
+    $('#table').on('change', 'select', function () {
+      table.cell(this.closest('td')).data(this.value).draw(false);
+    });
+  });
+  const select = page.getByRole('combobox', { name: 'Status', exact: true });
+  await select.selectOption('Inactive');
+  expect(await page.evaluate(() => table.cell(0, 1).data())).toBe('Inactive');
+  await select.dispatchEvent('dblclick');
+  expect(await page.evaluate(() => table.altEditor().isInlineEditing())).toBe(
+    false
+  );
+  expect(
+    await page.evaluate(() =>
+      table.altEditor().startInlineEdit({ row: 0, column: 1 })
+    )
+  ).toBe(false);
+  await page.getByRole('cell', { name: 'Alice', exact: true }).dblclick();
+  const input = page.locator('.alteditor-inline-control');
+  await input.fill('Ann');
+  await input.press('Tab');
+  await expect(input).toHaveValue('First');
+  await input.press('Shift+Tab');
+  await expect(input).toHaveValue('Ann');
+  await input.press('Escape');
+  await expect(select).toHaveValue('Inactive');
+  await page.evaluate(() => table.search('Inactive').draw());
+  await expect(select).toHaveValue('Inactive');
+});
+
 test('keeps active editors independent across tables', async ({ page }) => {
   await page.evaluate(() => {
     const node = document.createElement('table');

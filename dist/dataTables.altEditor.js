@@ -1808,6 +1808,15 @@
       const options = controlOptions(column);
       if (!options || !this.api.column(index.column).visible()) return false;
       if (this.session && this.session.cellNode === cell.node()) return true;
+      if (
+        cell.node().isContentEditable ||
+        cell
+          .node()
+          .querySelector(
+            'input, select, textarea, button, a[href], [contenteditable]:not([contenteditable="false"])'
+          )
+      )
+        return false;
       if (this.session) this.cancel('replace', false);
       const row = this.api.row(index.row);
       const session = Object.assign(snapshotRow(row), {

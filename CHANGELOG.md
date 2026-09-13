@@ -11,6 +11,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Inline editing leaves rendered interactive controls intact and skips them during keyboard navigation. Example 13 demonstrates direct dropdown changes alongside double-click editing and explains separate persistence handling.
 - Example pages link to their configuration source and guide. Documentation maps integration needs to examples and explains dependency loading, stored values, persistence, and reusable configuration.
 - Dependabot update limits distinguish fixed Bootstrap 4 compatibility from Bootstrap 5, retain DataTables 2 with Buttons 3 and Select 3, and keep jQuery on 3.7.x.
 - Multi-file forms validate field collection before starting encoded reads, avoiding unfinished reads when another file exceeds its limit.
