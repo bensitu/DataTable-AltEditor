@@ -27,7 +27,8 @@
         "fileRead": "Het bestand kon niet worden gelezen",
         "fileAborted": "Het lezen van het bestand is afgebroken",
         "fileSize": "Het bestand overschrijdt de ingestelde groottelimiet",
-        "dialogFramework": "Bootstrap Modal of Foundation Reveal is vereist om AltEditor-dialoogvensters te openen"
+        "dialogFramework": "Bootstrap Modal of Foundation Reveal is vereist om AltEditor-dialoogvensters te openen",
+        "nativeDialog": "Native dialoogvensters vereisen een browser met ondersteuning voor HTMLDialogElement.showModal"
     },
     "deleteMessage": "Ben je zeker dat je deze rij(en) wilt verwijderen?"
 }

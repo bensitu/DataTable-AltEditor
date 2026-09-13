@@ -32,7 +32,7 @@ If a submission event handler destroys the editor, its persistence callback is n
 
 `alteditor-before-open.dt` runs after selection validation and can be canceled with `preventDefault()`. `alteditor-dialog-render.dt` runs once generated fields, populated values, plugins, and form submission are ready. The render payload additionally contains the DOM `dialog` and `form`.
 
-These events and `alteditor-close.dt` have corresponding synchronous `dialog.onBeforeOpen`, `dialog.onRender`, and `dialog.onClose` callbacks. Their context includes `action`, `mode`, and detached `rows` (empty for add). Callbacks follow their corresponding event. `alteditor-open.dt` follows render notification. See [dialog configuration](dialogs.md#lifecycle-callbacks) for cancellation, cleanup, and template examples.
+These events and `alteditor-close.dt` have corresponding synchronous `dialog.onBeforeOpen`, `dialog.onRender`, and `dialog.onClose` callbacks. Their context includes `action`, `mode`, and detached `rows` (empty for add). Before-open receives the original selection; render receives current values from the same record identities after the opening callbacks. If a selected record disappears, opening fails. Callbacks follow their corresponding event. `alteditor-open.dt` follows render notification. See [dialog configuration](dialogs.md#lifecycle-callbacks) for cancellation, cleanup, and template examples.
 
 Opening configuration failures use `alteditor-error.dt` with `action: 'open'`; this includes invalid templates, unavailable explicitly selected frameworks, and unsupported native dialogs. Wait for the close event before opening another dialog during a framework closing transition.
 

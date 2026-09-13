@@ -28,6 +28,7 @@
     "fileRead": "Impossible de lire le fichier",
     "fileAborted": "La lecture du fichier a été annulée",
     "fileSize": "Le fichier dépasse la taille maximale configurée",
-    "dialogFramework": "Bootstrap Modal ou Foundation Reveal est nécessaire pour ouvrir les boîtes de dialogue AltEditor"
+    "dialogFramework": "Bootstrap Modal ou Foundation Reveal est nécessaire pour ouvrir les boîtes de dialogue AltEditor",
+    "nativeDialog": "Les boîtes de dialogue natives nécessitent un navigateur prenant en charge HTMLDialogElement.showModal"
   }
 }

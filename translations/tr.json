@@ -28,6 +28,7 @@
     "fileRead": "Dosya okunamadı",
     "fileAborted": "Dosya okuma işlemi iptal edildi",
     "fileSize": "Dosya, yapılandırılan boyut sınırını aşıyor",
-    "dialogFramework": "AltEditor iletişim kutularını açmak için Bootstrap Modal veya Foundation Reveal gereklidir"
+    "dialogFramework": "AltEditor iletişim kutularını açmak için Bootstrap Modal veya Foundation Reveal gereklidir",
+    "nativeDialog": "Yerel iletişim kutuları, HTMLDialogElement.showModal desteği olan bir tarayıcı gerektirir"
   }
 }

@@ -28,6 +28,7 @@
     "fileRead": "ファイルを読み取れませんでした",
     "fileAborted": "ファイルの読み取りが中止されました",
     "fileSize": "ファイルが設定されたサイズ制限を超えています",
-    "dialogFramework": "AltEditor のダイアログを開くには Bootstrap Modal または Foundation Reveal が必要です"
+    "dialogFramework": "AltEditor のダイアログを開くには Bootstrap Modal または Foundation Reveal が必要です",
+    "nativeDialog": "ネイティブダイアログには HTMLDialogElement.showModal に対応したブラウザーが必要です"
   }
 }

@@ -28,6 +28,7 @@
     "fileRead": "无法读取文件",
     "fileAborted": "文件读取已中止",
     "fileSize": "文件超过配置的大小限制",
-    "dialogFramework": "打开 AltEditor 对话框需要 Bootstrap Modal 或 Foundation Reveal"
+    "dialogFramework": "打开 AltEditor 对话框需要 Bootstrap Modal 或 Foundation Reveal",
+    "nativeDialog": "原生对话框需要浏览器支持 HTMLDialogElement.showModal"
   }
 }

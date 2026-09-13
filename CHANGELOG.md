@@ -17,8 +17,14 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 - Explicit Bootstrap and Foundation selection and optional native browser dialogs with feature detection, scoped styles, and no additional runtime dependencies.
 - Examples 18 and 19 and a dialog guide covering custom layouts, deletion summaries, lifecycle callbacks, framework selection, and browser compatibility.
 
+### Changed
+
+- Separate dialog shell construction, framework selection, and language validation from the dialog controller, and share add/edit field population.
+- Include the native dialog browser requirement message in all bundled translations.
+
 ### Fixed
 
+- Opening callbacks cannot redirect edits or deletions to another record after a table replacement. Missing targets reject opening, and canceled openings preserve existing field plugins.
 - Native dialog templates have consistent field spacing and scroll long forms while keeping the title and actions visible. Example 19 demonstrates typed fields, Select2, selection, and custom table rendering.
 - Fast Bootstrap saves wait for the show transition before closing. Opening during a close transition is rejected until closure completes.
 - Explicit Foundation dialogs avoid Bootstrap component classes and dismiss handlers when both frameworks are loaded.

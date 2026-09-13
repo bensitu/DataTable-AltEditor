@@ -28,6 +28,7 @@
     "fileRead": "Die Datei konnte nicht gelesen werden",
     "fileAborted": "Das Lesen der Datei wurde abgebrochen",
     "fileSize": "Die Datei überschreitet die konfigurierte Größenbeschränkung",
-    "dialogFramework": "Zum Öffnen von AltEditor-Dialogen ist Bootstrap Modal oder Foundation Reveal erforderlich"
+    "dialogFramework": "Zum Öffnen von AltEditor-Dialogen ist Bootstrap Modal oder Foundation Reveal erforderlich",
+    "nativeDialog": "Native Dialoge erfordern einen Browser mit Unterstützung für HTMLDialogElement.showModal"
   }
 }

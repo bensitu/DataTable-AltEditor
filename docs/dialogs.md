@@ -71,7 +71,7 @@ const dialog = {
 
 For richer content, build a list using `document.createElement` and set row values through `textContent`. String results are always text, never HTML. DOM results are mounted directly so their listeners work; return disposable nodes, not elements already displayed elsewhere. Return `false`, `null`, or `undefined` to omit details for a particular opening. The translated confirmation question and Delete / Close actions remain present.
 
-Selected data is captured at opening. A later table selection does not change the deletion targets. Presentation callbacks must not mutate table data; changing their detached row copies does not update the records. Persistence still uses the existing [deletion callback](api.md#persistence-callbacks) and row identity checks.
+Selected identities are captured before opening callbacks. After those callbacks, the editor resolves the same records and reads their current values. If a target has disappeared, opening is rejected. A later table selection does not change deletion targets. Presentation callbacks must not mutate table data; changing their detached row copies does not update the records. Persistence still uses the existing [deletion callback](api.md#persistence-callbacks) and row identity checks.
 
 ## Framework selection and browser compatibility
 

@@ -28,6 +28,7 @@
     "fileRead": "파일을 읽지 못했습니다",
     "fileAborted": "파일 읽기가 중단되었습니다",
     "fileSize": "파일이 설정된 크기 제한을 초과합니다",
-    "dialogFramework": "AltEditor 대화 상자를 열려면 Bootstrap Modal 또는 Foundation Reveal이 필요합니다"
+    "dialogFramework": "AltEditor 대화 상자를 열려면 Bootstrap Modal 또는 Foundation Reveal이 필요합니다",
+    "nativeDialog": "기본 대화 상자를 사용하려면 HTMLDialogElement.showModal을 지원하는 브라우저가 필요합니다"
   }
 }

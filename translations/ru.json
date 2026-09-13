@@ -28,6 +28,7 @@
         "fileRead": "Не удалось прочитать файл",
         "fileAborted": "Чтение файла прервано",
         "fileSize": "Размер файла превышает установленное ограничение",
-        "dialogFramework": "Для открытия диалогов AltEditor требуется Bootstrap Modal или Foundation Reveal"
+        "dialogFramework": "Для открытия диалогов AltEditor требуется Bootstrap Modal или Foundation Reveal",
+        "nativeDialog": "Для встроенных диалоговых окон требуется браузер с поддержкой HTMLDialogElement.showModal"
     }
 }

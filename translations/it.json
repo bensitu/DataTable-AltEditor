@@ -28,6 +28,7 @@
         "fileRead": "Impossibile leggere il file",
         "fileAborted": "La lettura del file è stata interrotta",
         "fileSize": "Il file supera il limite di dimensione configurato",
-        "dialogFramework": "Per aprire le finestre di dialogo AltEditor è necessario Bootstrap Modal o Foundation Reveal"
+        "dialogFramework": "Per aprire le finestre di dialogo AltEditor è necessario Bootstrap Modal o Foundation Reveal",
+        "nativeDialog": "Le finestre di dialogo native richiedono un browser che supporti HTMLDialogElement.showModal"
     }
 }
