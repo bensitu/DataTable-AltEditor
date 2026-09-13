@@ -1,5 +1,19 @@
 import { expect, test } from '@playwright/test';
 
+test('a save during the Bootstrap opening transition closes after showing', async ({
+  page,
+}) => {
+  await page.goto('/tests/browser/table.html');
+  await page.evaluate(async () => {
+    const editor = table.altEditor();
+    editor.openAddDialog();
+    document.querySelector('.altEditor-modal [name="name"]').value = 'Carol';
+    await editor._addRowData();
+  });
+  await expect(page.locator('.altEditor-modal')).toBeHidden();
+  await expect(page.locator('tbody')).toContainText('Carol');
+});
+
 test('editor themes are customizable and leave unrelated controls unchanged', async ({
   page,
 }) => {

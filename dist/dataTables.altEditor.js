@@ -416,6 +416,18 @@
     );
   }
   function show$1(element) {
+    if (!$(element).hasClass('show') && !$(element).hasClass('in')) {
+      element._altEditorShowing = true;
+      $(element)
+        .off('shown.bs.modal.altEditorAdapter')
+        .one('shown.bs.modal.altEditorAdapter', () => {
+          element._altEditorShowing = false;
+          if (element._altEditorClosePending) {
+            element._altEditorClosePending = false;
+            hide$1(element);
+          }
+        });
+    }
     if (
       root.bootstrap &&
       root.bootstrap.Modal &&
@@ -425,6 +437,10 @@
     else $(element).modal('show');
   }
   function hide$1(element) {
+    if (element._altEditorShowing) {
+      element._altEditorClosePending = true;
+      return;
+    }
     if (
       root.bootstrap &&
       root.bootstrap.Modal &&
@@ -434,6 +450,9 @@
     else $(element).modal('hide');
   }
   function dispose$1(element) {
+    $(element).off('.altEditorAdapter');
+    element._altEditorShowing = false;
+    element._altEditorClosePending = false;
     element.classList.remove('fade');
     hide$1(element);
     if (
@@ -605,6 +624,7 @@
       if (
         this._destroyed ||
         this._opening ||
+        this._closing ||
         this._submitting ||
         (this._inline &&
           this._inline.session &&
@@ -643,11 +663,17 @@
       const accepted = emit(this, name, detail);
       if (this._destroyed) return false;
       const callback = this.c.dialog[callbackName];
-      return (
-        (typeof callback !== 'function' || callback(detail) !== false) && accepted
-      );
+      const result =
+        typeof callback === 'function' ? callback(detail) : undefined;
+      if (result && typeof result.then === 'function')
+        throw new TypeError('Dialog lifecycle callbacks must be synchronous');
+      return result !== false && accepted;
     },
     _bindDialog: function (action) {
+      if (this._destroyed) {
+        this._opening = false;
+        return;
+      }
       if (this._message) this._message.empty();
       this._action = action;
       this._completed = false;
@@ -762,7 +788,10 @@
       }
     },
     internalCloseDialog: function (selector) {
-      if (this._adapter) this._adapter.hide($(selector)[0]);
+      if (this._adapter) {
+        this._closing = true;
+        this._adapter.hide($(selector)[0]);
+      }
     },
 
     _setup: function () {
@@ -855,6 +884,7 @@
       });
       var cleanupDialog = function () {
         if (!that._dialogOpen) return;
+        that._closing = false;
         that._dialogOpen = false;
         that._dialogToken = {};
         that._cleanupPlugins();
@@ -894,6 +924,7 @@
       $modal.on('hidden.bs.modal' + this.s.namespace, cleanupDialog);
       $modal.on('hide.bs.modal' + this.s.namespace, function (event) {
         if (that._submitting && !that._destroyed) event.preventDefault();
+        else that._closing = true;
       });
       $modal.on('closed.zf.reveal' + this.s.namespace, function () {
         cleanupDialog.call(this);

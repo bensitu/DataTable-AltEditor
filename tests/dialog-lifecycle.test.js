@@ -29,7 +29,9 @@ test.each(['bootstrap5', 'bootstrap4', 'bootstrap3', 'foundation'])(
   async (framework) => {
     const hide = vi.fn();
     const dispose = vi.fn();
-    const show = vi.fn();
+    const show = vi.fn(() => {
+      if (framework !== 'foundation') $(element).trigger('shown.bs.modal');
+    });
     let element;
     vi.stubGlobal('bootstrap', undefined);
     vi.stubGlobal('Foundation', undefined);

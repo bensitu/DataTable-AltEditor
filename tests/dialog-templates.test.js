@@ -7,6 +7,7 @@ let table;
 const originalModal = $.fn.modal;
 beforeEach(() => {
   $.fn.modal = function (action) {
+    if (action === 'show') this.trigger('shown.bs.modal');
     if (action === 'hide') this.trigger('hidden.bs.modal');
     return this;
   };

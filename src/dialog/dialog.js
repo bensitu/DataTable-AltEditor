@@ -13,6 +13,7 @@ export const methods = {
     if (
       this._destroyed ||
       this._opening ||
+      this._closing ||
       this._submitting ||
       (this._inline &&
         this._inline.session &&
@@ -51,11 +52,17 @@ export const methods = {
     const accepted = emit(this, name, detail);
     if (this._destroyed) return false;
     const callback = this.c.dialog[callbackName];
-    return (
-      (typeof callback !== 'function' || callback(detail) !== false) && accepted
-    );
+    const result =
+      typeof callback === 'function' ? callback(detail) : undefined;
+    if (result && typeof result.then === 'function')
+      throw new TypeError('Dialog lifecycle callbacks must be synchronous');
+    return result !== false && accepted;
   },
   _bindDialog: function (action) {
+    if (this._destroyed) {
+      this._opening = false;
+      return;
+    }
     if (this._message) this._message.empty();
     this._action = action;
     this._completed = false;
@@ -170,7 +177,10 @@ export const methods = {
     }
   },
   internalCloseDialog: function (selector) {
-    if (this._adapter) this._adapter.hide($(selector)[0]);
+    if (this._adapter) {
+      this._closing = true;
+      this._adapter.hide($(selector)[0]);
+    }
   },
 
   _setup: function () {
@@ -263,6 +273,7 @@ export const methods = {
     });
     var cleanupDialog = function () {
       if (!that._dialogOpen) return;
+      that._closing = false;
       that._dialogOpen = false;
       that._dialogToken = {};
       that._cleanupPlugins();
@@ -302,6 +313,7 @@ export const methods = {
     $modal.on('hidden.bs.modal' + this.s.namespace, cleanupDialog);
     $modal.on('hide.bs.modal' + this.s.namespace, function (event) {
       if (that._submitting && !that._destroyed) event.preventDefault();
+      else that._closing = true;
     });
     $modal.on('closed.zf.reveal' + this.s.namespace, function () {
       cleanupDialog.call(this);

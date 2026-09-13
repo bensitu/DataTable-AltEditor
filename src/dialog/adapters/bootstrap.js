@@ -9,6 +9,18 @@ export function available() {
   );
 }
 export function show(element) {
+  if (!$(element).hasClass('show') && !$(element).hasClass('in')) {
+    element._altEditorShowing = true;
+    $(element)
+      .off('shown.bs.modal.altEditorAdapter')
+      .one('shown.bs.modal.altEditorAdapter', () => {
+        element._altEditorShowing = false;
+        if (element._altEditorClosePending) {
+          element._altEditorClosePending = false;
+          hide(element);
+        }
+      });
+  }
   if (
     window.bootstrap &&
     window.bootstrap.Modal &&
@@ -18,6 +30,10 @@ export function show(element) {
   else $(element).modal('show');
 }
 export function hide(element) {
+  if (element._altEditorShowing) {
+    element._altEditorClosePending = true;
+    return;
+  }
   if (
     window.bootstrap &&
     window.bootstrap.Modal &&
@@ -27,6 +43,9 @@ export function hide(element) {
   else $(element).modal('hide');
 }
 export function dispose(element) {
+  $(element).off('.altEditorAdapter');
+  element._altEditorShowing = false;
+  element._altEditorClosePending = false;
   element.classList.remove('fade');
   hide(element);
   if (
