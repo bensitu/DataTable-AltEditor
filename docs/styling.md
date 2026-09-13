@@ -32,6 +32,7 @@ Set the following properties on `html` or `body` for all editors, or on an indiv
 | -------------------------------- | --------------------------------------------------------------------- |
 | `--alteditor-surface`            | Dialog and date picker background.                                    |
 | `--alteditor-text`               | Editor text color.                                                    |
+| `--alteditor-placeholder`        | Input and Select2 placeholder text color.                             |
 | `--alteditor-control-background` | Input, Select2, and inline control background.                        |
 | `--alteditor-border`             | Control and dialog separator borders.                                 |
 | `--alteditor-hover`              | Disabled controls, selection chips, and hover backgrounds.            |
@@ -73,6 +74,8 @@ For changes beyond the listed properties, use scoped selectors in your applicati
 ```
 
 Keep custom controls, text, focus indicators, and error messages legible in both color modes.
+
+Dialog inputs share font, line height, and padding across adapters. Select2 multiple selections wrap within the control, and their inline search field inherits the dialog font. Placeholder colors follow the active theme and can be overridden with `--alteditor-placeholder`. Keep Select2 overrides scoped to `.altEditor-modal` so other Select2 instances retain their application styles.
 
 ## Custom layouts and native dialogs
 

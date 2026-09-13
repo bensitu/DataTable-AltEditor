@@ -24,6 +24,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Select2 multiple-selection placeholders use consistent alignment, spacing, and font sizing without overflowing the control. Dialog input spacing and placeholder contrast are consistent in light and dark modes.
 - Opening callbacks cannot redirect edits or deletions to another record after a table replacement. Missing targets reject opening, and canceled openings preserve existing field plugins.
 - Native dialog templates have consistent field spacing and scroll long forms while keeping the title and actions visible. Example 19 demonstrates typed fields, Select2, selection, and custom table rendering.
 - Fast Bootstrap saves wait for the show transition before closing. Opening during a close transition is rejected until closure completes.

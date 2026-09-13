@@ -203,7 +203,16 @@
   width: 100%;
   min-height: 2.5rem;
   margin: 0;
+  padding: 0.375rem 0.5rem;
+  font-family: inherit;
   font-size: 1rem;
+  line-height: 1.5;
+}
+.altEditor-modal .altEditor-input :is(input, textarea)::placeholder,
+.altEditor-modal .select2-search__field::placeholder,
+.altEditor-modal .select2-selection__placeholder {
+  color: var(--alteditor-placeholder, light-dark(#64748b, #94a3b8));
+  opacity: 1;
 }
 .altEditor-modal .altEditor-input input[type='checkbox'],
 .altEditor-modal .altEditor-input input[type='radio'] {
@@ -211,6 +220,7 @@
   height: var(--alteditor-check-size, 1.25rem);
   min-height: 0;
   margin-top: 0.625rem;
+  padding: 0;
   appearance: auto;
 }
 .altEditor-modal .select2-container {
@@ -218,6 +228,47 @@
 }
 .altEditor-modal .select2-selection {
   min-height: 2.5rem;
+}
+.altEditor-modal .select2-selection--multiple .select2-selection__rendered {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.375rem;
+  padding: 0.25rem 0.5rem;
+}
+.altEditor-modal .select2-selection--multiple .select2-selection__choice {
+  float: none;
+  max-width: 100%;
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.altEditor-modal .select2-search--inline {
+  float: none;
+  max-width: 100%;
+  margin: 0;
+}
+.altEditor-modal .select2-search--inline .select2-search__field {
+  display: block;
+  max-width: 100%;
+  height: 1.5rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  line-height: 1.5rem;
+}
+.altEditor-modal .select2-search--dropdown .select2-search__field {
+  min-height: 2.5rem;
+  margin: 0;
+  padding: 0.375rem 0.5rem;
+  font: inherit;
+  line-height: 1.5;
 }
 .altEditor-modal .select2-selection--single .select2-selection__rendered {
   line-height: 2.375rem;
