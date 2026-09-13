@@ -36,3 +36,5 @@ AltEditor runs in the browser. Applications remain responsible for server-side a
 Use the optional `maxFileSize` column setting to avoid reading oversized files in the browser. Enforce file size, content, and type restrictions independently on the server; the client setting can be bypassed.
 
 For ordinary bugs and feature requests, use the [issue tracker](https://github.com/bensitu/DataTable-AltEditor/issues). Report vulnerabilities in third-party dependencies through the affected project's security process; notify AltEditor maintainers privately if AltEditor is also affected.
+
+Custom dialog templates and DOM returned for deletion details are trusted application code. Do not interpolate untrusted values into template markup. Use `textContent` for row values and sanitize external HTML before creating DOM content. String deletion summaries are inserted as text. See the [dialog guide](docs/dialogs.md#styling-and-trusted-content).

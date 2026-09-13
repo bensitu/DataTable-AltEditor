@@ -15,7 +15,7 @@ AltEditor attaches one editor instance to each DataTables table. Dialog editing 
 | [Dialog controller](../src/dialog/dialog.js)                                                               | Coordinate opening, selection, framework adapters, field initialization, submission binding, and dialog feedback.             |
 | [Dialog view](../src/dialog/dialog-view.js) and [field renderer](../src/dialog/field-renderer.js)          | Construct the shared form and action buttons, then render the configured fields.                                              |
 | [Form data](../src/dialog/form-data.js) and [persistence actions](../src/crud/actions.js)                  | Validate and collect submitted values, read attachments, invoke application persistence, and apply accepted changes.          |
-| [Plugins](../src/dialog/plugins.js) and [framework adapters](../src/dialog/adapters/)                      | Initialize and release optional field controls and bridge Bootstrap or Foundation dialog APIs.                                |
+| [Plugins](../src/dialog/plugins.js) and [framework adapters](../src/dialog/adapters/)                      | Initialize and release optional field controls and bridge Bootstrap, Foundation, or optional native dialog APIs.              |
 | [Inline controller](../src/inline/inline-editor.js) and [native controls](../src/inline/inline-control.js) | Manage a cell editing session, keyboard interaction, candidate values, validation, and persistence.                           |
 | [Styles](../src/style/dataTables.altEditor.css)                                                            | Style editor-owned elements with scoped selectors and customizable theme properties.                                          |
 
@@ -42,3 +42,9 @@ Rendered interactive content belongs to the application rather than to the inlin
 Exercise shared field behavior through control tests, operation lifetime through persistence tests, and actual framework and keyboard behavior through browser tests. Prefer regression cases with observable user behavior over tests that enforce module names or source layout. See [verification commands](../CONTRIBUTING.md#verification).
 
 Build from `src/` and commit the resulting JavaScript, CSS, minified files, and source maps in `dist/`. Examples load the distribution, so rebuild before checking them. No module restructuring should require applications to change their script loading order or DataTables configuration.
+
+## Dialog presentation extensions
+
+The [template module](../src/dialog/template.js) clones application layouts, validates field slots, remaps layout identifiers, and renders deletion details. It moves generated field nodes rather than duplicating field construction or data collection. New layouts therefore retain the same validation and persistence behavior.
+
+Dialog configuration selects an existing framework adapter or explicitly opts into native dialogs. Adapter selection does not add runtime dependencies. The controller coordinates synchronous opening and render notifications and prevents recursive opening or replacement during closure. Bootstrap closing requests made during its show transition run after the shown event. Native mode delegates modal focus containment to the browser and retains the editor's save and cleanup contracts.

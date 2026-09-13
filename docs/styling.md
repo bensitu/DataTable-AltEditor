@@ -59,11 +59,11 @@ Dialogs are appended to `body`, so variables on a table wrapper do not reach its
 For changes beyond the listed properties, use scoped selectors in your application stylesheet:
 
 ```css
-.altEditor-modal .modal-title {
+.altEditor-modal .altEditor-title {
   font-size: 1.25rem;
 }
 
-.altEditor-modal .altEditor-input .form-control {
+.altEditor-modal .altEditor-input :is(.form-control, .altEditor-control) {
   min-height: 2.75rem;
 }
 
@@ -73,3 +73,9 @@ For changes beyond the listed properties, use scoped selectors in your applicati
 ```
 
 Keep custom controls, text, focus indicators, and error messages legible in both color modes.
+
+## Custom layouts and native dialogs
+
+[Dialog templates](dialogs.md) arrange generated fields within application-owned markup. Scope custom CSS to a class in the template. Shared shell classes (`.altEditor-header`, `.altEditor-title`, `.altEditor-body`, `.altEditor-footer`, and `.altEditor-content`) are available with every adapter. Legacy Bootstrap classes remain on Bootstrap dialogs.
+
+Explicit native mode uses `.altEditor-native`, `.altEditor-control`, and `.altEditor-button` without Bootstrap or Foundation component classes. It shares the existing theme variables; `--alteditor-backdrop` additionally sets its backdrop color (default `rgb(0 0 0 / 50%)`). The native adapter is optional and does not alter the default dialog browser requirements.

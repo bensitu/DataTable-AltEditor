@@ -4,7 +4,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/bensitu/DataTable-AltEditor/test.yml?branch=develop&label=tests)](https://github.com/bensitu/DataTable-AltEditor/actions/workflows/test.yml)
 [![Live examples](https://img.shields.io/badge/examples-live-2563eb)](https://bensitu.github.io/DataTable-AltEditor/)
 
-Add row dialogs and cell editing to DataTables 2.x. AltEditor supports array and object data, nested fields, validation, asynchronous saves, translations, and light and dark themes.
+Add row dialogs and cell editing to DataTables 2.x. AltEditor supports array and object data, nested fields, validation, asynchronous saves, custom dialog templates, translations, and light and dark themes.
 
 **[Try the live examples](https://bensitu.github.io/DataTable-AltEditor/)** · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
@@ -28,7 +28,7 @@ Screenshots show the included examples; table and page styling belongs to the ex
 ## Requirements
 
 - DataTables `>=2.1.0 <3` and jQuery `>=1.8 <5`. Examples use DataTables 2.3.8 and jQuery 3.7.1; choose versions supported by your optional plugins.
-- For row dialogs: Bootstrap 5, Bootstrap 4, or Foundation Reveal 6. Bootstrap 3 compatibility is best effort.
+- For row dialogs: Bootstrap 5, Bootstrap 4, or Foundation Reveal 6. Bootstrap 3 compatibility is best effort. Optional native dialogs are available through `dialog.framework: 'native'`; see [dialog configuration](docs/dialogs.md#framework-selection-and-browser-compatibility).
 - For toolbar actions: DataTables Buttons and Select. Programmatic methods accept explicit row selectors without these extensions.
 - Inline editing uses native controls and does not require a dialog framework.
 - Use a current browser supported by DataTables 2.x. Internet Explorer is unsupported. ES2015 source syntax does not imply support for older CSS engines; see [styling requirements](docs/styling.md).
@@ -83,6 +83,10 @@ Pass these options together with `data`, `columns`, and `altEditor` when constru
 
 For server persistence, configure `onAddRow`, `onEditRow`, and `onDeleteRow`. Call `success(persistedRow)` or `error(errorValue)` when your request finishes. Stable `rowId` values preserve update targets across reloads. See the [callback contract and PATCH example](docs/api.md#persistence-callbacks); server-side validation and authorization remain application responsibilities.
 
+## Customize dialogs
+
+Use `altEditor.dialog.templates.add` and `.edit` for independent form layouts. Generated fields keep their validation and save behavior. Configure `dialog.deleteDetails` to display selected records, and use lifecycle callbacks to initialize custom presentation. See the [dialog guide](docs/dialogs.md) and [complete template example](example/18_dialog_templates/example18.html). Existing configurations need no changes.
+
 ## Choose an example
 
 **[Browse all live examples](https://bensitu.github.io/DataTable-AltEditor/)** or open a specific feature below. Start with Example 02 for object-based row dialogs, Example 03 for persistence callbacks, or Example 13 for cell editing. The [example guide](docs/examples.md) maps integration needs to demos, links to each configuration file, and explains how to adapt the simulated operations.
@@ -106,6 +110,8 @@ For server persistence, configure `onAddRow`, `onEditRow`, and `onDeleteRow`. Ca
 | 15  | Multiple-row deletion        | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/15_bulk_delete/example15.html)           | [Source](example/15_bulk_delete/)           |
 | 16  | Server persistence and files | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/16_server_files/example16.html)          | [Source](example/16_server_files/)          |
 | 17  | Advanced inline editing      | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/17_inline_options/example17.html)        | [Source](example/17_inline_options/)        |
+| 18  | Custom dialog templates      | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/18_dialog_templates/example18.html)      | [Source](example/18_dialog_templates/)      |
+| 19  | Optional native dialogs      | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)         | [Source](example/19_native_dialog/)         |
 
 Examples 03, 05, 06, 07, and 10 use static Ajax responses. Example 16 includes a [local Node.js server](example/16_server_files/README.md) for real persistence and file uploads; GitHub Pages only shows its setup instructions. Refresh restores the static examples' original data. The Appearance selector provides system, light, and dark modes. Examples require internet access for CDN dependencies.
 

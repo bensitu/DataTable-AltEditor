@@ -1,0 +1,22 @@
+.altEditor-modal .person-layout h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+.altEditor-modal .person-layout fieldset {
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--alteditor-border, light-dark(#cbd5e1, #526178));
+  border-radius: var(--alteditor-radius, 0.375rem);
+}
+.altEditor-modal .person-layout legend {
+  float: none;
+  width: auto;
+  padding-inline: 0.5rem;
+  font-size: 1rem;
+}
+.altEditor-modal .person-layout [data-alteditor-field] {
+  margin-bottom: 1rem;
+}
+.altEditor-modal .person-layout [data-alteditor-field]:last-child {
+  margin-bottom: 0;
+}

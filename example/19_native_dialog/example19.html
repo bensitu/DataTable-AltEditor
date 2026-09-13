@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Native browser dialogs | AltEditor examples</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css"
+    />
+
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="../examples.css" />
+    <script src="../theme.js"></script>
+  </head>
+
+  <body class="examples-page">
+    <main class="example-main">
+      <header class="example-header">
+        <nav aria-label="Example navigation">
+          <a href="../../index.html">← All examples</a>
+          · <a href="./example19.js">Configuration source</a> ·
+          <a
+            href="https://github.com/bensitu/DataTable-AltEditor/blob/develop/docs/examples.md"
+            >Example guide</a
+          >
+        </nav>
+        <p class="example-eyebrow">DataTable-AltEditor / Example 19</p>
+        <h1>Native browser dialogs</h1>
+        <p>
+          This optional dialog mode uses no Bootstrap or Foundation assets. Add
+          a person, edit Alice, or delete Alice using explicit row selectors.
+          Changes reset on reload.
+        </p>
+      </header>
+      <p class="example-actions">
+        <button id="add-person" type="button">Add person</button>
+        <button id="edit-alice" type="button">Edit Alice</button>
+        <button id="delete-alice" type="button">Delete Alice</button>
+      </p>
+      <div
+        class="example-table"
+        tabindex="0"
+        role="region"
+        aria-label="Editable table 1"
+      >
+        <table class="dataTable display" id="example"></table>
+      </div>
+      <p id="result" role="status" aria-live="polite">Ready.</p>
+    </main>
+
+    <template id="person-fields">
+      <fieldset>
+        <legend>Person details</legend>
+        <div data-alteditor-field="name"></div>
+        <div data-alteditor-field="email"></div>
+      </fieldset>
+    </template>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
+
+    <script src="../../dist/dataTables.altEditor.js"></script>
+    <script src="./example19.js"></script>
+  </body>
+</html>

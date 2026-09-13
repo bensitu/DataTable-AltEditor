@@ -27,6 +27,8 @@ CDN resources are convenient for these examples. For production deployments, man
 
 - **Delete several rows:** use Example 15 for multiple selection and the retained success dialog.
 - **Save records and upload raw files:** use Example 16 and its [local server instructions](../example/16_server_files/README.md).
+- **Customize dialog layouts and deletion summaries:** use Example 18 and the [dialog guide](dialogs.md).
+- **Use optional native dialogs without a UI framework:** use Example 19; keep a framework adapter when native dialogs are unavailable.
 - **Customize inline controls:** use Example 17 for formatted values, explicit setters, blur saving, and the public API.
 
 ## Try the features
@@ -52,6 +54,8 @@ For toolbar-based examples, select a row before choosing Edit or Delete. Add ope
 | [15: Multiple-row deletion](https://bensitu.github.io/DataTable-AltEditor/example/15_bulk_delete/example15.html)         | Select multiple rows and delete them together. Successful dialogs remain open; close them to continue.                                                                                                                      |
 | [16: Server persistence and files](https://bensitu.github.io/DataTable-AltEditor/example/16_server_files/example16.html) | Run the local server to create, edit, delete, upload, download, and reload real saved data. Try a duplicate name to see server validation.                                                                                  |
 | [17: Advanced inline editing](https://bensitu.github.io/DataTable-AltEditor/example/17_inline_options/example17.html)    | Try blur saving, public edit controls, formatted numbers, checkboxes, and a function-based source with an explicit setter.                                                                                                  |
+| [18: Dialog templates](https://bensitu.github.io/DataTable-AltEditor/example/18_dialog_templates/example18.html)         | Compare Add and Edit layouts, validate an email, select one or several rows for deletion, and toggle the deletion summary.                                                                                                  |
+| [19: Native dialogs](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)              | Open a native form without a UI framework, edit Alice, and delete her with a text summary.                                                                                                                                  |
 
 The Appearance selector supports system, light, and dark modes. See [styling and themes](styling.md) for application customization.
 
@@ -80,6 +84,8 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 | 15      | [HTML](../example/15_bulk_delete/example15.html) · [JavaScript](../example/15_bulk_delete/example15.js)                     | Multiple-row deletion.                                                                             |
 | 16      | [HTML](../example/16_server_files/example16.html) · [JavaScript](../example/16_server_files/example16.js)                   | Server persistence and files.                                                                      |
 | 17      | [HTML](../example/17_inline_options/example17.html) · [JavaScript](../example/17_inline_options/example17.js)               | Advanced inline editing.                                                                           |
+| 18      | [HTML](../example/18_dialog_templates/example18.html) · [JavaScript](../example/18_dialog_templates/example18.js)           | Independent templates, DOM deletion summaries, and render / close callbacks.                       |
+| 19      | [HTML](../example/19_native_dialog/example19.html) · [JavaScript](../example/19_native_dialog/example19.js)                 | Native dialogs, feature detection, and explicit row selectors without Buttons or Select.           |
 
 ## Adapt an example to your application
 
