@@ -107,6 +107,8 @@ For forms with multiple file fields, all field values and file size limits are c
 
 ## Server-side data
 
+For complete local HTTP persistence and raw file uploads, see [Example 16](../example/16_server_files/README.md). For deleting multiple selected rows, see [Example 15](../example/15_bulk_delete/example15.js).
+
 With `serverSide: true`, the editor only has the currently loaded row snapshot. Unique validation covers loaded data, so applications must also validate on the server. Server draws remain authoritative. Use stable row IDs and reload with `editor.api().ajax.reload(null, false)` after persistence when necessary. A result for a row no longer available on the client is reported as an error instead of being applied elsewhere.
 
 ## Module loading

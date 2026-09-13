@@ -95,3 +95,5 @@ Sorting, paging, or another redraw cancels an unsaved edit synchronously. A redr
 With server-side processing, only loaded rows participate in client validation, and the server's next draw is authoritative. Validate on the server and reload data when appropriate.
 
 See [events](events.md) and the [working example](../example/13_inline_edit/example13.html).
+
+[Example 17](../example/17_inline_options/example17.html) combines explicit setters, formatted numeric values, control overrides, blur saving, and public edit methods. Use Enter or Escape while a cell is focused; moving keyboard focus away saves when blur saving is enabled.

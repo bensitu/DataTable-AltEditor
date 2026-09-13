@@ -388,3 +388,21 @@ $(document).ready(function () {
     },
   });
 });
+
+new DataTable('#custom-language', {
+  data: [{ name: 'Alice' }],
+  columns: [{ data: 'name', title: 'Name', required: true, render: DataTable.render.text() }],
+  altEditor: true,
+  select: 'single',
+  layout: { topStart: 'buttons' },
+  buttons: [
+    { name: 'add', text: 'New person' },
+    { name: 'edit', text: 'Edit', extend: 'selectedSingle' },
+  ],
+  language: {
+    altEditor: {
+      add: { title: 'Create a person', button: 'Save person' },
+      modalClose: 'Dismiss',
+    },
+  },
+});

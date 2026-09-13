@@ -56,6 +56,8 @@ new DataTable('#table', {
 
 ## Translation coverage
 
+[Example 09](../example/09_translations/example9.html) includes both Italian JSON loading and a second table with partial inline language overrides and English defaults.
+
 Each supplied file contains all 23 string values from the AltEditor language defaults: `modalClose`, `edit.title`, `edit.button`, `add.title`, `add.button`, `delete.title`, `delete.button`, `deleteMessage`, `success`, `error.message`, `error.label`, `error.responseCode`, `error.required`, `error.unique`, `error.editSelection`, `error.deleteSelection`, `error.targetUnavailable`, `error.invalidResponse`, `error.invalidSetter`, `error.fileRead`, `error.fileAborted`, `error.fileSize`, and `error.dialogFramework`.
 
 The files translate editor dialog labels, deletion confirmation, and applicable operation and uniqueness messages. DataTables search, pagination, and extension labels use DataTables language configuration, including `language.url`, independently. Applications supply toolbar button text, column titles, option labels, custom validation messages, and server error messages. Select2 and date pickers have their own localization settings.

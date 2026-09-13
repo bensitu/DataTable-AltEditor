@@ -45,6 +45,16 @@
   border-radius: 0.375rem;
   font: inherit;
 }
+.example-actions button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--example-border);
+  border-radius: 0.375rem;
+  background: var(--example-surface);
+  color: var(--example-text);
+  font: inherit;
+  cursor: pointer;
+}
 .example-table table.dataTable {
   border-collapse: separate;
   border-spacing: 0;

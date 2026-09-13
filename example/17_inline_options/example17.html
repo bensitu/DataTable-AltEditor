@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Advanced inline editing | AltEditor examples</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css"
+    />
+
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="../examples.css" />
+    <script src="../theme.js"></script>
+  </head>
+
+  <body class="examples-page">
+    <main class="example-main">
+      <header class="example-header">
+        <nav aria-label="Example navigation">
+          <a href="../../index.html">← All examples</a>
+          · <a href="./example17.js">Configuration source</a> ·
+          <a
+            href="https://github.com/bensitu/DataTable-AltEditor/blob/develop/docs/examples.md"
+            >Example guide</a
+          >
+        </nav>
+        <p class="example-eyebrow">DataTable-AltEditor / Example 17</p>
+        <h1>Advanced inline editing</h1>
+        <p>
+          Edit a formatted number or a function-based name source. Leaving a
+          cell saves it. The buttons use the public inline API to start, save,
+          or cancel editing; changes reset on reload.
+        </p>
+      </header>
+      <p class="example-actions">
+        <button id="start" type="button">Edit first name</button>
+        <button id="save" type="button">Save cell</button>
+        <button id="cancel" type="button">Cancel cell</button>
+      </p>
+      <div
+        class="example-table"
+        tabindex="0"
+        role="region"
+        aria-label="Editable table 1"
+      >
+        <table class="dataTable display" id="example"></table>
+      </div>
+      <p id="result" role="status" aria-live="polite">Ready.</p>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
+
+    <script src="../../dist/dataTables.altEditor.js"></script>
+    <script src="./example17.js"></script>
+  </body>
+</html>

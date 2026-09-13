@@ -9,6 +9,10 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ## 4.0.2 - 2026-09-13
 
+### Added
+
+- Examples demonstrate multiple-row deletion, retained success dialogs, local HTTP persistence with raw file uploads, and advanced inline controls. Field configuration and translation examples include defaults, disabled fields, and direct language overrides.
+
 ### Changed
 
 - Dialog rendering and form data collection have separate responsibilities. Dialog and inline controls share select option normalization and checkbox value conversion.
