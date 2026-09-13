@@ -1,5 +1,7 @@
 # Changelog
 
+[Project overview](README.md) · [Documentation](docs/README.md)
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
@@ -9,6 +11,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Documentation includes an index, API reference, troubleshooting, live example links, consistent light-mode screenshots, and contribution guidance.
 - Foundation dialogs apply theme colors to their outer surface and border, with spacing between the header, fields, and actions. Application color overrides also apply to the outer surface.
 - Node.js requirements and the CI matrix match the locked development dependencies. Matrix jobs finish independently when another Node.js version fails.
 - Ajax examples use stable row identifiers, name callback arguments consistently, and avoid sending row values to static response URLs. The file example limits attachment size. Escaped DataTables source paths require an explicit inline setter. Debug mode reports callback exceptions after completion without changing the accepted result.

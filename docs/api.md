@@ -1,73 +1,10 @@
-# DataTables AltEditor
+# Configuration and API
 
-AltEditor 4.0.1 adds row dialogs and cell inline editing to DataTables 2.x. It is a JavaScript library with modular source and readable or minified UMD distribution files. jQuery and DataTables remain external peer dependencies.
+[Documentation](README.md) · [Project overview](../README.md)
 
-## Requirements
+Use `altEditor: true` for row dialogs or an options object to customize behavior. `table.altEditor()` returns the existing editor or `null`; `table.altEditor(options)` creates one when absent. `DataTable.altEditor` exposes the constructor. The [quick start](../README.md#get-started) shows initialization and dependencies.
 
-- DataTables `>=2.1.0 <3`; examples use 2.3.8. DataTables 1.x and 3.x are outside this version's support scope.
-- jQuery `>=1.8 <5`; examples use 3.7.1. Choose a version supported by your DataTables and optional plugins.
-- Dialogs require Bootstrap 5, Bootstrap 4, or Foundation Reveal 6. Bootstrap 3 has best-effort compatibility.
-- Inline editing uses native controls and does not require a dialog framework.
-- Buttons and Select are optional. Programmatic dialog methods work without either extension when you provide row selectors.
-- Use a current browser supported by DataTables 2.x. Internet Explorer is not supported. Runtime JavaScript uses ES2015 syntax without a transpiler or bundled polyfills.
-
-## Installation
-
-The repository includes ready-to-use files in `dist/`. A compressed stylesheet, `dist/dataTables.altEditor.min.css`, is available with an external source map containing the original CSS. Use it in place of `dist/dataTables.altEditor.css` for production. Development dependencies require Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`; Node.js 24 is recommended. CI verifies a clean, strict dependency installation on Node.js 22.22.2 and Node.js 24. Rebuild distribution files after changing source files:
-
-```sh
-npm ci
-npm run build
-npm pack
-```
-
-The package retains the name `datatables.net-AltEditor`. To install the generated npm archive into an application:
-
-```sh
-npm install /path/to/datatables.net-AltEditor-4.0.1.tgz jquery@3.7.1 datatables.net@2.3.8
-```
-
-These instructions install a locally built archive; they do not require a published 4.0.1 registry release.
-
-For browser usage, load jQuery, DataTables, optional extensions, and your dialog framework before AltEditor:
-
-```html
-<link rel="stylesheet" href="dist/dataTables.altEditor.css" />
-<script src="dist/dataTables.altEditor.js"></script>
-```
-
-Use `dist/dataTables.altEditor.min.js` for minified JavaScript. Both builds include source maps and an MIT license banner. AMD consumers map `jquery` and `datatables.net`. CommonJS consumers can load the package after initializing their browser environment, or call its exported factory with `(window, jQuery)` when no global window exists. The factory returns the AltEditor constructor.
-
-Each loaded module uses one window and jQuery context. Load a separate copy within each iframe; do not reuse one CommonJS module factory across multiple active windows.
-
-## Usage
-
-```js
-const table = new DataTable('#people', {
-  data: [{ id: 'alice', user: { name: 'Alice' }, age: 30 }],
-  rowId: 'id',
-  columns: [
-    { data: 'user.name', title: 'Name', required: true },
-    { data: 'age', title: 'Age', type: 'number', min: 0 },
-  ],
-  altEditor: {
-    closeModalOnSuccess: true,
-    encodeFiles: true,
-    inlineEdit: { enabled: true },
-  },
-});
-
-const editor = table.altEditor();
-editor.openEditDialog('#alice');
-```
-
-Use `altEditor: true` for dialogs with inline editing disabled. Both `new DataTable()` and jQuery `$('#people').DataTable()` initialization are supported. `DataTable.altEditor` exposes the constructor. `table.altEditor()` returns the existing instance or `null`; `table.altEditor(options)` creates an instance when absent and never duplicates one already attached.
-
-To use toolbar actions, load Buttons and Select and add `layout: { topStart: 'buttons' }`, `select: 'single'`, and button definitions with names `add`, `edit`, `delete`, or `refresh`. Button names select the corresponding action. Dialog edit and delete methods use selected rows when no explicit row selector is given; editing requires one row and deletion accepts multiple rows.
-
-Without Select, edit and delete methods require an explicit row selector. Invalid selection and missing dialog framework errors are visible beside the table when no dialog is open. Dialog opening returns `false` when rejected; successful opening has no return value.
-
-### Configuration
+## Configuration
 
 Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`, root-level compatibility options, then the instance `altEditor` object. Explicit constructor options are applied last. Functions retain their references, arrays are copied and replaced, and unsafe object keys are rejected.
 
@@ -78,11 +15,11 @@ Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`,
 | `debug`               | `false`  | Log exceptions thrown by persistence callbacks after their first completion.                                   |
 | `inlineEdit`          | disabled | Set true or configure enabled, submitOnBlur, selectText, and tabNavigation.                                    |
 
-The callbacks and the first three options also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`; see the [supported languages and configuration guide](docs/translations.md).
+The callbacks and the first three options also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`; see the [supported languages and configuration guide](translations.md).
 
 Invalid automatic editor configuration is logged to the console and leaves DataTables usable without an editor. Explicit constructor or accessor initialization throws configuration errors to the caller.
 
-### Persistence callbacks
+## Persistence callbacks
 
 ```js
 onAddRow(editor, rowData, success, error);
@@ -97,23 +34,24 @@ Dialog add/edit callbacks receive enabled form values; disabled controls are omi
 
 Call `success(persistedRow)` with a row object or array. Calling `success()` uses the submitted candidate; dialog editing preserves fields outside the form. JSON row strings are accepted. Delete ignores the response body. Call `error(errorValue)` to retain the form for correction and retry. Error content is rendered as text. Only the first success or error settlement is accepted, and callbacks completed after destruction are ignored.
 
-```js
-onEditRow(editor, rowData, success, error, originalRowData) {
-$.ajax({
-url: '/people/' + encodeURIComponent(originalRowData.id),
-method: 'PATCH',
-contentType: 'application/json',
-data: JSON.stringify(rowData),
-success,
-error,
-});
-}
+Assign this function to `onEditRow` in the DataTable configuration:
 
+```js
+function savePerson(editor, rowData, success, error, originalRowData) {
+  $.ajax({
+    url: '/people/' + encodeURIComponent(originalRowData.id),
+    method: 'PATCH',
+    contentType: 'application/json',
+    data: JSON.stringify(rowData),
+    success,
+    error,
+  });
+}
 ```
 
 The target is captured when editing starts and does not change if table selection changes. Configure DataTables `rowId` with a unique, stable identifier when data can reload during editing or persistence. Without it, replacing row objects through Ajax or `clear().rows.add()` can make the original target unidentifiable, even if the new row has similar values. Such results are rejected instead of being applied to another row. Tables on the same page should use distinct row ID prefixes when their identifiers overlap.
 
-### Public methods
+## Public methods
 
 | Method                           | Purpose                                                                              |
 | -------------------------------- | ------------------------------------------------------------------------------------ |
@@ -131,7 +69,9 @@ The target is captured when editing starts and does not change if table selectio
 
 `_openAddModal`, `_openEditModal`, and `_openDeleteModal` are deprecated aliases for the corresponding public methods. Dialog submissions are bound automatically.
 
-### Column options
+Without an explicit row selector, edit and delete use the Select extension. Edit requires exactly one row; delete requires at least one. Without Select, pass a selector explicitly. Rejected dialog opening returns `false`; successful opening has no return value. Missing framework and selection messages appear beside the table when no dialog is open.
+
+## Column options
 
 | Options                                                                       | Behavior                                                                                                                                       |
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -161,41 +101,14 @@ Native date, time, and datetime-local controls require values such as `2026-09-1
 
 `maxFileSize` applies before reading files with either `encodeFiles` setting. Omitting it preserves unrestricted file size behavior. For large files, use `encodeFiles: false` and upload the File separately rather than storing a data URL in table data. Applications must enforce file restrictions on the server as well.
 
-## Inline editing and events
-
-Double-click a supported cell to edit. Enter saves, Escape cancels, and Tab or Shift+Tab saves before moving to another editable visible cell in the same row. Composition input does not submit on Enter. By default, blur cancels; `submitOnBlur: true` saves instead. A pending save cannot be canceled. Failed saves remain editable, and the table cache changes only after success.
-
-See [inline editing](docs/inline-edit.md), [events](docs/events.md), and [migration from v3](docs/migration-v3-to-v4.md) for complete configuration and lifecycle behavior. Events use the DataTables/jQuery .dt channel; both pre-submit events support preventDefault(). Existing modal events remain available.
-
 ## Server-side data
 
 With `serverSide: true`, the editor only has the currently loaded row snapshot. Unique validation covers loaded data, so applications must also validate on the server. Server draws remain authoritative. Use stable row IDs and reload with `editor.api().ajax.reload(null, false)` after persistence when necessary. A result for a row no longer available on the client is reported as an error instead of being applied elsewhere.
 
-## Examples and development
+## Module loading
 
-The example directory and individual pages share responsive styling in `example/examples.css`. Table containers allow horizontal scrolling when needed. Dialog fields stack on small screens, and long forms scroll inside the dialog while its header and actions remain visible. Include `dist/dataTables.altEditor.css` after the framework stylesheet to apply editor layout and control styles.
+Use `dist/dataTables.altEditor.min.js` for minified JavaScript. Both builds include source maps and an MIT license banner. AMD consumers map `jquery` and `datatables.net`. CommonJS consumers can load the package after initializing their browser environment, or call its exported factory with `(window, jQuery)` when no global window exists. The factory returns the AltEditor constructor.
 
-Examples use a shared DataTables table presentation, with Bootstrap dialogs in examples 1–10 and 12, Foundation dialogs in example 11, and native cell controls in example 13. The Appearance selector follows the system preference by default and remembers an explicit light or dark selection. `example/theme.js` and `example/examples.css` are demonstration assets; applications do not need them.
+Each loaded module uses one window and jQuery context. Load a separate copy within each iframe; do not reuse one CommonJS module factory across multiple active windows.
 
-See [styling and themes](docs/styling.md) for color modes, CSS custom properties, and application overrides.
-
-See the [example guide](docs/examples.md) for the controls to try in each page and the limits of simulated persistence.
-
-Run `npm ci` and `npm run dev`, then open [the example index](http://127.0.0.1:8080/). Rebuild first if source files have changed. Examples include arrays, objects, Ajax, multiple tables, optional controls, dependent selects, validation, translations, files, Foundation, [custom action buttons](example/12_custom_action_buttons/example12.html), and [cell editing](example/13_inline_edit/example13.html). Examples load `dist/` and require internet access for CDN dependencies. Ajax examples use static demonstration responses; they do not persist changes to a server.
-
-```sh
-npm run format:check
-npm run lint
-npm run build
-npm test
-npx playwright install chromium
-npm run test:e2e
-```
-
-`npm run test:watch` runs interactive unit tests. `npm run test:coverage` measures all JavaScript under `src/` and requires at least 80% aggregate statement, branch, function, and line coverage. CI runs this command; browser tests are verified separately and are not included in these percentages. Tests cover dialog and inline editing, value conversion, validation, persistence failures, optional controls, and framework lifecycle behavior. `npm run build` reports readable, minified, and gzip sizes without a size threshold. Commit the generated JavaScript, source maps, and CSS in `dist/` together with relevant source changes. Coverage and browser output are not tracked. Edit source files rather than generated distribution files.
-
-For compatibility verification, install all Playwright browsers and run `npm run test:compat`. This checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation. Run `npm pack --dry-run` to inspect the npm file list. Source is organized under core, data, dialog, crud, inline, and style directories; the build uses Rollup without Babel, TypeScript, or runtime polyfills.
-
-## License
-
-MIT. See [LICENSE](LICENSE) and [CHANGELOG.md](CHANGELOG.md) for attribution and release history.
+See [inline editing](inline-edit.md), [events](events.md), and [troubleshooting](troubleshooting.md) for related behavior.

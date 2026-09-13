@@ -1,5 +1,7 @@
 # Code of Conduct
 
+[Project overview](README.md) · [Contributing](CONTRIBUTING.md)
+
 ## Purpose and scope
 
 The DataTable-AltEditor community welcomes participation regardless of background, identity, experience, or ability. Everyone should be able to contribute in an environment free from harassment and discrimination.

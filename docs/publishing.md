@@ -1,5 +1,7 @@
 # Publishing
 
+[Documentation](README.md) · [Project overview](../README.md)
+
 ## GitHub Pages
 
 The `Deploy examples` workflow builds and deploys the static demonstration site after pushes to `master`. It also supports manual execution from the repository's default branch. Other branches cannot deploy through this workflow. If the default branch changes, update the push branch filter in `.github/workflows/pages.yml`.

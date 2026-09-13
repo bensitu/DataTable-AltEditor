@@ -1,5 +1,7 @@
 # Translations
 
+[Documentation](README.md) · [Project overview](../README.md)
+
 AltEditor includes the following JSON language files. English is built in and supplies any missing values.
 
 | Language             | File                                     |

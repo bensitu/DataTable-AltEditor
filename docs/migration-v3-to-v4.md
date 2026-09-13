@@ -1,5 +1,7 @@
 # Migrating from v3 to v4
 
+[Documentation](README.md) · [Project overview](../README.md)
+
 ## Dependencies and paths
 
 Use DataTables `>=2.1.0 <3`. DataTables 1.x and 3.x are not supported. Examples use DataTables 2.3.8, Buttons 3.2.6, Select 3.1.3, jQuery 3.7.1, and Bootstrap 5. Foundation Reveal 6 and Bootstrap 4 integrations remain available. Bootstrap 3 compatibility is best effort.

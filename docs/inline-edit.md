@@ -1,5 +1,7 @@
 # Inline editing
 
+[Documentation](README.md) · [Project overview](../README.md)
+
 Enable editing with `altEditor: { inlineEdit: true }` or configure:
 
 ```js

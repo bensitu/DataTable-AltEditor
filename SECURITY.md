@@ -1,5 +1,7 @@
 # Security Policy
 
+[Project overview](README.md) · [Contributing](CONTRIBUTING.md)
+
 ## Supported versions
 
 Security fixes target the latest 4.x release. Earlier major versions are not supported; upgrade to the latest 4.x release before requesting a fix.

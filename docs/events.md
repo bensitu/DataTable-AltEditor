@@ -1,5 +1,7 @@
 # Editor events
 
+[Documentation](README.md) · [Project overview](../README.md)
+
 AltEditor uses jQuery events on the DataTables table node. New event names have the `.dt` namespace, `event.dt` contains the table API, and the second handler argument is a payload containing `editor`.
 
 ```js
