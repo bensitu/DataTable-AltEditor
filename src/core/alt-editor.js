@@ -1,4 +1,4 @@
-import { $, document } from './dependencies.js';
+import { $ } from './dependencies.js';
 import { defaults, normalizeOptions } from './options.js';
 import { normalizeColumns } from './columns.js';
 import { emit } from './events.js';
@@ -9,8 +9,6 @@ import { methods as formData } from '../dialog/form-data.js';
 import { methods as fields } from '../dialog/field-renderer.js';
 import { methods as plugins } from '../dialog/plugins.js';
 import { methods as actions } from '../crud/actions.js';
-import * as bootstrap from '../dialog/adapters/bootstrap.js';
-import * as foundation from '../dialog/adapters/foundation.js';
 import { InlineEditor } from '../inline/inline-editor.js';
 let instance = 0;
 export function createAltEditor(DataTable) {
@@ -139,28 +137,6 @@ export function createAltEditor(DataTable) {
       _openDeleteModal: function (selector) {
         return this.openDeleteDialog(selector);
       },
-      _bindDialog: function (action) {
-        if (this._message) this._message.empty();
-        this._action = action;
-        this._completed = false;
-        this._dialogOpen = true;
-        this._dialogToken = {};
-        const editor = this;
-        $(this.modal_selector)
-          .find('form')
-          .off('submit' + this.s.modalNamespace)
-          .on('submit' + this.s.modalNamespace, function (event) {
-            event.preventDefault();
-            editor[
-              action === 'add'
-                ? '_addRowData'
-                : action === 'edit'
-                  ? '_editRowData'
-                  : '_deleteRow'
-            ]();
-          });
-        emit(this, 'open', { action, mode: 'dialog' });
-      },
       /** Start editing an eligible DataTables cell selector. @returns {boolean} Whether editing started. */
       startInlineEdit: function (cellSelector) {
         return this._inline.start(cellSelector);
@@ -176,26 +152,6 @@ export function createAltEditor(DataTable) {
       /** @returns {boolean} Whether a cell is editing or awaiting persistence. */
       isInlineEditing: function () {
         return !!this._inline.session;
-      },
-      internalOpenDialog: function (selector, fill) {
-        this._returnFocus = document.activeElement;
-        const adapter = bootstrap.available()
-          ? bootstrap
-          : foundation.available()
-            ? foundation
-            : null;
-        if (!adapter) {
-          const error = new Error(this.language.error.dialogFramework);
-          this._showErrorMessage(error.message);
-          emit(this, 'error', { action: 'open', mode: 'dialog', error });
-          return false;
-        }
-        this._adapter = adapter;
-        fill();
-        adapter.show($(selector)[0]);
-      },
-      internalCloseDialog: function (selector) {
-        if (this._adapter) this._adapter.hide($(selector)[0]);
       },
       /** Refresh Ajax data, or redraw client-side data. */
       refresh: function () {

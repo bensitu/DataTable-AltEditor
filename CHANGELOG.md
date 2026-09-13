@@ -12,6 +12,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 ### Changed
 
 - Dialog rendering and form data collection have separate responsibilities. Dialog and inline controls share select option normalization and checkbox value conversion.
+- Dialog operations own framework selection, opening checks, and submission binding. Add, edit, and delete dialogs share their form and action-button rendering.
 
 ### Fixed
 

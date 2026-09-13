@@ -1,9 +1,68 @@
+import * as bootstrap from './adapters/bootstrap.js';
+import * as foundation from './adapters/foundation.js';
+import { renderDialog } from './dialog-view.js';
 import { emit } from '../core/events.js';
 import { mergeOptions, isPlainObject } from '../core/options.js';
 import { $, document } from '../core/dependencies.js';
 import { snapshotRow } from '../data/row-data.js';
 import { fieldElement, equalFieldValues } from '../data/field-values.js';
 export const methods = {
+  _prepareDialog: function () {
+    if (
+      this._destroyed ||
+      this._submitting ||
+      (this._inline &&
+        this._inline.session &&
+        this._inline.session.state === 'submitting')
+    )
+      return false;
+    if (this._inline) this._inline.cancel('dialog', false);
+    this._cleanupPlugins();
+    return true;
+  },
+  _bindDialog: function (action) {
+    if (this._message) this._message.empty();
+    this._action = action;
+    this._completed = false;
+    this._dialogOpen = true;
+    this._dialogToken = {};
+    const editor = this;
+    $(this.modal_selector)
+      .find('form')
+      .off('submit' + this.s.modalNamespace)
+      .on('submit' + this.s.modalNamespace, function (event) {
+        event.preventDefault();
+        editor[
+          action === 'add'
+            ? '_addRowData'
+            : action === 'edit'
+              ? '_editRowData'
+              : '_deleteRow'
+        ]();
+      });
+    emit(this, 'open', { action, mode: 'dialog' });
+  },
+  internalOpenDialog: function (selector, fill) {
+    this._returnFocus = document.activeElement;
+    const adapter = bootstrap.available()
+      ? bootstrap
+      : foundation.available()
+        ? foundation
+        : null;
+    if (!adapter) {
+      const error = new Error(this.language.error.dialogFramework);
+      this._showErrorMessage(error.message);
+      emit(this, 'error', { action: 'open', mode: 'dialog', error });
+      return false;
+    }
+    this._adapter = adapter;
+    fill();
+    adapter.show($(selector)[0]);
+  },
+  internalCloseDialog: function (selector) {
+    if (this._adapter) this._adapter.hide($(selector)[0]);
+  },
+
   _setup: function () {
     var that = this;
     var dt = this.s.dt;
@@ -220,16 +279,7 @@ export const methods = {
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
    */
   openEditDialog: function (rowSelector) {
-    if (
-      this._destroyed ||
-      this._submitting ||
-      (this._inline &&
-        this._inline.session &&
-        this._inline.session.state === 'submitting')
-    )
-      return false;
-    if (this._inline) this._inline.cancel('dialog', false);
-    this._cleanupPlugins();
+    if (!this._prepareDialog()) return false;
     var dt = this.s.dt;
     var selectedRows = this._selectedRows(rowSelector);
     if (!selectedRows || selectedRows.count() !== 1) {
@@ -283,16 +333,7 @@ export const methods = {
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
    */
   openDeleteDialog: function (rowSelector) {
-    if (
-      this._destroyed ||
-      this._submitting ||
-      (this._inline &&
-        this._inline.session &&
-        this._inline.session.state === 'submitting')
-    )
-      return false;
-    if (this._inline) this._inline.cancel('dialog', false);
-    this._cleanupPlugins();
+    if (!this._prepareDialog()) return false;
     var selectedRows = this._selectedRows(rowSelector);
     if (!selectedRows || selectedRows.count() === 0) {
       this._showErrorMessage(this.language.error.deleteSelection);
@@ -313,50 +354,17 @@ export const methods = {
     var formName = 'altEditor-delete-form-' + this.random_id;
     var that = this;
     var fill = function () {
-      var $modal = $(selector);
-      $modal.find('.modal-title').text(that.language.delete.title);
-      $modal
-        .find('.modal-body')
-        .empty()
-        .append(
-          $('<p/>', { class: 'altEditor-delete-message' }).text(
-            that.language.deleteMessage
-          )
-        );
-      $modal
-        .find('.modal-footer')
-        .empty()
-        .append(
-          $('<button/>', {
-            type: 'button',
-            class: 'btn btn-default btn-secondary button secondary',
-            'data-dismiss': 'modal',
-            'data-bs-dismiss': 'modal',
-            'data-close': '',
-            text: that.language.modalClose,
-          })
-        )
-        .append(
-          $('<button/>', {
-            type: 'submit',
-            class: 'btn btn-danger button',
-            id: 'deleteRowBtn',
-            text: that.language.delete.button,
-          })
-        );
-
-      var modalContent = $modal.find('.modal-content');
-      if (modalContent.parent().is('form')) {
-        modalContent.parent().attr('name', formName).attr('id', formName);
-      } else {
-        modalContent.wrap(
-          $('<form/>', {
-            name: formName,
-            id: formName,
-            role: 'form',
-          })
-        );
-      }
+      renderDialog($(selector), {
+        title: that.language.delete.title,
+        body: $('<p/>', { class: 'altEditor-delete-message' }).text(
+          that.language.deleteMessage
+        ),
+        closeCaption: that.language.modalClose,
+        buttonCaption: that.language.delete.button,
+        buttonId: 'deleteRowBtn',
+        formName,
+        destructive: true,
+      });
     };
 
     if (this.internalOpenDialog(selector, fill) === false) return false;
@@ -370,16 +378,7 @@ export const methods = {
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
    */
   openAddDialog: function () {
-    if (
-      this._destroyed ||
-      this._submitting ||
-      (this._inline &&
-        this._inline.session &&
-        this._inline.session.state === 'submitting')
-    )
-      return false;
-    if (this._inline) this._inline.cancel('dialog', false);
-    this._cleanupPlugins();
+    if (!this._prepareDialog()) return false;
     var columnDefs = this.completeColumnDefs();
     if (
       this.createDialog(

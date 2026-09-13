@@ -285,6 +285,121 @@
     return result;
   }
 
+  function available$1() {
+    return (
+      !!(
+        root.bootstrap &&
+        root.bootstrap.Modal &&
+        root.bootstrap.Modal.getOrCreateInstance
+      ) || typeof $.fn.modal === 'function'
+    );
+  }
+  function show$1(element) {
+    if (
+      root.bootstrap &&
+      root.bootstrap.Modal &&
+      root.bootstrap.Modal.getOrCreateInstance
+    )
+      root.bootstrap.Modal.getOrCreateInstance(element).show();
+    else $(element).modal('show');
+  }
+  function hide$1(element) {
+    if (
+      root.bootstrap &&
+      root.bootstrap.Modal &&
+      root.bootstrap.Modal.getOrCreateInstance
+    )
+      root.bootstrap.Modal.getOrCreateInstance(element).hide();
+    else $(element).modal('hide');
+  }
+  function dispose$1(element) {
+    element.classList.remove('fade');
+    hide$1(element);
+    if (
+      root.bootstrap &&
+      root.bootstrap.Modal &&
+      root.bootstrap.Modal.getOrCreateInstance
+    ) {
+      const modal = root.bootstrap.Modal.getInstance(element);
+      if (modal) modal.dispose();
+    } else {
+      const modal = $(element).data('bs.modal');
+      if (modal && typeof modal.dispose === 'function') modal.dispose();
+      else $(element).off('.bs.modal').removeData('bs.modal');
+    }
+  }
+
+  var bootstrap = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    available: available$1,
+    dispose: dispose$1,
+    hide: hide$1,
+    show: show$1
+  });
+
+  function available() {
+    return !!(root.Foundation && root.Foundation.Reveal);
+  }
+  function show(element) {
+    if (!element._altEditorReveal)
+      element._altEditorReveal = new root.Foundation.Reveal($(element), {
+        closeOnClick: false,
+        closeOnEsc: false,
+      });
+    element._altEditorReveal.open();
+  }
+  function hide(element) {
+    if (element._altEditorReveal) element._altEditorReveal.close();
+  }
+  function dispose(element) {
+    if (element._altEditorReveal) {
+      element._altEditorReveal.destroy();
+      delete element._altEditorReveal;
+    }
+  }
+
+  var foundation = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    available: available,
+    dispose: dispose,
+    hide: hide,
+    show: show
+  });
+
+  function renderDialog(modal, options) {
+    modal.find('.modal-title').text(options.title);
+    modal.find('.modal-body').empty().append(options.body);
+    modal
+      .find('.modal-footer')
+      .empty()
+      .append(
+        $('<button/>', {
+          type: 'button',
+          class: 'btn btn-default btn-secondary button secondary',
+          'data-dismiss': 'modal',
+          'data-bs-dismiss': 'modal',
+          'data-close': '',
+          text: options.closeCaption,
+        }),
+        $('<button/>', {
+          type: 'submit',
+          class: options.destructive
+            ? 'btn btn-danger button'
+            : 'btn btn-primary button',
+          id: options.buttonId,
+          form: options.formName,
+          text: options.buttonCaption,
+        })
+      );
+    const content = modal.find('.modal-content');
+    if (!content.parent().is('form'))
+      content.wrap($('<form/>', { role: 'form' }));
+    content
+      .parent()
+      .attr({ name: options.formName, id: options.formName })
+      .addClass('needs-validation');
+  }
+
   function fieldElement(container, name) {
     return $(container)
       .find('input, select, textarea')
@@ -347,6 +462,62 @@
   }
 
   const methods$4 = {
+    _prepareDialog: function () {
+      if (
+        this._destroyed ||
+        this._submitting ||
+        (this._inline &&
+          this._inline.session &&
+          this._inline.session.state === 'submitting')
+      )
+        return false;
+      if (this._inline) this._inline.cancel('dialog', false);
+      this._cleanupPlugins();
+      return true;
+    },
+    _bindDialog: function (action) {
+      if (this._message) this._message.empty();
+      this._action = action;
+      this._completed = false;
+      this._dialogOpen = true;
+      this._dialogToken = {};
+      const editor = this;
+      $(this.modal_selector)
+        .find('form')
+        .off('submit' + this.s.modalNamespace)
+        .on('submit' + this.s.modalNamespace, function (event) {
+          event.preventDefault();
+          editor[
+            action === 'add'
+              ? '_addRowData'
+              : action === 'edit'
+                ? '_editRowData'
+                : '_deleteRow'
+          ]();
+        });
+      emit(this, 'open', { action, mode: 'dialog' });
+    },
+    internalOpenDialog: function (selector, fill) {
+      this._returnFocus = document.activeElement;
+      const adapter = available$1()
+        ? bootstrap
+        : available()
+          ? foundation
+          : null;
+      if (!adapter) {
+        const error = new Error(this.language.error.dialogFramework);
+        this._showErrorMessage(error.message);
+        emit(this, 'error', { action: 'open', mode: 'dialog', error });
+        return false;
+      }
+      this._adapter = adapter;
+      fill();
+      adapter.show($(selector)[0]);
+    },
+    internalCloseDialog: function (selector) {
+      if (this._adapter) this._adapter.hide($(selector)[0]);
+    },
+
     _setup: function () {
       var that = this;
       var dt = this.s.dt;
@@ -563,16 +734,7 @@
      * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
      */
     openEditDialog: function (rowSelector) {
-      if (
-        this._destroyed ||
-        this._submitting ||
-        (this._inline &&
-          this._inline.session &&
-          this._inline.session.state === 'submitting')
-      )
-        return false;
-      if (this._inline) this._inline.cancel('dialog', false);
-      this._cleanupPlugins();
+      if (!this._prepareDialog()) return false;
       var dt = this.s.dt;
       var selectedRows = this._selectedRows(rowSelector);
       if (!selectedRows || selectedRows.count() !== 1) {
@@ -626,16 +788,7 @@
      * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
      */
     openDeleteDialog: function (rowSelector) {
-      if (
-        this._destroyed ||
-        this._submitting ||
-        (this._inline &&
-          this._inline.session &&
-          this._inline.session.state === 'submitting')
-      )
-        return false;
-      if (this._inline) this._inline.cancel('dialog', false);
-      this._cleanupPlugins();
+      if (!this._prepareDialog()) return false;
       var selectedRows = this._selectedRows(rowSelector);
       if (!selectedRows || selectedRows.count() === 0) {
         this._showErrorMessage(this.language.error.deleteSelection);
@@ -656,50 +809,17 @@
       var formName = 'altEditor-delete-form-' + this.random_id;
       var that = this;
       var fill = function () {
-        var $modal = $(selector);
-        $modal.find('.modal-title').text(that.language.delete.title);
-        $modal
-          .find('.modal-body')
-          .empty()
-          .append(
-            $('<p/>', { class: 'altEditor-delete-message' }).text(
-              that.language.deleteMessage
-            )
-          );
-        $modal
-          .find('.modal-footer')
-          .empty()
-          .append(
-            $('<button/>', {
-              type: 'button',
-              class: 'btn btn-default btn-secondary button secondary',
-              'data-dismiss': 'modal',
-              'data-bs-dismiss': 'modal',
-              'data-close': '',
-              text: that.language.modalClose,
-            })
-          )
-          .append(
-            $('<button/>', {
-              type: 'submit',
-              class: 'btn btn-danger button',
-              id: 'deleteRowBtn',
-              text: that.language.delete.button,
-            })
-          );
-
-        var modalContent = $modal.find('.modal-content');
-        if (modalContent.parent().is('form')) {
-          modalContent.parent().attr('name', formName).attr('id', formName);
-        } else {
-          modalContent.wrap(
-            $('<form/>', {
-              name: formName,
-              id: formName,
-              role: 'form',
-            })
-          );
-        }
+        renderDialog($(selector), {
+          title: that.language.delete.title,
+          body: $('<p/>', { class: 'altEditor-delete-message' }).text(
+            that.language.deleteMessage
+          ),
+          closeCaption: that.language.modalClose,
+          buttonCaption: that.language.delete.button,
+          buttonId: 'deleteRowBtn',
+          formName,
+          destructive: true,
+        });
       };
 
       if (this.internalOpenDialog(selector, fill) === false) return false;
@@ -713,16 +833,7 @@
      * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
      */
     openAddDialog: function () {
-      if (
-        this._destroyed ||
-        this._submitting ||
-        (this._inline &&
-          this._inline.session &&
-          this._inline.session.state === 'submitting')
-      )
-        return false;
-      if (this._inline) this._inline.cancel('dialog', false);
-      this._cleanupPlugins();
+      if (!this._prepareDialog()) return false;
       var columnDefs = this.completeColumnDefs();
       if (
         this.createDialog(
@@ -1094,49 +1205,14 @@
       this.columnDefs = columnDefs;
       var selector = this.modal_selector;
       var fill = function () {
-        var $modal = $(selector);
-        $modal.find('.modal-title').text(modalTitle);
-        $modal.find('.modal-body').empty().append(fragment.cloneNode(true));
-        $modal
-          .find('.modal-footer')
-          .empty()
-          .append(
-            $('<button/>', {
-              type: 'button',
-              class: 'btn btn-default btn-secondary button secondary',
-              'data-dismiss': 'modal',
-              'data-bs-dismiss': 'modal',
-              'data-close': '',
-              text: closeCaption,
-            })
-          )
-          .append(
-            $('<button/>', {
-              type: 'submit',
-              class: 'btn btn-primary button',
-              id: buttonClass,
-              form: formName,
-              text: buttonCaption,
-            })
-          );
-
-        var modalContent = $modal.find('.modal-content');
-        if (modalContent.parent().is('form')) {
-          modalContent
-            .parent()
-            .attr('name', formName)
-            .attr('id', formName)
-            .addClass('needs-validation');
-        } else {
-          modalContent.wrap(
-            $('<form/>', {
-              name: formName,
-              id: formName,
-              role: 'form',
-              class: 'needs-validation',
-            })
-          );
-        }
+        renderDialog($(selector), {
+          title: modalTitle,
+          body: fragment.cloneNode(true),
+          closeCaption,
+          buttonCaption,
+          buttonId: buttonClass,
+          formName,
+        });
       };
 
       if (this.internalOpenDialog(selector, fill) === false) return false;
@@ -1528,87 +1604,6 @@
         .catch(fail);
     },
   };
-
-  function available$1() {
-    return (
-      !!(
-        root.bootstrap &&
-        root.bootstrap.Modal &&
-        root.bootstrap.Modal.getOrCreateInstance
-      ) || typeof $.fn.modal === 'function'
-    );
-  }
-  function show$1(element) {
-    if (
-      root.bootstrap &&
-      root.bootstrap.Modal &&
-      root.bootstrap.Modal.getOrCreateInstance
-    )
-      root.bootstrap.Modal.getOrCreateInstance(element).show();
-    else $(element).modal('show');
-  }
-  function hide$1(element) {
-    if (
-      root.bootstrap &&
-      root.bootstrap.Modal &&
-      root.bootstrap.Modal.getOrCreateInstance
-    )
-      root.bootstrap.Modal.getOrCreateInstance(element).hide();
-    else $(element).modal('hide');
-  }
-  function dispose$1(element) {
-    element.classList.remove('fade');
-    hide$1(element);
-    if (
-      root.bootstrap &&
-      root.bootstrap.Modal &&
-      root.bootstrap.Modal.getOrCreateInstance
-    ) {
-      const modal = root.bootstrap.Modal.getInstance(element);
-      if (modal) modal.dispose();
-    } else {
-      const modal = $(element).data('bs.modal');
-      if (modal && typeof modal.dispose === 'function') modal.dispose();
-      else $(element).off('.bs.modal').removeData('bs.modal');
-    }
-  }
-
-  var bootstrap = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    available: available$1,
-    dispose: dispose$1,
-    hide: hide$1,
-    show: show$1
-  });
-
-  function available() {
-    return !!(root.Foundation && root.Foundation.Reveal);
-  }
-  function show(element) {
-    if (!element._altEditorReveal)
-      element._altEditorReveal = new root.Foundation.Reveal($(element), {
-        closeOnClick: false,
-        closeOnEsc: false,
-      });
-    element._altEditorReveal.open();
-  }
-  function hide(element) {
-    if (element._altEditorReveal) element._altEditorReveal.close();
-  }
-  function dispose(element) {
-    if (element._altEditorReveal) {
-      element._altEditorReveal.destroy();
-      delete element._altEditorReveal;
-    }
-  }
-
-  var foundation = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    available: available,
-    dispose: dispose,
-    hide: hide,
-    show: show
-  });
 
   const types = [
     'text',
@@ -2218,28 +2213,6 @@
         _openDeleteModal: function (selector) {
           return this.openDeleteDialog(selector);
         },
-        _bindDialog: function (action) {
-          if (this._message) this._message.empty();
-          this._action = action;
-          this._completed = false;
-          this._dialogOpen = true;
-          this._dialogToken = {};
-          const editor = this;
-          $(this.modal_selector)
-            .find('form')
-            .off('submit' + this.s.modalNamespace)
-            .on('submit' + this.s.modalNamespace, function (event) {
-              event.preventDefault();
-              editor[
-                action === 'add'
-                  ? '_addRowData'
-                  : action === 'edit'
-                    ? '_editRowData'
-                    : '_deleteRow'
-              ]();
-            });
-          emit(this, 'open', { action, mode: 'dialog' });
-        },
         /** Start editing an eligible DataTables cell selector. @returns {boolean} Whether editing started. */
         startInlineEdit: function (cellSelector) {
           return this._inline.start(cellSelector);
@@ -2255,26 +2228,6 @@
         /** @returns {boolean} Whether a cell is editing or awaiting persistence. */
         isInlineEditing: function () {
           return !!this._inline.session;
-        },
-        internalOpenDialog: function (selector, fill) {
-          this._returnFocus = document.activeElement;
-          const adapter = available$1()
-            ? bootstrap
-            : available()
-              ? foundation
-              : null;
-          if (!adapter) {
-            const error = new Error(this.language.error.dialogFramework);
-            this._showErrorMessage(error.message);
-            emit(this, 'error', { action: 'open', mode: 'dialog', error });
-            return false;
-          }
-          this._adapter = adapter;
-          fill();
-          adapter.show($(selector)[0]);
-        },
-        internalCloseDialog: function (selector) {
-          if (this._adapter) this._adapter.hide($(selector)[0]);
         },
         /** Refresh Ajax data, or redraw client-side data. */
         refresh: function () {

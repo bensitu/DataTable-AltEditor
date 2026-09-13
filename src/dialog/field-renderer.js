@@ -1,3 +1,4 @@
+import { renderDialog } from './dialog-view.js';
 import { $, document } from '../core/dependencies.js';
 import { normalizeSelectOptions } from '../data/field-values.js';
 import { isFieldPath } from '../data/path.js';
@@ -155,49 +156,14 @@ export const methods = {
     this.columnDefs = columnDefs;
     var selector = this.modal_selector;
     var fill = function () {
-      var $modal = $(selector);
-      $modal.find('.modal-title').text(modalTitle);
-      $modal.find('.modal-body').empty().append(fragment.cloneNode(true));
-      $modal
-        .find('.modal-footer')
-        .empty()
-        .append(
-          $('<button/>', {
-            type: 'button',
-            class: 'btn btn-default btn-secondary button secondary',
-            'data-dismiss': 'modal',
-            'data-bs-dismiss': 'modal',
-            'data-close': '',
-            text: closeCaption,
-          })
-        )
-        .append(
-          $('<button/>', {
-            type: 'submit',
-            class: 'btn btn-primary button',
-            id: buttonClass,
-            form: formName,
-            text: buttonCaption,
-          })
-        );
-
-      var modalContent = $modal.find('.modal-content');
-      if (modalContent.parent().is('form')) {
-        modalContent
-          .parent()
-          .attr('name', formName)
-          .attr('id', formName)
-          .addClass('needs-validation');
-      } else {
-        modalContent.wrap(
-          $('<form/>', {
-            name: formName,
-            id: formName,
-            role: 'form',
-            class: 'needs-validation',
-          })
-        );
-      }
+      renderDialog($(selector), {
+        title: modalTitle,
+        body: fragment.cloneNode(true),
+        closeCaption,
+        buttonCaption,
+        buttonId: buttonClass,
+        formName,
+      });
     };
 
     if (this.internalOpenDialog(selector, fill) === false) return false;
