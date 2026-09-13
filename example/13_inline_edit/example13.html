@@ -33,6 +33,10 @@
           between 0 and 120. Sorting or paging cancels unsaved edits. Saves take
           a short time to demonstrate pending requests.
         </p>
+        <p>
+          For controls displayed directly inside cells, see
+          <a href="../14_rendered_controls/example14.html">rendered controls and inline editing</a>.
+        </p>
       </header>
       <label><input id="fail-next" type="checkbox" /> Fail the next save</label>
       <p id="status" role="status" aria-live="polite">Ready to edit.</p>
@@ -57,23 +61,6 @@
           aria-label="Editable table 2"
         >
           <table class="dataTable display" id="cities"></table>
-        </div>
-      </section>
-      <section>
-        <h2>Rendered dropdowns and inline editing</h2>
-        <p>
-          Change Status directly with its dropdown. Double-click Task or Note
-          to edit; Tab skips Status. The dropdown change handler updates the
-          table data locally, independently of AltEditor save callbacks and the
-          failed-save checkbox above. Reloading resets this table.
-        </p>
-        <div
-          class="example-table"
-          tabindex="0"
-          role="region"
-          aria-label="Editable table 3"
-        >
-          <table class="dataTable display" id="tasks"></table>
         </div>
       </section>
     </main>

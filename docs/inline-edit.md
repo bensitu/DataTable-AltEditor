@@ -19,9 +19,9 @@ Inline editing is disabled by default. An enabled table uses one delegated doubl
 
 ## Rendered interactive controls
 
-A column can display its own dropdown through `columns.render` while other columns use AltEditor inline editing. AltEditor skips cells containing native inputs, selects, textareas, buttons, links, or editable content. Double-clicks, Tab navigation, and `startInlineEdit()` do not replace those controls. Ordinary text and noninteractive markup remain editable. Tab navigation continues to the next eligible cell; the browser's normal focus navigation can reach the rendered controls.
+A column can display its own dropdown through `columns.render` while other columns use AltEditor inline editing. AltEditor skips cells containing native inputs, selects, textareas, buttons, links, editable content, details summaries, media playback controls, or elements with tabindex. It also recognizes the ARIA button, checkbox, combobox, link, radio, slider, spinbutton, switch, and textbox roles. Double-clicks, Tab navigation, and `startInlineEdit()` do not replace those controls. Ordinary text and noninteractive markup remain editable. Tab navigation continues to the next eligible cell; the browser's normal focus navigation can reach the rendered controls.
 
-Set `inlineEditable: false` on a column owned by a custom control to make that intent explicit, including when the control is not currently rendered. This does not disable the field in row dialogs. Custom widgets that do not use native interactive elements should also set this option.
+Set `inlineEditable: false` on a column owned by a custom control to make that intent explicit, including when the control is not currently rendered. This does not disable the field in row dialogs. Custom widgets with only application-defined mouse handlers cannot be detected reliably; set this option for those columns. The editor does not infer interactivity from styling, images, icons, or CSS class names.
 
 Rendering a dropdown does not update the DataTables data source when its selection changes. Use a delegated change handler so it continues working after sorting, paging, and redraws:
 
@@ -31,11 +31,13 @@ $('#example').on('change', '.status-dropdown', function () {
 });
 ```
 
+If a delegated handler matches inputs or textareas broadly, exclude `.alteditor-inline-control` so it does not also process AltEditor-owned input. See Example 14 for the check.
+
 Here, `table` is the DataTables API instance returned by initialization. Resolve the cell from the current DOM node instead of keeping a row index in the rendered HTML. This example assumes the dropdown is in a normal table cell; controls copied into Responsive child rows need their original cell resolved separately.
 
 The change handler above saves only to the local table. Custom controls do not automatically invoke `onInlineEditRow`, AltEditor validation, or inline lifecycle events. For remote persistence, handle the request and errors in the change handler and update table data after the server accepts the value. Avoid allowing overlapping writes to the same row while a save is pending.
 
-Return the raw value for non-display rendering so sorting and searching use the stored status. DataTables 2 permits a DOM node for display rendering; creating a select with `new Option()` avoids interpolating option values into HTML. See the third table in [Example 13](../example/13_inline_edit/example13.js) for a complete configuration and [DataTables rendering](https://datatables.net/reference/option/columns.render) for the rendering contract.
+Return the raw value for non-display rendering so sorting and searching use the stored status. DataTables 2 permits a DOM node for display rendering; creating a select with `new Option()` avoids interpolating option values into HTML. See [Example 14](../example/14_rendered_controls/example14.js) for a complete configuration and [DataTables rendering](https://datatables.net/reference/option/columns.render) for the rendering contract.
 
 ## Controls
 

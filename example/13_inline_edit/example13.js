@@ -109,35 +109,3 @@ new DataTable('#cities', {
   ],
   altEditor: { inlineEdit: true },
 });
-
-const tasks = new DataTable('#tasks', {
-  data: [
-    { name: 'Prepare report', status: 'Open', note: 'Review figures' },
-    { name: 'Send invoice', status: 'Done', note: 'Sent by email' },
-  ],
-  columns: [
-    { data: 'name', title: 'Task', required: true },
-    {
-      data: 'status',
-      title: 'Status',
-      inlineEditable: false,
-      render(data, type) {
-        if (type !== 'display') return data;
-        const select = document.createElement('select');
-        select.className = 'status-dropdown';
-        select.setAttribute('aria-label', 'Task status');
-        for (const value of ['Open', 'Done']) {
-          select.add(new Option(value, value, false, value === data));
-        }
-        return select;
-      },
-    },
-    { data: 'note', title: 'Note' },
-  ],
-  altEditor: { inlineEdit: true },
-});
-
-$('#tasks').on('change', '.status-dropdown', function () {
-  // Update the data source so sorting, filtering, and redraws use the new value.
-  tasks.cell(this.closest('td')).data(this.value).draw(false);
-});

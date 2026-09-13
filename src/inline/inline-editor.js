@@ -90,7 +90,10 @@ export class InlineEditor {
       cell
         .node()
         .querySelector(
-          'input, select, textarea, button, a[href], [contenteditable]:not([contenteditable="false"])'
+          'input, select, textarea, button, a[href], summary, audio[controls], video[controls], ' +
+            '[tabindex], [contenteditable]:not([contenteditable="false"]), ' +
+            '[role="button"], [role="checkbox"], [role="combobox"], [role="link"], ' +
+            '[role="radio"], [role="slider"], [role="spinbutton"], [role="switch"], [role="textbox"]'
         )
     )
       return false;

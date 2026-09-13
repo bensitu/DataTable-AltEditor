@@ -73,6 +73,40 @@ test('handles composition, Enter, Escape and keyboard navigation without duplica
   expect(editor.isInlineEditing()).toBe(false);
 });
 
+test('preserves rendered controls and still edits decorative markup', () => {
+  const { editor, table } = create();
+  const cell = table.cell(0, 0).node();
+  for (const markup of [
+    '<input value="Alice">',
+    '<input type="checkbox">',
+    '<textarea>Alice</textarea>',
+    '<button><span>Details</span></button>',
+    '<a href="#details">Details</a>',
+    '<span contenteditable="true">Alice</span>',
+    '<details><summary>Details</summary>Alice</details>',
+    '<video controls></video>',
+    '<audio controls></audio>',
+    '<span tabindex="0">Custom control</span>',
+    '<span role="switch" aria-checked="false">Off</span>',
+  ]) {
+    cell.innerHTML = markup;
+    const rendered = cell.innerHTML;
+    cell.firstElementChild.dispatchEvent(
+      new MouseEvent('dblclick', { bubbles: true })
+    );
+    expect(editor.isInlineEditing()).toBe(false);
+    expect(editor.startInlineEdit(cell)).toBe(false);
+    expect(cell.innerHTML).toBe(rendered);
+  }
+  cell.innerHTML = '<strong>Alice</strong>';
+  cell.firstElementChild.dispatchEvent(
+    new MouseEvent('dblclick', { bubbles: true })
+  );
+  expect(input().value).toBe('Alice');
+  editor.cancelInlineEdit();
+  expect(cell.innerHTML).toBe('<strong>Alice</strong>');
+});
+
 test.each([false, true])('honors submitOnBlur=%s', (submitOnBlur) => {
   const { editor, table } = create({
     altEditor: {

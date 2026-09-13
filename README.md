@@ -102,6 +102,7 @@ For server persistence, configure `onAddRow`, `onEditRow`, and `onDeleteRow`. Ca
 | 11  | Foundation dialogs       | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/11_foundation/example11.html)            | [Source](example/11_foundation/)            |
 | 12  | Custom action buttons    | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/12_custom_action_buttons/example12.html) | [Source](example/12_custom_action_buttons/) |
 | 13  | Cell inline editing      | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/13_inline_edit/example13.html)           | [Source](example/13_inline_edit/)           |
+| 14  | Rendered controls        | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/14_rendered_controls/example14.html)     | [Source](example/14_rendered_controls/)     |
 
 Ajax examples use static JSON responses and do not save to a server. Refresh restores their original data. The Appearance selector provides system, light, and dark modes. Examples require internet access for CDN dependencies.
 

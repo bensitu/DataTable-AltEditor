@@ -23,6 +23,8 @@ CDN resources are convenient for these examples. For production deployments, man
 - **Attach files:** use Example 10 for browser-side data URLs and attachment retention.
 - **Edit directly in cells:** use Example 13. Its native controls do not need Bootstrap, Foundation, Select2, or date picker plugins.
 
+- **Combine custom controls with inline editing:** use Example 14 for direct controls, local data updates, and explicit column exclusions.
+
 ## Try the features
 
 For toolbar-based examples, select a row before choosing Edit or Delete. Add opens a new record form. Example 12 uses its own actions; Example 13 uses double-click cell editing.
@@ -41,7 +43,8 @@ For toolbar-based examples, select a row before choosing Edit or Delete. Add ope
 | [10: Files](https://bensitu.github.io/DataTable-AltEditor/example/10_file_upload/example10.html)                    | Attach a small file, save, and download its contents from the table. A later edit without a new file retains the attachment. Files are read as data URLs in browser memory; no file upload service is provided. |
 | [11: Foundation](https://bensitu.github.io/DataTable-AltEditor/example/11_foundation/example11.html)                | Add, edit, and delete rows through Foundation Reveal dialogs.                                                                                                                                                   |
 | [12: Custom actions](https://bensitu.github.io/DataTable-AltEditor/example/12_custom_action_buttons/example12.html) | Use Add record, click a row to edit, or choose its Delete action. On small screens, expand the row to access hidden columns and actions.                                                                        |
-| [13: Cell editing](https://bensitu.github.io/DataTable-AltEditor/example/13_inline_edit/example13.html)             | Double-click to edit; Enter saves, Escape cancels, and Tab moves. Try Fail the next save to retry. The second table uses array data; the third combines direct dropdown changes with double-click editing.      |
+| [13: Cell editing](https://bensitu.github.io/DataTable-AltEditor/example/13_inline_edit/example13.html)             | Double-click to edit; Enter saves, Escape cancels, and Tab moves. Try Fail the next save to retry. The second table demonstrates numeric array sources.                                                         |
+| [14: Rendered controls](https://bensitu.github.io/DataTable-AltEditor/example/14_rendered_controls/example14.html)  | Change select, number, checkbox, and textarea values directly. Try editable content, buttons, links, expandable details, and a custom switch. Double-click ordinary or bold task text to edit.                  |
 
 The Appearance selector supports system, light, and dark modes. See [styling and themes](styling.md) for application customization.
 
@@ -65,7 +68,8 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 | 10      | [HTML](../example/10_file_upload/example10.html) · [JavaScript](../example/10_file_upload/example10.js)                     | `type: file`, `maxFileSize`, download rendering, and preserving existing attachments.              |
 | 11      | [HTML](../example/11_foundation/example11.html) · [JavaScript](../example/11_foundation/example11.js)                       | Foundation Reveal dependencies with the same public editor configuration.                          |
 | 12      | [HTML](../example/12_custom_action_buttons/example12.html) · [JavaScript](../example/12_custom_action_buttons/example12.js) | `openAddDialog`, `openEditDialog`, and `openDeleteDialog`, including Responsive child rows.        |
-| 13      | [HTML](../example/13_inline_edit/example13.html) · [JavaScript](../example/13_inline_edit/example13.js)                     | `inlineEdit`, save callbacks, lifecycle events, array sources, and direct dropdown changes.        |
+| 13      | [HTML](../example/13_inline_edit/example13.html) · [JavaScript](../example/13_inline_edit/example13.js)                     | `inlineEdit`, save callbacks, lifecycle events, and numeric array sources.                         |
+| 14      | [HTML](../example/14_rendered_controls/example14.html) · [JavaScript](../example/14_rendered_controls/example14.js)         | Display renderers, delegated handlers, control detection, and explicit inline exclusions.          |
 
 ## Adapt an example to your application
 

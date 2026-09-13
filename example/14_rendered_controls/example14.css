@@ -1,0 +1,26 @@
+.rendered-controls
+  :is(input, select, textarea, button, [contenteditable], .task-switch):not(
+    .alteditor-inline-control
+  ):not([type='checkbox']) {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--example-border);
+  border-radius: 0.375rem;
+  background: var(--example-surface);
+  color: var(--example-text);
+  font: inherit;
+}
+
+.rendered-controls input[type='number'] {
+  width: 6rem;
+}
+
+.rendered-controls [contenteditable],
+.rendered-controls .task-switch {
+  display: inline-block;
+}
+
+.rendered-controls :is(button, summary, .task-switch) {
+  cursor: pointer;
+}

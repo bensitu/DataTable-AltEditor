@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rendered controls | AltEditor examples</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css"
+    />
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="../examples.css" />
+    <link rel="stylesheet" href="./example14.css" />
+    <script src="../theme.js"></script>
+  </head>
+  <body class="examples-page">
+    <main class="example-main">
+      <header class="example-header">
+        <nav aria-label="Example navigation">
+          <a href="../../index.html">← All examples</a>
+          · <a href="./example14.js">Configuration source</a> ·
+          <a
+            href="https://github.com/bensitu/DataTable-AltEditor/blob/develop/docs/inline-edit.md#rendered-interactive-controls"
+            >Integration guide</a
+          >
+        </nav>
+        <p class="example-eyebrow">DataTable-AltEditor / Example 14</p>
+        <h1>Rendered controls and inline editing</h1>
+        <p>
+          Change rendered controls directly. Double-click Task to edit its raw
+          text even though it displays in bold. AltEditor skips interactive
+          cells when double-clicking or navigating with Tab and Shift+Tab.
+        </p>
+        <p>
+          Custom change handlers update DataTables locally so values survive
+          sorting, searching, and redraws. They do not invoke AltEditor save
+          callbacks or validation. Reloading restores the sample data; add your
+          own request and error handling for server persistence. On narrow
+          screens, scroll each table horizontally to reach all controls.
+        </p>
+        <p>
+          For built-in inline controls and asynchronous save callbacks, see
+          <a href="../13_inline_edit/example13.html"
+            >the basic inline editing example</a
+          >.
+        </p>
+      </header>
+      <section>
+        <h2>Form controls</h2>
+        <p>
+          Status uses a select, Quantity a number input, Complete a checkbox,
+          and Note a textarea. Commit text and number changes by leaving the
+          control. Native controls are detected without a column override.
+        </p>
+        <div
+          class="example-table rendered-controls"
+          tabindex="0"
+          role="region"
+          aria-label="Rendered form controls"
+        >
+          <table class="dataTable display" id="tasks"></table>
+        </div>
+      </section>
+      <section>
+        <h2>Actions and custom content</h2>
+        <p>
+          Edit the note directly and leave it to save. Try the action button,
+          link, and expandable details. The custom switch supports click, Enter,
+          and Space and explicitly uses inlineEditable: false.
+        </p>
+        <div
+          class="example-table rendered-controls"
+          tabindex="0"
+          role="region"
+          aria-label="Rendered actions and content"
+        >
+          <table class="dataTable display" id="actions"></table>
+        </div>
+        <p id="result" role="status" aria-live="polite">Choose an action.</p>
+      </section>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
+    <script src="../../dist/dataTables.altEditor.js"></script>
+    <script src="./example14.js"></script>
+  </body>
+</html>
