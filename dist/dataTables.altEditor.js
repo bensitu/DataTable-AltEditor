@@ -1,4 +1,4 @@
-/*! DataTables AltEditor v4.0.1
+/*! DataTables AltEditor v4.0.2
  * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
  * Copyright (c) 2026 Ben Situ and contributors
  * MIT License */
@@ -2305,7 +2305,7 @@
         this.destroy();
       },
     });
-    AltEditor.version = '4.0.1';
+    AltEditor.version = '4.0.2';
     AltEditor.defaults = defaults;
     AltEditor.classes = { btn: 'btn' };
     return AltEditor;
@@ -2334,7 +2334,7 @@
   }
 
   /**
-   * DataTables AltEditor v4.0.1
+   * DataTables AltEditor v4.0.2
    * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
    * Copyright (c) 2026 Ben Situ and contributors
    * SPDX-License-Identifier: MIT
