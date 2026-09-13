@@ -11,6 +11,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Example pages link to their configuration source and guide. Documentation maps integration needs to examples and explains dependency loading, stored values, persistence, and reusable configuration.
 - Dependabot update limits distinguish fixed Bootstrap 4 compatibility from Bootstrap 5, retain DataTables 2 with Buttons 3 and Select 3, and keep jQuery on 3.7.x.
 - Multi-file forms validate field collection before starting encoded reads, avoiding unfinished reads when another file exceeds its limit.
 - Foundation example search and page-length labels follow the selected theme. Local distribution archives include contribution and policy documents linked from the README.

@@ -85,7 +85,7 @@ For server persistence, configure `onAddRow`, `onEditRow`, and `onDeleteRow`. Ca
 
 ## Choose an example
 
-**[Browse all live examples](https://bensitu.github.io/DataTable-AltEditor/)** or open a specific feature below. The [example guide](docs/examples.md) explains what to try and which operations are simulated.
+**[Browse all live examples](https://bensitu.github.io/DataTable-AltEditor/)** or open a specific feature below. Start with Example 02 for object-based row dialogs, Example 03 for persistence callbacks, or Example 13 for cell editing. The [example guide](docs/examples.md) maps integration needs to demos, links to each configuration file, and explains how to adapt the simulated operations.
 
 | No. | Feature                  | Live demo                                                                                                     | Code                                        |
 | --- | ------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
