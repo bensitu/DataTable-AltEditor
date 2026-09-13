@@ -12,8 +12,19 @@ updates:
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
+      - dependency-name: bootstrap4
+      - dependency-name: bootstrap
+        versions: ['>4.6.2 <5.0.0', '>=6.0.0']
+      - dependency-name: datatables.net
+        versions: ['>=3.0.0']
+      - dependency-name: datatables.net-buttons
+        versions: ['>=4.0.0']
+      - dependency-name: datatables.net-select
+        versions: ['>=4.0.0']
       - dependency-name: datatables21
-        update-types: ['version-update:semver-minor']
+        versions: ['>=2.2.0']
+      - dependency-name: jquery
+        versions: ['>=3.8.0']
     groups:
       npm-dependencies:
         patterns: ['*']

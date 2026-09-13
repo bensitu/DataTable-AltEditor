@@ -16,6 +16,26 @@ npm run dev
 
 Open [the local examples](http://127.0.0.1:8080/). Examples load `dist/`, so rebuild after source changes. Their external CDN dependencies require network access. The generated JavaScript, CSS, and source maps in `dist/` are tracked; commit them with source changes.
 
+## Dependency updates
+
+[Dependabot](.github/dependabot.yml) checks root npm development dependencies and GitHub Actions monthly at 09:00 Asia/Tokyo. Minor and patch updates are grouped separately for each ecosystem; major updates are excluded. Keep the following release lines when reviewing dependency updates:
+
+| Manifest dependency      | Allowed versions | Purpose                                                                          |
+| ------------------------ | ---------------- | -------------------------------------------------------------------------------- |
+| `bootstrap4`             | Exactly `4.6.2`  | Bootstrap 4 compatibility, using the `npm:bootstrap@4.6.2` alias                 |
+| `bootstrap`              | `5.x`            | Current Bootstrap 5 releases                                                     |
+| `datatables.net`         | `2.x`            | Main DataTables dependency                                                       |
+| `datatables.net-buttons` | `3.x`            | Buttons for DataTables 2                                                         |
+| `datatables.net-select`  | `3.x`            | Select for DataTables 2                                                          |
+| `datatables21`           | `2.1.x`          | Minimum supported DataTables compatibility, currently `npm:datatables.net@2.1.8` |
+| `jquery`                 | `3.7.x`          | Development and example dependency                                               |
+
+Bootstrap 4 is excluded from automatic updates. The Bootstrap package rule also excludes later 4.x releases while allowing 5.x updates. npm alias handling can differ from ordinary dependencies in Dependabot; preserve the compatibility aliases when reviewing updates. New DataTables extensions and framework integration packages must use versions compatible with DataTables 2 and receive their own update limits. Extension major versions do not necessarily match the core major version.
+
+`npm outdated` reports the registry's `latest` tag even when it falls outside these limits; it does not read Dependabot configuration. Exact versions in `package.json` and `package-lock.json` make local installs reproducible. These development update limits do not change the library's public peer dependency requirements.
+
+CDN URLs in examples are maintained manually and are outside the npm update configuration. When updating them, keep the same supported release lines and verify the affected examples. Dependency updates must also pass installation and relevant checks on the Node.js versions configured in CI.
+
 ## Making changes
 
 Use English comments and neutral, professional language. Keep examples short, explicit, and suitable for copying into an application. Edit modular JavaScript and CSS under `src/`, not generated distribution files. Keep public API changes and documentation consistent. Preserve MIT attribution.
