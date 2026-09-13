@@ -1,5 +1,6 @@
 /*! DataTables AltEditor v4.0.2 | MIT License */
-.altEditor-message .alert {
+.altEditor-message .alert,
+.altEditor-native .altEditor-feedback {
   margin-block: 0.75rem;
   padding: 0.75rem;
   border: 1px solid currentColor;
@@ -27,24 +28,24 @@
   color-scheme: dark;
 }
 .altEditor-modal,
-.altEditor-modal .modal-content {
+.altEditor-modal .altEditor-content {
   color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
 }
-.altEditor-modal .modal-content,
+.altEditor-modal .altEditor-content,
 .reveal-overlay > .altEditor-modal.reveal {
   background-color: var(--alteditor-surface, light-dark(#fff, #182231));
 }
 .reveal-overlay > .altEditor-modal.reveal {
   border-color: var(--alteditor-border, light-dark(#cbd5e1, #526178));
 }
-.reveal-overlay > .altEditor-modal .modal-header {
+.reveal-overlay > .altEditor-modal .altEditor-header {
   padding-bottom: var(--alteditor-spacing, 1rem);
 }
-.reveal-overlay > .altEditor-modal .modal-footer {
+.reveal-overlay > .altEditor-modal .altEditor-footer {
   padding-top: var(--alteditor-spacing, 1rem);
 }
-.altEditor-modal .modal-header,
-.altEditor-modal .modal-footer {
+.altEditor-modal .altEditor-header,
+.altEditor-modal .altEditor-footer {
   border-color: var(--alteditor-border, light-dark(#cbd5e1, #526178));
 }
 .altEditor-modal .altEditor-label label,
@@ -55,7 +56,7 @@
 .altEditor-modal .select2-selection__choice__remove {
   color: inherit;
 }
-.altEditor-modal .altEditor-input .form-control,
+.altEditor-modal .altEditor-input :is(.form-control, .altEditor-control),
 .altEditor-modal .select2-selection,
 .altEditor-modal .select2-dropdown,
 .altEditor-modal .select2-search__field,
@@ -68,8 +69,12 @@
   border: 1px solid var(--alteditor-border, light-dark(#cbd5e1, #526178));
   border-radius: var(--alteditor-radius, 0.375rem);
 }
-.altEditor-modal .altEditor-input .form-control:disabled,
-.altEditor-modal .altEditor-input .form-control[readonly],
+.altEditor-modal
+  .altEditor-input
+  :is(.form-control, .altEditor-control):disabled,
+.altEditor-modal
+  .altEditor-input
+  :is(.form-control, .altEditor-control)[readonly],
 .altEditor-modal
   .select2-container
   .select2-selection
@@ -85,14 +90,14 @@
   background: var(--alteditor-action-background, #2458b8);
   color: var(--alteditor-action-text, #fff);
 }
-.altEditor-modal .altEditor-input .form-control:focus,
+.altEditor-modal .altEditor-input :is(.form-control, .altEditor-control):focus,
 .alteditor-inline-control:focus {
   border-color: var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
   outline: 2px solid var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
   outline-offset: 1px;
   box-shadow: none;
 }
-.altEditor-modal .modal-footer .btn-primary {
+.altEditor-modal .altEditor-footer .btn-primary {
   background: var(--alteditor-action-background, #2458b8);
   color: var(--alteditor-action-text, #fff);
   border-color: var(--alteditor-action-background, #2458b8);
@@ -124,12 +129,12 @@
   filter: invert(0.5);
   opacity: 1;
 }
-.altEditor-modal .modal-header {
+.altEditor-modal .altEditor-header {
   display: flex;
   align-items: center;
   gap: var(--alteditor-spacing, 1rem);
 }
-.altEditor-modal .modal-title {
+.altEditor-modal .altEditor-title {
   margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -188,7 +193,7 @@
 .altEditor-modal .altEditor-input-compact {
   flex: 0 1 8rem;
 }
-.altEditor-modal .altEditor-input .form-control {
+.altEditor-modal .altEditor-input :is(.form-control, .altEditor-control) {
   box-sizing: border-box;
   width: 100%;
   min-height: 2.5rem;
@@ -215,24 +220,24 @@
 .altEditor-modal .select2-selection--single .select2-selection__arrow {
   height: 2.375rem;
 }
-.altEditor-modal .modal-footer {
+.altEditor-modal .altEditor-footer {
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-.altEditor-modal .modal-footer .button {
+.altEditor-modal .altEditor-footer .button {
   margin: 0;
 }
 @media (max-width: 575.98px) {
-  .altEditor-modal .modal-content {
+  .altEditor-modal .altEditor-content {
     display: flex;
     flex-direction: column;
     max-height: calc(100vh - 4rem);
     max-height: calc(100dvh - 4rem);
   }
-  .altEditor-modal .modal-header,
-  .altEditor-modal .modal-footer {
+  .altEditor-modal .altEditor-header,
+  .altEditor-modal .altEditor-footer {
     flex-shrink: 0;
   }
   .altEditor-modal .altEditor-field {
@@ -243,7 +248,7 @@
     width: 100%;
     flex-basis: auto;
   }
-  .altEditor-modal .modal-body {
+  .altEditor-modal .altEditor-body {
     padding: 1rem;
     min-height: 0;
     overflow-y: auto;
@@ -276,4 +281,45 @@
 }
 .alteditor-inline-submitting {
   opacity: 0.65;
+}
+
+.altEditor-native {
+  box-sizing: border-box;
+  width: min(50rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--alteditor-border, light-dark(#cbd5e1, #526178));
+  border-radius: var(--alteditor-radius, 0.375rem);
+  background: var(--alteditor-surface, light-dark(#fff, #182231));
+  font: inherit;
+}
+.altEditor-native::backdrop {
+  background: var(--alteditor-backdrop, rgb(0 0 0 / 50%));
+}
+.altEditor-native .altEditor-header,
+.altEditor-native .altEditor-body,
+.altEditor-native .altEditor-footer {
+  padding: var(--alteditor-spacing, 1rem);
+}
+.altEditor-native .altEditor-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--alteditor-border, light-dark(#cbd5e1, #526178));
+  border-radius: var(--alteditor-radius, 0.375rem);
+  background: var(--alteditor-surface, light-dark(#fff, #182231));
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.altEditor-native .altEditor-submit {
+  background: var(--alteditor-action-background, #2458b8);
+  color: var(--alteditor-action-text, #fff);
+}
+.altEditor-native .altEditor-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.altEditor-native .altEditor-control {
+  padding: 0.375rem 0.5rem;
+  font: inherit;
 }

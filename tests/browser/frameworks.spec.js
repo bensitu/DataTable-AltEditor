@@ -68,3 +68,25 @@ for (const framework of ['bootstrap4', 'foundation-sites']) {
     await expect(page.locator('.altEditor-modal')).toHaveCount(0);
   });
 }
+
+test('explicit Foundation dialogs work while Bootstrap is also loaded', async ({
+  page,
+}) => {
+  await page.goto('/tests/browser/table.html');
+  await page.addStyleTag({
+    url: '/node_modules/foundation-sites/dist/css/foundation.css',
+  });
+  await page.addScriptTag({
+    url: '/node_modules/foundation-sites/dist/js/foundation.js',
+  });
+  await page.evaluate(() => {
+    table.altEditor().c.dialog.framework = 'foundation';
+    table.altEditor().openAddDialog();
+  });
+  const dialog = page.locator('.altEditor-modal');
+  await expect(dialog).toBeVisible();
+  await dialog.locator('[name="name"]').fill('Carol');
+  await dialog.locator('[type="submit"]').click();
+  await expect(dialog).toBeHidden();
+  await expect(page.locator('tbody')).toContainText('Carol');
+});

@@ -1,3 +1,4 @@
+import { applyTemplate } from './template.js';
 import { renderDialog } from './dialog-view.js';
 import { $, document } from '../core/dependencies.js';
 import { normalizeSelectOptions } from '../data/field-values.js';
@@ -158,7 +159,11 @@ export const methods = {
     var fill = function () {
       renderDialog($(selector), {
         title: modalTitle,
-        body: fragment.cloneNode(true),
+        body: applyTemplate(
+          that.c.dialog.templates[buttonClass === 'addRowBtn' ? 'add' : 'edit'],
+          fragment.cloneNode(true),
+          that._dialogContext
+        ),
         closeCaption,
         buttonCaption,
         buttonId: buttonClass,

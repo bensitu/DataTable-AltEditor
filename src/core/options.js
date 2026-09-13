@@ -33,6 +33,11 @@ export const defaults = {
   closeModalOnSuccess: true,
   encodeFiles: true,
   debug: false,
+  dialog: {
+    framework: 'auto',
+    templates: { add: null, edit: null },
+    deleteDetails: false,
+  },
   inlineEdit: {
     enabled: false,
     submitOnBlur: false,
@@ -59,5 +64,16 @@ export function normalizeOptions(base, init, supplied) {
     defaults.inlineEdit,
     options.inlineEdit === true ? { enabled: true } : options.inlineEdit
   );
+  if (
+    !isPlainObject(options.dialog) ||
+    !['auto', 'bootstrap', 'foundation', 'native'].includes(
+      options.dialog.framework
+    )
+  )
+    throw new TypeError(
+      'Dialog framework must be auto, bootstrap, foundation, or native'
+    );
+  if (!isPlainObject(options.dialog.templates))
+    throw new TypeError('Dialog templates must be an object');
   return options;
 }

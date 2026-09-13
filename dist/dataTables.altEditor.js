@@ -53,6 +53,11 @@
     closeModalOnSuccess: true,
     encodeFiles: true,
     debug: false,
+    dialog: {
+      framework: 'auto',
+      templates: { add: null, edit: null },
+      deleteDetails: false,
+    },
     inlineEdit: {
       enabled: false,
       submitOnBlur: false,
@@ -79,6 +84,17 @@
       defaults.inlineEdit,
       options.inlineEdit === true ? { enabled: true } : options.inlineEdit
     );
+    if (
+      !isPlainObject(options.dialog) ||
+      !['auto', 'bootstrap', 'foundation', 'native'].includes(
+        options.dialog.framework
+      )
+    )
+      throw new TypeError(
+        'Dialog framework must be auto, bootstrap, foundation, or native'
+      );
+    if (!isPlainObject(options.dialog.templates))
+      throw new TypeError('Dialog templates must be an object');
     return options;
   }
 
@@ -285,6 +301,111 @@
     return result;
   }
 
+  function available$2(element) {
+    return typeof element.showModal === 'function';
+  }
+  function show$2(element) {
+    element.showModal();
+  }
+  function hide$2(element) {
+    element.close();
+    $(element).trigger('alteditor-native-closed');
+  }
+  function dispose$2(element) {
+    if (element.open) element.close();
+  }
+
+  var native = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    available: available$2,
+    dispose: dispose$2,
+    hide: hide$2,
+    show: show$2
+  });
+
+  /** Clone application markup and place generated fields into named slots. */
+  function applyTemplate(source, fields, context) {
+    if (typeof source === 'function') source = source(context);
+    if (source == null) return fields;
+    if (typeof source === 'string') source = document.querySelector(source);
+    if (!source || ![1, 11].includes(source.nodeType))
+      throw new TypeError(
+        'Dialog template must resolve to an element or fragment'
+      );
+    const layout = document.createElement('div');
+    layout.className = 'altEditor-template';
+    layout.appendChild((source.content || source).cloneNode(true));
+    if (layout.querySelector('form, input, select, textarea, [contenteditable]'))
+      throw new Error(
+        'Dialog templates must use field slots instead of form controls'
+      );
+    const identifiers = new Map();
+    layout.querySelectorAll('[id]').forEach((element, index) => {
+      if (identifiers.has(element.id))
+        throw new Error('Duplicate dialog template identifier: ' + element.id);
+      const id = context.editor.random_id + '-template-' + index;
+      identifiers.set(element.id, id);
+      element.id = id;
+    });
+    layout.querySelectorAll('*').forEach((element) => {
+      [
+        'for',
+        'aria-labelledby',
+        'aria-describedby',
+        'aria-controls',
+        'aria-owns',
+      ].forEach((attribute) => {
+        if (element.hasAttribute(attribute))
+          element.setAttribute(
+            attribute,
+            element
+              .getAttribute(attribute)
+              .split(/\s+/)
+              .map((id) => identifiers.get(id) || id)
+              .join(' ')
+          );
+      });
+      const href = element.getAttribute('href');
+      if (href && href[0] === '#' && identifiers.has(href.slice(1)))
+        element.setAttribute('href', '#' + identifiers.get(href.slice(1)));
+    });
+    const groups = new Map();
+    fields.querySelectorAll('.altEditor-field').forEach((field) => {
+      const control = field.querySelector('[name]');
+      if (control) groups.set(control.name, field);
+    });
+    layout.querySelectorAll('[data-alteditor-field]').forEach((slot) => {
+      const name = slot.getAttribute('data-alteditor-field');
+      const field = groups.get(name);
+      if (!field || slot.querySelector('[data-alteditor-field]'))
+        throw new Error(
+          'Unknown, duplicate, or nested dialog field slot: ' + name
+        );
+      slot.replaceChildren(field);
+      groups.delete(name);
+    });
+    if (groups.size)
+      throw new Error(
+        'Missing dialog field slots: ' + [...groups.keys()].join(', ')
+      );
+    fields
+      .querySelectorAll('input[type="hidden"]')
+      .forEach((field) => layout.appendChild(field));
+    return layout;
+  }
+
+  /** Render a deletion summary without interpreting strings as HTML. */
+  function deletionContent(option, context) {
+    if (option === false || option == null) return null;
+    const value = typeof option === 'function' ? option(context) : option;
+    if (value === false || value == null) return null;
+    if (typeof value === 'string') return document.createTextNode(value);
+    if (value && [1, 11].includes(value.nodeType)) return value;
+    throw new TypeError(
+      'Delete details must return text, an element, or a fragment'
+    );
+  }
+
   function available$1() {
     return (
       !!(
@@ -367,15 +488,19 @@
   });
 
   function renderDialog(modal, options) {
-    modal.find('.modal-title').text(options.title);
-    modal.find('.modal-body').empty().append(options.body);
+    const useNative = modal.is('dialog');
+    modal.find('.altEditor-title').text(options.title);
+    modal.find('.altEditor-body').empty().append(options.body);
     modal
-      .find('.modal-footer')
+      .find('.altEditor-footer')
       .empty()
       .append(
         $('<button/>', {
           type: 'button',
-          class: 'btn btn-default btn-secondary button secondary',
+          class: useNative
+            ? 'altEditor-button'
+            : 'btn btn-default btn-secondary button secondary',
+          'data-alteditor-close': '',
           'data-dismiss': 'modal',
           'data-bs-dismiss': 'modal',
           'data-close': '',
@@ -383,21 +508,35 @@
         }),
         $('<button/>', {
           type: 'submit',
-          class: options.destructive
-            ? 'btn btn-danger button'
-            : 'btn btn-primary button',
+          class: useNative
+            ? 'altEditor-button altEditor-submit'
+            : options.destructive
+              ? 'btn btn-danger button'
+              : 'btn btn-primary button',
           id: options.buttonId,
           form: options.formName,
           text: options.buttonCaption,
         })
       );
-    const content = modal.find('.modal-content');
+    if (useNative) {
+      modal
+        .find('[data-dismiss], [data-bs-dismiss], [data-close]')
+        .removeAttr('data-dismiss data-bs-dismiss data-close');
+      modal
+        .find('.form-control')
+        .addClass('altEditor-control')
+        .removeClass('form-control form-control-sm');
+      modal
+        .find('.col-form-label')
+        .removeClass('col-form-label col-form-label-sm');
+    }
+    const content = modal.find('.altEditor-content');
     if (!content.parent().is('form'))
       content.wrap($('<form/>', { role: 'form' }));
     content
       .parent()
       .attr({ name: options.formName, id: options.formName })
-      .addClass('needs-validation');
+      .toggleClass('needs-validation', !useNative);
   }
 
   function fieldElement(container, name) {
@@ -465,6 +604,7 @@
     _prepareDialog: function () {
       if (
         this._destroyed ||
+        this._opening ||
         this._submitting ||
         (this._inline &&
           this._inline.session &&
@@ -473,7 +613,39 @@
         return false;
       if (this._inline) this._inline.cancel('dialog', false);
       this._cleanupPlugins();
-      return true;
+      return !this._destroyed;
+    },
+    _beginDialog: function (action, rows) {
+      this._opening = true;
+      this._dialogContext = {
+        editor: this,
+        action,
+        mode: 'dialog',
+        rows: rows.map((row) => cloneRow(row)),
+      };
+      try {
+        if (
+          !this._notifyDialog('before-open', 'onBeforeOpen') ||
+          this._destroyed
+        ) {
+          this._opening = false;
+          return false;
+        }
+        return true;
+      } catch (error) {
+        this._opening = false;
+        emit(this, 'error', { action: 'open', mode: 'dialog', error });
+        return false;
+      }
+    },
+    _notifyDialog: function (name, callbackName, extra) {
+      const detail = Object.assign({}, this._dialogContext, extra);
+      const accepted = emit(this, name, detail);
+      if (this._destroyed) return false;
+      const callback = this.c.dialog[callbackName];
+      return (
+        (typeof callback !== 'function' || callback(detail) !== false) && accepted
+      );
     },
     _bindDialog: function (action) {
       if (this._message) this._message.empty();
@@ -495,24 +667,99 @@
                 : '_deleteRow'
           ]();
         });
-      emit(this, 'open', { action, mode: 'dialog' });
+      try {
+        this._notifyDialog('dialog-render', 'onRender', {
+          dialog: $(this.modal_selector)[0],
+          form: $(this.modal_selector).find('form')[0],
+        });
+      } catch (error) {
+        emit(this, 'error', { action, mode: 'dialog', error });
+      }
+      this._opening = false;
+      if (!this._destroyed && this._dialogOpen)
+        emit(this, 'open', Object.assign({}, this._dialogContext));
     },
     internalOpenDialog: function (selector, fill) {
       this._returnFocus = document.activeElement;
-      const adapter = available$1()
-        ? bootstrap
-        : available()
-          ? foundation
-          : null;
-      if (!adapter) {
-        const error = new Error(this.language.error.dialogFramework);
+      const framework = this.c.dialog.framework;
+      const element = $(selector)[0];
+      const adapter =
+        framework === 'native'
+          ? available$2(element)
+            ? native
+            : null
+          : framework === 'bootstrap'
+            ? available$1()
+              ? bootstrap
+              : null
+            : framework === 'foundation'
+              ? available()
+                ? foundation
+                : null
+              : available$1()
+                ? bootstrap
+                : available()
+                  ? foundation
+                  : null;
+      try {
+        if (!adapter)
+          throw new Error(
+            framework === 'native'
+              ? this.language.error.nativeDialog
+              : this.language.error.dialogFramework
+          );
+        this._adapter = adapter;
+        fill();
+        if (this._destroyed) {
+          this._opening = false;
+          return false;
+        }
+        if (framework !== 'native') {
+          $(element).toggleClass('reveal', adapter === foundation);
+          if (adapter === foundation) {
+            $(element)
+              .find('.altEditor-footer button')
+              .removeClass(
+                'btn btn-default btn-secondary btn-primary btn-danger'
+              );
+            if (framework === 'foundation') {
+              $(element).removeClass('modal fade');
+              $(element)
+                .find('.modal-dialog')
+                .removeClass('modal-dialog modal-lg');
+              ['content', 'header', 'title', 'body', 'footer'].forEach((part) =>
+                $(element)
+                  .find('.altEditor-' + part)
+                  .removeClass('modal-' + part)
+              );
+              $(element)
+                .find('.form-control')
+                .addClass('altEditor-control')
+                .removeClass('form-control form-control-sm');
+              $(element)
+                .find('.col-form-label')
+                .removeClass('col-form-label col-form-label-sm');
+            }
+            $(element).removeAttr('data-dismiss data-bs-dismiss');
+            $(element)
+              .find('[data-dismiss], [data-bs-dismiss]')
+              .removeAttr('data-dismiss data-bs-dismiss');
+          } else {
+            $(element)
+              .find('.altEditor-footer button')
+              .removeClass('button secondary');
+            $(element).removeAttr('data-reveal');
+            $(element).find('[data-close]').removeAttr('data-close');
+          }
+        }
+        adapter.show(element);
+      } catch (error) {
+        this._opening = false;
+        this._cleanupPlugins();
         this._showErrorMessage(error.message);
         emit(this, 'error', { action: 'open', mode: 'dialog', error });
         return false;
       }
-      this._adapter = adapter;
-      fill();
-      adapter.show($(selector)[0]);
     },
     internalCloseDialog: function (selector) {
       if (this._adapter) this._adapter.hide($(selector)[0]);
@@ -531,9 +778,12 @@
 
       this._initLanguage();
 
-      var modal = document.createElement('div');
-      modal.className = 'modal fade altEditor-modal reveal';
-      modal.style.display = 'none';
+      const useNative = this.c.dialog.framework === 'native';
+      var modal = document.createElement(useNative ? 'dialog' : 'div');
+      modal.className = useNative
+        ? 'altEditor-modal altEditor-native'
+        : 'modal fade altEditor-modal reveal';
+      if (!useNative) modal.style.display = 'none';
       modal.id = modalId;
       modal.setAttribute('role', 'dialog');
       modal.setAttribute('aria-modal', 'true');
@@ -547,13 +797,14 @@
       modal.tabIndex = -1;
 
       var dialog = document.createElement('div');
-      dialog.className = 'modal-dialog modal-lg';
+      dialog.className = useNative ? 'altEditor-dialog' : 'modal-dialog modal-lg';
       var content = document.createElement('div');
-      content.className = 'modal-content';
+      content.className =
+        'altEditor-content' + (useNative ? '' : ' modal-content');
       var header = document.createElement('div');
-      header.className = 'modal-header';
+      header.className = 'altEditor-header' + (useNative ? '' : ' modal-header');
       var title = document.createElement('h4');
-      title.className = 'modal-title';
+      title.className = 'altEditor-title' + (useNative ? '' : ' modal-title');
       title.id = titleId;
       var closeButton = document.createElement('button');
       closeButton.type = 'button';
@@ -570,16 +821,23 @@
       header.appendChild(closeButton);
 
       var body = document.createElement('div');
-      body.className = 'modal-body';
+      body.className = 'altEditor-body' + (useNative ? '' : ' modal-body');
       body.id = bodyId;
       var footer = document.createElement('div');
-      footer.className = 'modal-footer';
+      footer.className = 'altEditor-footer' + (useNative ? '' : ' modal-footer');
 
       content.appendChild(header);
       content.appendChild(body);
       content.appendChild(footer);
       dialog.appendChild(content);
       modal.appendChild(dialog);
+      if (useNative) {
+        [modal, closeButton].forEach((node) => {
+          [...node.attributes]
+            .filter((attr) => attr.name.startsWith('data-'))
+            .forEach((attr) => node.removeAttribute(attr.name));
+        });
+      }
       document.body.appendChild(modal);
 
       var $modal = $(this.modal_selector);
@@ -606,8 +864,33 @@
         that._setDialogSubmitting(false);
         if (that._returnFocus && that._returnFocus.isConnected)
           that._returnFocus.focus();
-        emit(that, 'close', { action: that._action, mode: 'dialog' });
+        try {
+          that._notifyDialog('close', 'onClose');
+        } catch (error) {
+          emit(that, 'error', { action: that._action, mode: 'dialog', error });
+        }
       };
+      if (useNative) {
+        $modal.on(
+          'close' +
+            this.s.namespace +
+            ' alteditor-native-closed' +
+            this.s.namespace,
+          function () {
+            if (!this.open) cleanupDialog.call(this);
+          }
+        );
+        $modal.on('cancel' + this.s.namespace, function (event) {
+          event.preventDefault();
+        });
+        $modal.on(
+          'click' + this.s.namespace,
+          '.altEditor-close, [data-alteditor-close]',
+          function () {
+            if (!that._submitting) that.internalCloseDialog(that.modal_selector);
+          }
+        );
+      }
       $modal.on('hidden.bs.modal' + this.s.namespace, cleanupDialog);
       $modal.on('hide.bs.modal' + this.s.namespace, function (event) {
         if (that._submitting && !that._destroyed) event.preventDefault();
@@ -699,6 +982,8 @@
           fileSize: 'File exceeds the configured size limit',
           dialogFramework:
             'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs',
+          nativeDialog:
+            'Native dialogs require a browser with HTMLDialogElement.showModal support',
         },
       };
 
@@ -720,12 +1005,12 @@
         .attr('aria-label', this.language.modalClose);
       if (this._dialogOpen) {
         const modal = $(this.modal_selector);
-        modal.find('.modal-title').text(this.language[this._action].title);
+        modal.find('.altEditor-title').text(this.language[this._action].title);
         modal
-          .find('.modal-footer [type="submit"]')
+          .find('.altEditor-footer [type="submit"]')
           .text(this.language[this._action].button);
         modal
-          .find('.modal-footer [type="button"]')
+          .find('.altEditor-footer [type="button"]')
           .text(this.language.modalClose);
         modal.find('.altEditor-delete-message').text(this.language.deleteMessage);
       }
@@ -746,6 +1031,7 @@
       var rowData = selectedRows.data()[0];
       if (rowIndex === undefined || rowData === undefined) return;
 
+      if (!this._beginDialog('edit', [rowData])) return false;
       this._editSnapshot = snapshotRow(dt.row(rowIndex));
 
       var columnDefs = this.completeColumnDefs();
@@ -795,6 +1081,8 @@
         return false;
       }
 
+      if (!this._beginDialog('delete', selectedRows.data().toArray()))
+        return false;
       this._deleteSnapshot = {
         rowIndexes: selectedRows.indexes().toArray(),
         rows: selectedRows.data().toArray(),
@@ -809,11 +1097,22 @@
       var formName = 'altEditor-delete-form-' + this.random_id;
       var that = this;
       var fill = function () {
+        const body = $('<div/>').append(
+          $('<p/>', { class: 'altEditor-delete-message' }).text(
+            that.language.deleteMessage
+          )
+        );
+        const details = deletionContent(
+          that.c.dialog.deleteDetails,
+          that._dialogContext
+        );
+        if (details)
+          body.append(
+            $('<div/>', { class: 'altEditor-delete-details' }).append(details)
+          );
         renderDialog($(selector), {
           title: that.language.delete.title,
-          body: $('<p/>', { class: 'altEditor-delete-message' }).text(
-            that.language.deleteMessage
-          ),
+          body,
           closeCaption: that.language.modalClose,
           buttonCaption: that.language.delete.button,
           buttonId: 'deleteRowBtn',
@@ -834,6 +1133,7 @@
      */
     openAddDialog: function () {
       if (!this._prepareDialog()) return false;
+      if (!this._beginDialog('add', [])) return false;
       var columnDefs = this.completeColumnDefs();
       if (
         this.createDialog(
@@ -895,7 +1195,9 @@
         .prop('disabled', this._submitting)
         .attr('aria-busy', this._submitting ? 'true' : 'false');
       $modal
-        .find('button[data-dismiss="modal"], button[data-close]')
+        .find(
+          'button[data-dismiss="modal"], button[data-close], .altEditor-close, [data-alteditor-close]'
+        )
         .prop('disabled', this._submitting);
     },
     _completeSuccessfulSubmit: function () {
@@ -910,9 +1212,14 @@
       }
     },
     _showSuccessMessage: function () {
-      var $body = $(this.modal_selector).find('.modal-body');
-      $body.find('.alert').remove();
-      var $alert = $('<div/>', { class: 'alert alert-success', role: 'alert' });
+      var $body = $(this.modal_selector).find('.altEditor-body');
+      $body.find('.altEditor-feedback').remove();
+      var $alert = $('<div/>', {
+        class: $(this.modal_selector).is('dialog')
+          ? 'altEditor-feedback'
+          : 'altEditor-feedback alert alert-success',
+        role: 'alert',
+      });
       $('<strong/>').text(this.language.success).appendTo($alert);
       $body.append($alert);
     },
@@ -921,7 +1228,7 @@
         if (message) console.error(message);
         return;
       }
-      var $body = $(this.modal_selector).find('.modal-body');
+      var $body = $(this.modal_selector).find('.altEditor-body');
       if (!this._dialogOpen) {
         if (!this._message)
           this._message = $('<div/>', {
@@ -929,8 +1236,13 @@
           }).insertBefore(this.api().table().node());
         $body = this._message;
       }
-      $body.find('.alert').remove();
-      var $alert = $('<div/>', { class: 'alert alert-danger', role: 'alert' });
+      $body.find('.altEditor-feedback').remove();
+      var $alert = $('<div/>', {
+        class: $(this.modal_selector).is('dialog')
+          ? 'altEditor-feedback'
+          : 'altEditor-feedback alert alert-danger',
+        role: 'alert',
+      });
       $('<strong/>').text(this.language.error.label).appendTo($alert);
       if (message) {
         $('<br/>').appendTo($alert);
@@ -1207,7 +1519,11 @@
       var fill = function () {
         renderDialog($(selector), {
           title: modalTitle,
-          body: fragment.cloneNode(true),
+          body: applyTemplate(
+            that.c.dialog.templates[buttonClass === 'addRowBtn' ? 'add' : 'edit'],
+            fragment.cloneNode(true),
+            that._dialogContext
+          ),
           closeCaption,
           buttonCaption,
           buttonId: buttonClass,

@@ -1,15 +1,18 @@
+import * as native from './adapters/native.js';
+import { deletionContent } from './template.js';
 import * as bootstrap from './adapters/bootstrap.js';
 import * as foundation from './adapters/foundation.js';
 import { renderDialog } from './dialog-view.js';
 import { emit } from '../core/events.js';
 import { mergeOptions, isPlainObject } from '../core/options.js';
 import { $, document } from '../core/dependencies.js';
-import { snapshotRow } from '../data/row-data.js';
+import { snapshotRow, cloneRow } from '../data/row-data.js';
 import { fieldElement, equalFieldValues } from '../data/field-values.js';
 export const methods = {
   _prepareDialog: function () {
     if (
       this._destroyed ||
+      this._opening ||
       this._submitting ||
       (this._inline &&
         this._inline.session &&
@@ -18,7 +21,39 @@ export const methods = {
       return false;
     if (this._inline) this._inline.cancel('dialog', false);
     this._cleanupPlugins();
-    return true;
+    return !this._destroyed;
+  },
+  _beginDialog: function (action, rows) {
+    this._opening = true;
+    this._dialogContext = {
+      editor: this,
+      action,
+      mode: 'dialog',
+      rows: rows.map((row) => cloneRow(row)),
+    };
+    try {
+      if (
+        !this._notifyDialog('before-open', 'onBeforeOpen') ||
+        this._destroyed
+      ) {
+        this._opening = false;
+        return false;
+      }
+      return true;
+    } catch (error) {
+      this._opening = false;
+      emit(this, 'error', { action: 'open', mode: 'dialog', error });
+      return false;
+    }
+  },
+  _notifyDialog: function (name, callbackName, extra) {
+    const detail = Object.assign({}, this._dialogContext, extra);
+    const accepted = emit(this, name, detail);
+    if (this._destroyed) return false;
+    const callback = this.c.dialog[callbackName];
+    return (
+      (typeof callback !== 'function' || callback(detail) !== false) && accepted
+    );
   },
   _bindDialog: function (action) {
     if (this._message) this._message.empty();
@@ -40,24 +75,99 @@ export const methods = {
               : '_deleteRow'
         ]();
       });
-    emit(this, 'open', { action, mode: 'dialog' });
+    try {
+      this._notifyDialog('dialog-render', 'onRender', {
+        dialog: $(this.modal_selector)[0],
+        form: $(this.modal_selector).find('form')[0],
+      });
+    } catch (error) {
+      emit(this, 'error', { action, mode: 'dialog', error });
+    }
+    this._opening = false;
+    if (!this._destroyed && this._dialogOpen)
+      emit(this, 'open', Object.assign({}, this._dialogContext));
   },
   internalOpenDialog: function (selector, fill) {
     this._returnFocus = document.activeElement;
-    const adapter = bootstrap.available()
-      ? bootstrap
-      : foundation.available()
-        ? foundation
-        : null;
-    if (!adapter) {
-      const error = new Error(this.language.error.dialogFramework);
+    const framework = this.c.dialog.framework;
+    const element = $(selector)[0];
+    const adapter =
+      framework === 'native'
+        ? native.available(element)
+          ? native
+          : null
+        : framework === 'bootstrap'
+          ? bootstrap.available()
+            ? bootstrap
+            : null
+          : framework === 'foundation'
+            ? foundation.available()
+              ? foundation
+              : null
+            : bootstrap.available()
+              ? bootstrap
+              : foundation.available()
+                ? foundation
+                : null;
+    try {
+      if (!adapter)
+        throw new Error(
+          framework === 'native'
+            ? this.language.error.nativeDialog
+            : this.language.error.dialogFramework
+        );
+      this._adapter = adapter;
+      fill();
+      if (this._destroyed) {
+        this._opening = false;
+        return false;
+      }
+      if (framework !== 'native') {
+        $(element).toggleClass('reveal', adapter === foundation);
+        if (adapter === foundation) {
+          $(element)
+            .find('.altEditor-footer button')
+            .removeClass(
+              'btn btn-default btn-secondary btn-primary btn-danger'
+            );
+          if (framework === 'foundation') {
+            $(element).removeClass('modal fade');
+            $(element)
+              .find('.modal-dialog')
+              .removeClass('modal-dialog modal-lg');
+            ['content', 'header', 'title', 'body', 'footer'].forEach((part) =>
+              $(element)
+                .find('.altEditor-' + part)
+                .removeClass('modal-' + part)
+            );
+            $(element)
+              .find('.form-control')
+              .addClass('altEditor-control')
+              .removeClass('form-control form-control-sm');
+            $(element)
+              .find('.col-form-label')
+              .removeClass('col-form-label col-form-label-sm');
+          }
+          $(element).removeAttr('data-dismiss data-bs-dismiss');
+          $(element)
+            .find('[data-dismiss], [data-bs-dismiss]')
+            .removeAttr('data-dismiss data-bs-dismiss');
+        } else {
+          $(element)
+            .find('.altEditor-footer button')
+            .removeClass('button secondary');
+          $(element).removeAttr('data-reveal');
+          $(element).find('[data-close]').removeAttr('data-close');
+        }
+      }
+      adapter.show(element);
+    } catch (error) {
+      this._opening = false;
+      this._cleanupPlugins();
       this._showErrorMessage(error.message);
       emit(this, 'error', { action: 'open', mode: 'dialog', error });
       return false;
     }
-    this._adapter = adapter;
-    fill();
-    adapter.show($(selector)[0]);
   },
   internalCloseDialog: function (selector) {
     if (this._adapter) this._adapter.hide($(selector)[0]);
@@ -76,9 +186,12 @@ export const methods = {
 
     this._initLanguage();
 
-    var modal = document.createElement('div');
-    modal.className = 'modal fade altEditor-modal reveal';
-    modal.style.display = 'none';
+    const useNative = this.c.dialog.framework === 'native';
+    var modal = document.createElement(useNative ? 'dialog' : 'div');
+    modal.className = useNative
+      ? 'altEditor-modal altEditor-native'
+      : 'modal fade altEditor-modal reveal';
+    if (!useNative) modal.style.display = 'none';
     modal.id = modalId;
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
@@ -92,13 +205,14 @@ export const methods = {
     modal.tabIndex = -1;
 
     var dialog = document.createElement('div');
-    dialog.className = 'modal-dialog modal-lg';
+    dialog.className = useNative ? 'altEditor-dialog' : 'modal-dialog modal-lg';
     var content = document.createElement('div');
-    content.className = 'modal-content';
+    content.className =
+      'altEditor-content' + (useNative ? '' : ' modal-content');
     var header = document.createElement('div');
-    header.className = 'modal-header';
+    header.className = 'altEditor-header' + (useNative ? '' : ' modal-header');
     var title = document.createElement('h4');
-    title.className = 'modal-title';
+    title.className = 'altEditor-title' + (useNative ? '' : ' modal-title');
     title.id = titleId;
     var closeButton = document.createElement('button');
     closeButton.type = 'button';
@@ -115,16 +229,23 @@ export const methods = {
     header.appendChild(closeButton);
 
     var body = document.createElement('div');
-    body.className = 'modal-body';
+    body.className = 'altEditor-body' + (useNative ? '' : ' modal-body');
     body.id = bodyId;
     var footer = document.createElement('div');
-    footer.className = 'modal-footer';
+    footer.className = 'altEditor-footer' + (useNative ? '' : ' modal-footer');
 
     content.appendChild(header);
     content.appendChild(body);
     content.appendChild(footer);
     dialog.appendChild(content);
     modal.appendChild(dialog);
+    if (useNative) {
+      [modal, closeButton].forEach((node) => {
+        [...node.attributes]
+          .filter((attr) => attr.name.startsWith('data-'))
+          .forEach((attr) => node.removeAttribute(attr.name));
+      });
+    }
     document.body.appendChild(modal);
 
     var $modal = $(this.modal_selector);
@@ -151,8 +272,33 @@ export const methods = {
       that._setDialogSubmitting(false);
       if (that._returnFocus && that._returnFocus.isConnected)
         that._returnFocus.focus();
-      emit(that, 'close', { action: that._action, mode: 'dialog' });
+      try {
+        that._notifyDialog('close', 'onClose');
+      } catch (error) {
+        emit(that, 'error', { action: that._action, mode: 'dialog', error });
+      }
     };
+    if (useNative) {
+      $modal.on(
+        'close' +
+          this.s.namespace +
+          ' alteditor-native-closed' +
+          this.s.namespace,
+        function () {
+          if (!this.open) cleanupDialog.call(this);
+        }
+      );
+      $modal.on('cancel' + this.s.namespace, function (event) {
+        event.preventDefault();
+      });
+      $modal.on(
+        'click' + this.s.namespace,
+        '.altEditor-close, [data-alteditor-close]',
+        function () {
+          if (!that._submitting) that.internalCloseDialog(that.modal_selector);
+        }
+      );
+    }
     $modal.on('hidden.bs.modal' + this.s.namespace, cleanupDialog);
     $modal.on('hide.bs.modal' + this.s.namespace, function (event) {
       if (that._submitting && !that._destroyed) event.preventDefault();
@@ -244,6 +390,8 @@ export const methods = {
         fileSize: 'File exceeds the configured size limit',
         dialogFramework:
           'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs',
+        nativeDialog:
+          'Native dialogs require a browser with HTMLDialogElement.showModal support',
       },
     };
 
@@ -265,12 +413,12 @@ export const methods = {
       .attr('aria-label', this.language.modalClose);
     if (this._dialogOpen) {
       const modal = $(this.modal_selector);
-      modal.find('.modal-title').text(this.language[this._action].title);
+      modal.find('.altEditor-title').text(this.language[this._action].title);
       modal
-        .find('.modal-footer [type="submit"]')
+        .find('.altEditor-footer [type="submit"]')
         .text(this.language[this._action].button);
       modal
-        .find('.modal-footer [type="button"]')
+        .find('.altEditor-footer [type="button"]')
         .text(this.language.modalClose);
       modal.find('.altEditor-delete-message').text(this.language.deleteMessage);
     }
@@ -291,6 +439,7 @@ export const methods = {
     var rowData = selectedRows.data()[0];
     if (rowIndex === undefined || rowData === undefined) return;
 
+    if (!this._beginDialog('edit', [rowData])) return false;
     this._editSnapshot = snapshotRow(dt.row(rowIndex));
 
     var columnDefs = this.completeColumnDefs();
@@ -340,6 +489,8 @@ export const methods = {
       return false;
     }
 
+    if (!this._beginDialog('delete', selectedRows.data().toArray()))
+      return false;
     this._deleteSnapshot = {
       rowIndexes: selectedRows.indexes().toArray(),
       rows: selectedRows.data().toArray(),
@@ -354,11 +505,22 @@ export const methods = {
     var formName = 'altEditor-delete-form-' + this.random_id;
     var that = this;
     var fill = function () {
+      const body = $('<div/>').append(
+        $('<p/>', { class: 'altEditor-delete-message' }).text(
+          that.language.deleteMessage
+        )
+      );
+      const details = deletionContent(
+        that.c.dialog.deleteDetails,
+        that._dialogContext
+      );
+      if (details)
+        body.append(
+          $('<div/>', { class: 'altEditor-delete-details' }).append(details)
+        );
       renderDialog($(selector), {
         title: that.language.delete.title,
-        body: $('<p/>', { class: 'altEditor-delete-message' }).text(
-          that.language.deleteMessage
-        ),
+        body,
         closeCaption: that.language.modalClose,
         buttonCaption: that.language.delete.button,
         buttonId: 'deleteRowBtn',
@@ -379,6 +541,7 @@ export const methods = {
    */
   openAddDialog: function () {
     if (!this._prepareDialog()) return false;
+    if (!this._beginDialog('add', [])) return false;
     var columnDefs = this.completeColumnDefs();
     if (
       this.createDialog(
@@ -440,7 +603,9 @@ export const methods = {
       .prop('disabled', this._submitting)
       .attr('aria-busy', this._submitting ? 'true' : 'false');
     $modal
-      .find('button[data-dismiss="modal"], button[data-close]')
+      .find(
+        'button[data-dismiss="modal"], button[data-close], .altEditor-close, [data-alteditor-close]'
+      )
       .prop('disabled', this._submitting);
   },
   _completeSuccessfulSubmit: function () {
@@ -455,9 +620,14 @@ export const methods = {
     }
   },
   _showSuccessMessage: function () {
-    var $body = $(this.modal_selector).find('.modal-body');
-    $body.find('.alert').remove();
-    var $alert = $('<div/>', { class: 'alert alert-success', role: 'alert' });
+    var $body = $(this.modal_selector).find('.altEditor-body');
+    $body.find('.altEditor-feedback').remove();
+    var $alert = $('<div/>', {
+      class: $(this.modal_selector).is('dialog')
+        ? 'altEditor-feedback'
+        : 'altEditor-feedback alert alert-success',
+      role: 'alert',
+    });
     $('<strong/>').text(this.language.success).appendTo($alert);
     $body.append($alert);
   },
@@ -466,7 +636,7 @@ export const methods = {
       if (message) console.error(message);
       return;
     }
-    var $body = $(this.modal_selector).find('.modal-body');
+    var $body = $(this.modal_selector).find('.altEditor-body');
     if (!this._dialogOpen) {
       if (!this._message)
         this._message = $('<div/>', {
@@ -474,8 +644,13 @@ export const methods = {
         }).insertBefore(this.api().table().node());
       $body = this._message;
     }
-    $body.find('.alert').remove();
-    var $alert = $('<div/>', { class: 'alert alert-danger', role: 'alert' });
+    $body.find('.altEditor-feedback').remove();
+    var $alert = $('<div/>', {
+      class: $(this.modal_selector).is('dialog')
+        ? 'altEditor-feedback'
+        : 'altEditor-feedback alert alert-danger',
+      role: 'alert',
+    });
     $('<strong/>').text(this.language.error.label).appendTo($alert);
     if (message) {
       $('<br/>').appendTo($alert);
