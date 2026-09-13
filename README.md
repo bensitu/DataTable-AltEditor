@@ -133,7 +133,7 @@ Readable and minified UMD files are available with source maps. AMD consumers ma
 
 ## Contributing and support
 
-Use the English [Issue templates](https://github.com/bensitu/DataTable-AltEditor/issues/new/choose) for bugs, feature requests, and documentation questions. Include a small reproduction with synthetic data when reporting a bug. Pull requests should describe the change and relevant verification; see [CONTRIBUTING.md](CONTRIBUTING.md).
+Include a small reproduction with synthetic data when reporting a bug. Pull requests should describe the change and relevant verification; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report security concerns through the [Security Policy](SECURITY.md), keeping vulnerability details out of public issues.
 
