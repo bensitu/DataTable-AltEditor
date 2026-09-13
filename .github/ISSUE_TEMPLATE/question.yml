@@ -1,0 +1,15 @@
+name: Documentation or usage question
+description: Ask about an integration or identify unclear documentation.
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question or documentation problem
+      description: Describe what you need to do or which explanation needs improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant documentation, example, or configuration
+      description: Include links, a small configuration, and versions when relevant. Do not include private data.

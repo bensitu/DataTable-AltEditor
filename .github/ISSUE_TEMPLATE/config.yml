@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation and examples
+    url: https://github.com/bensitu/DataTable-AltEditor/blob/develop/docs/README.md
+    about: Find guides, API details, and links to live examples.
+  - name: Report a security vulnerability
+    url: https://github.com/bensitu/DataTable-AltEditor/blob/develop/SECURITY.md
+    about: Follow the private reporting instructions before sharing vulnerability details.

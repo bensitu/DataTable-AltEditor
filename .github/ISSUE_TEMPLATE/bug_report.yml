@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible problem with AltEditor.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. Please use synthetic data and omit credentials.
+        For vulnerabilities, follow the [Security Policy](https://github.com/bensitu/DataTable-AltEditor/blob/develop/SECURITY.md) instead of posting details here.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal configuration or reproduction link. Mention the closest example if relevant.
+      placeholder: |
+        1. Open or initialize...
+        2. Select or edit...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Versions and environment
+      description: Include AltEditor version or commit, DataTables, jQuery, browser/OS, and any dialog framework or optional plugins. For build problems, include Node.js and npm.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or screenshots
+      description: Optional console/network output or screenshots. Remove personal data and secrets.

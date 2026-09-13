@@ -2,6 +2,10 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
+## Contribution templates
+
+Merge `.github/ISSUE_TEMPLATE/` and `.github/PULL_REQUEST_TEMPLATE.md` into the default branch to make the templates available on GitHub. The Issue chooser provides bug reports, feature requests, and documentation or usage questions, while retaining blank issues for other topics. No workflow run or deployment is needed to activate the templates.
+
 ## GitHub Pages
 
 The `Deploy examples` workflow builds and deploys the static demonstration site after pushes to `master`. It also supports manual execution from the repository's default branch. Other branches cannot deploy through this workflow. If the default branch changes, update the push branch filter in `.github/workflows/pages.yml`.
