@@ -36,6 +36,61 @@ afterEach(() => {
 });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+test('does not persist after a submit listener destroys the editor', async () => {
+  const save = vi.fn();
+  const { editor, table } = create({ onEditRow: save });
+  editor.openEditDialog(0);
+  table.on('alteditor-submit.dt', () => editor.destroy());
+  await editor._editRowData();
+  expect(save).not.toHaveBeenCalled();
+  expect(table.row(0).data().name).toBe('Alice');
+});
+
+test('retains submitted fields and leaves a newly opened dialog active after success', async () => {
+  let accept;
+  const { editor, table } = create({
+    closeModalOnSuccess: true,
+    onEditRow: (_editor, _values, success) => {
+      accept = success;
+    },
+  });
+  editor.internalCloseDialog = vi.fn();
+  editor.openEditDialog(0);
+  const field = document.querySelector(
+    editor.modal_selector + ' [name="name"]'
+  );
+  field.value = 'Ann';
+  await editor._editRowData();
+  field.disabled = true;
+  field.value = 'Changed while saving';
+  table.one('alteditor-success.dt', () => editor.openAddDialog());
+  accept();
+  expect(table.row(0).data().name).toBe('Ann');
+  expect(editor._action).toBe('add');
+  expect(editor._dialogOpen).toBe(true);
+  expect(editor.internalCloseDialog).not.toHaveBeenCalled();
+});
+
+test('refresh stops at destruction and ignores late completion', () => {
+  const { editor, table } = create();
+  let complete;
+  vi.spyOn(editor.api().ajax, 'url').mockReturnValue('/rows');
+  const reload = vi
+    .spyOn(editor.api().ajax, 'reload')
+    .mockImplementation((callback) => {
+      complete = callback;
+    });
+  const success = vi.fn();
+  table.on('alteditor-success.dt', success);
+  editor.refresh();
+  expect(reload).toHaveBeenCalledOnce();
+  editor.destroy();
+  complete();
+  editor.refresh();
+  expect(success).not.toHaveBeenCalled();
+  expect(reload).toHaveBeenCalledOnce();
+});
+
 test('rejects oversized files before encoding and permits a smaller replacement', async () => {
   const { editor, table } = create({
     columns: [

@@ -34,6 +34,8 @@ Dialog add/edit callbacks receive enabled form values; disabled controls are omi
 
 Call `success(persistedRow)` with a row object or array. Calling `success()` uses the submitted candidate; dialog editing preserves fields outside the form. JSON row strings are accepted. Delete ignores the response body. Call `error(errorValue)` to retain the form for correction and retry. Error content is rendered as text. Only the first success or error settlement is accepted, and callbacks completed after destruction are ignored.
 
+Dialog editing captures eligible fields before asynchronous collection and constructs its candidate before invoking persistence. Changing form controls or disabling them while the request is pending does not change the submitted candidate. Return `success(persistedRow)` explicitly for server-adjusted data.
+
 Assign this function to `onEditRow` in the DataTable configuration:
 
 ```js

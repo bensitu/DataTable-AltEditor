@@ -26,6 +26,8 @@ Dialog payloads use `action` (add, edit, delete, or refresh) and `mode: 'dialog'
 
 `alteditor-error.dt` also reports unavailable dialog frameworks with `action: 'open'` and `mode: 'dialog'`, and translation loading or validation failures with `action: 'language'`. Missing frameworks prevent the dialog from opening and display a message. Translation failures keep the existing labels and produce a console warning. Invalid automatic editor configuration is logged before an editor is attached, so it does not emit an editor event.
 
+If a submission event handler destroys the editor, its persistence callback is not invoked afterward. Refresh completion is ignored after destruction. A dialog opened by a success handler is independent of the completed dialog and remains open.
+
 ## Inline lifecycle
 
 | Event                            | Meaning                                                          |

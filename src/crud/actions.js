@@ -92,6 +92,21 @@ export const methods = {
       fail(new Error(errors.join('\n')));
       return;
     }
+    if (!active()) return;
+    const fieldNames = form
+      .find('input, select, textarea')
+      .filter(function () {
+        return (
+          !this.disabled &&
+          this.name &&
+          (this.type !== 'radio' || this.checked) &&
+          (this.type !== 'file' || this.files.length)
+        );
+      })
+      .map(function () {
+        return this.name;
+      })
+      .get();
     this._setDialogSubmitting(true);
     let collection;
     try {
@@ -120,6 +135,16 @@ export const methods = {
         )
           throw new Error(editor.language.error.targetUnavailable);
         emit(editor, 'submit', payload);
+        if (!active()) return;
+        let candidate = action === 'edit' ? snapshot.originalData : values;
+        if (action === 'edit')
+          fieldNames.forEach((name) => {
+            candidate = withValue(
+              candidate,
+              name,
+              editor._getValueByPath(values, name)
+            );
+          });
         const callback =
           editor[
             action === 'add'
@@ -145,23 +170,6 @@ export const methods = {
                   throw new Error(editor.language.error.targetUnavailable);
                 api.rows(rows.map((row) => row.index())).remove();
               } else {
-                let candidate =
-                  action === 'edit' ? snapshot.originalData : values;
-                if (action === 'edit') {
-                  form.find('input, select, textarea').each(function () {
-                    if (
-                      !this.disabled &&
-                      this.name &&
-                      (this.type !== 'radio' || this.checked) &&
-                      (this.type !== 'file' || this.files.length)
-                    )
-                      candidate = withValue(
-                        candidate,
-                        this.name,
-                        editor._getValueByPath(values, this.name)
-                      );
-                  });
-                }
                 const data =
                   response === undefined || response === values
                     ? candidate
@@ -177,10 +185,11 @@ export const methods = {
                 }
               }
               api.draw(false);
+              if (!active()) return;
               editor._completed = true;
               editor._setDialogSubmitting(false);
               emit(editor, 'success', payload);
-              editor._completeSuccessfulSubmit();
+              if (active()) editor._completeSuccessfulSubmit();
             } catch (error) {
               fail(error);
             }

@@ -155,15 +155,20 @@ export function createAltEditor(DataTable) {
       },
       /** Refresh Ajax data, or redraw client-side data. */
       refresh: function () {
+        if (this._destroyed) return;
         const api = this.api();
         const payload = { action: 'refresh', mode: 'dialog' };
         if (!emit(this, 'pre-submit', payload)) return;
+        if (this._destroyed) return;
         emit(this, 'submit', payload);
-        if (api.ajax.url())
-          api.ajax.reload(() => emit(this, 'success', payload), false);
+        if (this._destroyed) return;
+        const complete = () => {
+          if (!this._destroyed) emit(this, 'success', payload);
+        };
+        if (api.ajax.url()) api.ajax.reload(complete, false);
         else {
           api.draw(false);
-          emit(this, 'success', payload);
+          complete();
         }
       },
       /** Dispose editor-owned listeners, integrations, and dialog elements. */

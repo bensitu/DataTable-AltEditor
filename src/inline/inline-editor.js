@@ -306,8 +306,11 @@ export class InlineEditor {
           this.release(session);
           this.session = null;
           row.data(candidate).draw(false);
+          if (this.editor._destroyed) return;
           this.event('success', session);
+          if (this.editor._destroyed) return;
           this.event('close', session, { reason: 'success' });
+          if (this.editor._destroyed) return;
           if (
             direction &&
             this.editor.c.inlineEdit.tabNavigation &&

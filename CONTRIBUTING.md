@@ -38,6 +38,8 @@ CDN URLs in examples are maintained manually and are outside the npm update conf
 
 ## Making changes
 
+Read the [architecture guide](docs/architecture.md) for module responsibilities and operation lifetime before changing editor behavior.
+
 Use English comments and neutral, professional language. Keep examples short, explicit, and suitable for copying into an application. Edit modular JavaScript and CSS under `src/`, not generated distribution files. Keep public API changes and documentation consistent. Preserve MIT attribution.
 
 Add release notes under the corresponding version in [CHANGELOG.md](CHANGELOG.md). Keep historical entries intact. Translation changes should preserve the documented JSON structure and use plain text; see [Translations](docs/translations.md).

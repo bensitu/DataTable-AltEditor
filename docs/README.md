@@ -18,6 +18,7 @@ Start with the [quick start](../README.md#get-started), then choose a guide for 
 
 ## Contributing and project policies
 
+- [Architecture](architecture.md): module responsibilities, shared behavior, and operation lifetime.
 - [Contributing](../CONTRIBUTING.md): local development, useful tests, documentation, and pull requests.
 - [Changelog](../CHANGELOG.md): version history and compatibility changes.
 - [Security policy](../SECURITY.md): supported versions and private reporting.

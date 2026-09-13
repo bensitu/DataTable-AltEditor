@@ -16,6 +16,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Submission and refresh stop after destruction during event handlers. Dialog completions preserve the submitted field set and do not close a new dialog opened by a success handler.
 - Inline select options use the same missing-value defaults as dialog fields, and null native attributes are omitted.
 - Inline editing leaves rendered interactive controls intact and skips them during keyboard navigation. Example 14 demonstrates direct form controls, editable content, actions, and custom widgets alongside double-click editing and explains separate persistence handling.
 - Example pages link to their configuration source and guide. Documentation maps integration needs to examples and explains dependency loading, stored values, persistence, and reusable configuration.

@@ -1505,6 +1505,21 @@
         fail(new Error(errors.join('\n')));
         return;
       }
+      if (!active()) return;
+      const fieldNames = form
+        .find('input, select, textarea')
+        .filter(function () {
+          return (
+            !this.disabled &&
+            this.name &&
+            (this.type !== 'radio' || this.checked) &&
+            (this.type !== 'file' || this.files.length)
+          );
+        })
+        .map(function () {
+          return this.name;
+        })
+        .get();
       this._setDialogSubmitting(true);
       let collection;
       try {
@@ -1533,6 +1548,16 @@
           )
             throw new Error(editor.language.error.targetUnavailable);
           emit(editor, 'submit', payload);
+          if (!active()) return;
+          let candidate = action === 'edit' ? snapshot.originalData : values;
+          if (action === 'edit')
+            fieldNames.forEach((name) => {
+              candidate = withValue(
+                candidate,
+                name,
+                editor._getValueByPath(values, name)
+              );
+            });
           const callback =
             editor[
               action === 'add'
@@ -1558,23 +1583,6 @@
                     throw new Error(editor.language.error.targetUnavailable);
                   api.rows(rows.map((row) => row.index())).remove();
                 } else {
-                  let candidate =
-                    action === 'edit' ? snapshot.originalData : values;
-                  if (action === 'edit') {
-                    form.find('input, select, textarea').each(function () {
-                      if (
-                        !this.disabled &&
-                        this.name &&
-                        (this.type !== 'radio' || this.checked) &&
-                        (this.type !== 'file' || this.files.length)
-                      )
-                        candidate = withValue(
-                          candidate,
-                          this.name,
-                          editor._getValueByPath(values, this.name)
-                        );
-                    });
-                  }
                   const data =
                     response === undefined || response === values
                       ? candidate
@@ -1590,10 +1598,11 @@
                   }
                 }
                 api.draw(false);
+                if (!active()) return;
                 editor._completed = true;
                 editor._setDialogSubmitting(false);
                 emit(editor, 'success', payload);
-                editor._completeSuccessfulSubmit();
+                if (active()) editor._completeSuccessfulSubmit();
               } catch (error) {
                 fail(error);
               }
@@ -2016,8 +2025,11 @@
             this.release(session);
             this.session = null;
             row.data(candidate).draw(false);
+            if (this.editor._destroyed) return;
             this.event('success', session);
+            if (this.editor._destroyed) return;
             this.event('close', session, { reason: 'success' });
+            if (this.editor._destroyed) return;
             if (
               direction &&
               this.editor.c.inlineEdit.tabNavigation &&
@@ -2231,15 +2243,20 @@
         },
         /** Refresh Ajax data, or redraw client-side data. */
         refresh: function () {
+          if (this._destroyed) return;
           const api = this.api();
           const payload = { action: 'refresh', mode: 'dialog' };
           if (!emit(this, 'pre-submit', payload)) return;
+          if (this._destroyed) return;
           emit(this, 'submit', payload);
-          if (api.ajax.url())
-            api.ajax.reload(() => emit(this, 'success', payload), false);
+          if (this._destroyed) return;
+          const complete = () => {
+            if (!this._destroyed) emit(this, 'success', payload);
+          };
+          if (api.ajax.url()) api.ajax.reload(complete, false);
           else {
             api.draw(false);
-            emit(this, 'success', payload);
+            complete();
           }
         },
         /** Dispose editor-owned listeners, integrations, and dialog elements. */
