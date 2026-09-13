@@ -1,13 +1,15 @@
-import * as native from './adapters/native.js';
 import { deletionContent } from './template.js';
-import * as bootstrap from './adapters/bootstrap.js';
-import * as foundation from './adapters/foundation.js';
-import { renderDialog } from './dialog-view.js';
+import {
+  createDialogShell,
+  configureDialogFramework,
+  renderDialog,
+} from './dialog-view.js';
+import { selectAdapter } from './adapters/index.js';
 import { emit } from '../core/events.js';
-import { mergeOptions, isPlainObject } from '../core/options.js';
+import { resolveLanguage } from '../core/language.js';
 import { $, document } from '../core/dependencies.js';
 import { snapshotRow, cloneRow } from '../data/row-data.js';
-import { fieldElement, equalFieldValues } from '../data/field-values.js';
+import { equalFieldValues } from '../data/field-values.js';
 export const methods = {
   _prepareDialog: function () {
     if (
@@ -21,10 +23,10 @@ export const methods = {
     )
       return false;
     if (this._inline) this._inline.cancel('dialog', false);
-    this._cleanupPlugins();
     return !this._destroyed;
   },
   _beginDialog: function (action, rows) {
+    const previousContext = this._dialogContext;
     this._opening = true;
     this._dialogContext = {
       editor: this,
@@ -38,14 +40,29 @@ export const methods = {
         this._destroyed
       ) {
         this._opening = false;
+        this._dialogContext = previousContext;
         return false;
       }
       return true;
     } catch (error) {
       this._opening = false;
+      this._dialogContext = previousContext;
       emit(this, 'error', { action: 'open', mode: 'dialog', error });
       return false;
     }
+  },
+  _resolveOpeningRows: function (targets) {
+    const rows = targets.map((target) => this._resolveSnapshotRow(target));
+    if (rows.some((row) => !row)) {
+      this._opening = false;
+      this._dialogContext = null;
+      const error = new Error(this.language.error.targetUnavailable);
+      this._showErrorMessage(error.message);
+      emit(this, 'error', { action: 'open', mode: 'dialog', error });
+      return null;
+    }
+    this._dialogContext.rows = rows.map((row) => cloneRow(row.data()));
+    return rows;
   },
   _notifyDialog: function (name, callbackName, extra) {
     const detail = Object.assign({}, this._dialogContext, extra);
@@ -98,76 +115,27 @@ export const methods = {
     this._returnFocus = document.activeElement;
     const framework = this.c.dialog.framework;
     const element = $(selector)[0];
-    const adapter =
-      framework === 'native'
-        ? native.available(element)
-          ? native
-          : null
-        : framework === 'bootstrap'
-          ? bootstrap.available()
-            ? bootstrap
-            : null
-          : framework === 'foundation'
-            ? foundation.available()
-              ? foundation
-              : null
-            : bootstrap.available()
-              ? bootstrap
-              : foundation.available()
-                ? foundation
-                : null;
     try {
-      if (!adapter)
+      const selected = selectAdapter(framework, element);
+      if (!selected)
         throw new Error(
           framework === 'native'
             ? this.language.error.nativeDialog
             : this.language.error.dialogFramework
         );
-      this._adapter = adapter;
+      this._adapter = selected.api;
+      this._cleanupPlugins();
       fill();
       if (this._destroyed) {
         this._opening = false;
         return false;
       }
-      if (framework !== 'native') {
-        $(element).toggleClass('reveal', adapter === foundation);
-        if (adapter === foundation) {
-          $(element)
-            .find('.altEditor-footer button')
-            .removeClass(
-              'btn btn-default btn-secondary btn-primary btn-danger'
-            );
-          if (framework === 'foundation') {
-            $(element).removeClass('modal fade');
-            $(element)
-              .find('.modal-dialog')
-              .removeClass('modal-dialog modal-lg');
-            ['content', 'header', 'title', 'body', 'footer'].forEach((part) =>
-              $(element)
-                .find('.altEditor-' + part)
-                .removeClass('modal-' + part)
-            );
-            $(element)
-              .find('.form-control')
-              .addClass('altEditor-control')
-              .removeClass('form-control form-control-sm');
-            $(element)
-              .find('.col-form-label')
-              .removeClass('col-form-label col-form-label-sm');
-          }
-          $(element).removeAttr('data-dismiss data-bs-dismiss');
-          $(element)
-            .find('[data-dismiss], [data-bs-dismiss]')
-            .removeAttr('data-dismiss data-bs-dismiss');
-        } else {
-          $(element)
-            .find('.altEditor-footer button')
-            .removeClass('button secondary');
-          $(element).removeAttr('data-reveal');
-          $(element).find('[data-close]').removeAttr('data-close');
-        }
-      }
-      adapter.show(element);
+      configureDialogFramework(
+        $(element),
+        selected.name,
+        framework === 'foundation'
+      );
+      selected.api.show(element);
     } catch (error) {
       this._opening = false;
       this._cleanupPlugins();
@@ -190,72 +158,12 @@ export const methods = {
 
     this.random_id = this.s.namespace.slice(1);
     var modalId = 'altEditor-modal-' + this.random_id;
-    var titleId = modalId + '-title';
-    var bodyId = modalId + '-body';
     this.modal_selector = '#' + modalId;
 
     this._initLanguage();
 
     const useNative = this.c.dialog.framework === 'native';
-    var modal = document.createElement(useNative ? 'dialog' : 'div');
-    modal.className = useNative
-      ? 'altEditor-modal altEditor-native'
-      : 'modal fade altEditor-modal reveal';
-    if (!useNative) modal.style.display = 'none';
-    modal.id = modalId;
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', titleId);
-    modal.setAttribute('aria-describedby', bodyId);
-    modal.setAttribute('data-backdrop', 'static');
-    modal.setAttribute('data-keyboard', 'false');
-    modal.setAttribute('data-bs-backdrop', 'static');
-    modal.setAttribute('data-bs-keyboard', 'false');
-    modal.setAttribute('data-reveal', '');
-    modal.tabIndex = -1;
-
-    var dialog = document.createElement('div');
-    dialog.className = useNative ? 'altEditor-dialog' : 'modal-dialog modal-lg';
-    var content = document.createElement('div');
-    content.className =
-      'altEditor-content' + (useNative ? '' : ' modal-content');
-    var header = document.createElement('div');
-    header.className = 'altEditor-header' + (useNative ? '' : ' modal-header');
-    var title = document.createElement('h4');
-    title.className = 'altEditor-title' + (useNative ? '' : ' modal-title');
-    title.id = titleId;
-    var closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.className = 'altEditor-close';
-    closeButton.setAttribute('data-dismiss', 'modal');
-    closeButton.setAttribute('data-bs-dismiss', 'modal');
-    closeButton.setAttribute('data-close', '');
-    closeButton.setAttribute('aria-label', this.language.modalClose);
-    var closeGlyph = document.createElement('span');
-    closeGlyph.setAttribute('aria-hidden', 'true');
-    closeGlyph.textContent = '×';
-    closeButton.appendChild(closeGlyph);
-    header.appendChild(title);
-    header.appendChild(closeButton);
-
-    var body = document.createElement('div');
-    body.className = 'altEditor-body' + (useNative ? '' : ' modal-body');
-    body.id = bodyId;
-    var footer = document.createElement('div');
-    footer.className = 'altEditor-footer' + (useNative ? '' : ' modal-footer');
-
-    content.appendChild(header);
-    content.appendChild(body);
-    content.appendChild(footer);
-    dialog.appendChild(content);
-    modal.appendChild(dialog);
-    if (useNative) {
-      [modal, closeButton].forEach((node) => {
-        [...node.attributes]
-          .filter((attr) => attr.name.startsWith('data-'))
-          .forEach((attr) => node.removeAttribute(attr.name));
-      });
-    }
+    var modal = createDialogShell(modalId, useNative, this.language.modalClose);
     document.body.appendChild(modal);
 
     var $modal = $(this.modal_selector);
@@ -284,7 +192,9 @@ export const methods = {
       if (that._returnFocus && that._returnFocus.isConnected)
         that._returnFocus.focus();
       try {
+        const context = that._dialogContext;
         that._notifyDialog('close', 'onClose');
+        if (that._dialogContext === context) that._dialogContext = null;
       } catch (error) {
         emit(that, 'error', { action: that._action, mode: 'dialog', error });
       }
@@ -379,46 +289,9 @@ export const methods = {
     $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
   },
   _initLanguage: function (source) {
-    var defaults = {
-      modalClose: 'Close',
-      edit: { title: 'Edit record', button: 'Edit' },
-      delete: { title: 'Delete record', button: 'Delete' },
-      add: { title: 'Add record', button: 'Add' },
-      deleteMessage: 'Are you sure you wish to delete the selected row(s)?',
-      success: 'Success!',
-      error: {
-        message: 'There was an unknown error!',
-        label: 'Error!',
-        responseCode: 'Response code: ',
-        required: 'Field is required',
-        unique: 'Duplicated field',
-        editSelection: 'Exactly one row must be selected for editing.',
-        deleteSelection: 'At least one row must be selected for deletion.',
-        targetUnavailable: 'Target row is unavailable',
-        invalidResponse: 'Persistence must return a row object or array',
-        invalidSetter: 'inlineEditSetValue must return a row object or array',
-        fileRead: 'Failed to read file',
-        fileAborted: 'File read was aborted',
-        fileSize: 'File exceeds the configured size limit',
-        dialogFramework:
-          'Bootstrap Modal or Foundation Reveal is required to open AltEditor dialogs',
-        nativeDialog:
-          'Native dialogs require a browser with HTMLDialogElement.showModal support',
-      },
-    };
-
-    const input = source === undefined ? this.language : source;
-    if (!isPlainObject(input))
-      throw new TypeError('Language configuration must be an object');
-    const language = mergeOptions(defaults, input);
-    const validate = (expected, actual) =>
-      Object.keys(expected).every((key) =>
-        typeof expected[key] === 'string'
-          ? typeof actual[key] === 'string'
-          : isPlainObject(actual[key]) && validate(expected[key], actual[key])
-      );
-    if (!validate(defaults, language))
-      throw new TypeError('Language values must be strings');
+    const language = resolveLanguage(
+      source === undefined ? this.language : source
+    );
     this.language = language;
     $(this.modal_selector)
       .find('.altEditor-close')
@@ -451,8 +324,12 @@ export const methods = {
     var rowData = selectedRows.data()[0];
     if (rowIndex === undefined || rowData === undefined) return;
 
+    const target = snapshotRow(dt.row(rowIndex));
     if (!this._beginDialog('edit', [rowData])) return false;
-    this._editSnapshot = snapshotRow(dt.row(rowIndex));
+    const rows = this._resolveOpeningRows([target]);
+    if (!rows) return false;
+    this._editSnapshot = snapshotRow(rows[0]);
+    rowData = rows[0].data();
 
     var columnDefs = this.completeColumnDefs();
     if (
@@ -467,22 +344,7 @@ export const methods = {
     )
       return false;
 
-    var that = this;
-    columnDefs.forEach(function (columnDef) {
-      if (
-        typeof columnDef.name !== 'number' &&
-        typeof columnDef.name !== 'string'
-      )
-        return;
-      if (columnDef.editable === false) return;
-      var $element = fieldElement(that.modal_selector, columnDef.name).filter(
-        ':input[type!="file"]'
-      );
-      if (!$element.length) return;
-      var value = that._getValueByPath(rowData, columnDef.name);
-      that._setFieldValue($element, columnDef, value);
-      $element.trigger('change');
-    });
+    this._populateDialogFields(columnDefs, rowData);
 
     this._focusFirstInput();
     $(this.modal_selector)
@@ -501,16 +363,19 @@ export const methods = {
       return false;
     }
 
+    const targets = selectedRows
+      .indexes()
+      .toArray()
+      .map((index) => snapshotRow(this.s.dt.row(index)));
     if (!this._beginDialog('delete', selectedRows.data().toArray()))
       return false;
+    const rows = this._resolveOpeningRows(targets);
+    if (!rows) return false;
     this._deleteSnapshot = {
-      rowIndexes: selectedRows.indexes().toArray(),
-      rows: selectedRows.data().toArray(),
-      rowNodes: selectedRows.nodes().toArray(),
-      targets: selectedRows
-        .indexes()
-        .toArray()
-        .map((index) => snapshotRow(this.s.dt.row(index))),
+      rowIndexes: rows.map((row) => row.index()),
+      rows: rows.map((row) => row.data()),
+      rowNodes: rows.map((row) => row.node()),
+      targets: rows.map((row) => snapshotRow(row)),
     };
 
     var selector = this.modal_selector;
@@ -567,21 +432,7 @@ export const methods = {
     )
       return false;
 
-    var that = this;
-    columnDefs.forEach(function (columnDef) {
-      if (
-        typeof columnDef.name !== 'number' &&
-        typeof columnDef.name !== 'string'
-      )
-        return;
-      if (columnDef.value === null || columnDef.value === undefined) return;
-      var $element = fieldElement(that.modal_selector, columnDef.name).filter(
-        ':input[type!="file"]'
-      );
-      if (!$element.length) return;
-      that._setFieldValue($element, columnDef, columnDef.value);
-      $element.trigger('change');
-    });
+    this._populateDialogFields(columnDefs);
 
     this._focusFirstInput();
     $(this.modal_selector)

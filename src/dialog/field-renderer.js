@@ -1,7 +1,7 @@
 import { applyTemplate } from './template.js';
 import { renderDialog } from './dialog-view.js';
 import { $, document } from '../core/dependencies.js';
-import { normalizeSelectOptions } from '../data/field-values.js';
+import { normalizeSelectOptions, fieldElement } from '../data/field-values.js';
 import { isFieldPath } from '../data/path.js';
 
 export const methods = {
@@ -178,6 +178,23 @@ export const methods = {
     var temp = document.createElement('div');
     temp.appendChild(fragment.cloneNode(true));
     return temp.innerHTML;
+  },
+  _populateDialogFields: function (columns, rowData) {
+    for (const column of columns) {
+      if (this._destroyed) return;
+      if (!isFieldPath(column.name) || column.editable === false) continue;
+      const value =
+        rowData === undefined
+          ? column.value
+          : this._getValueByPath(rowData, column.name);
+      if (rowData === undefined && value == null) continue;
+      const element = fieldElement(this.modal_selector, column.name).filter(
+        ':input[type!="file"]'
+      );
+      if (!element.length) continue;
+      this._setFieldValue(element, column, value);
+      element.trigger('change');
+    }
   },
   _normalizeOptions: normalizeSelectOptions,
   _setElementAttributes: function (element, columnDef, attributes) {

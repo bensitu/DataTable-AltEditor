@@ -147,3 +147,32 @@ test('supports cancellation and prevents reentrant opening from lifecycle callba
   editor.c.dialog.onBeforeOpen = () => editor.destroy();
   expect(editor.openAddDialog()).toBe(false);
 });
+
+test.each(['openEditDialog', 'openDeleteDialog'])(
+  'keeps the selected identity across a table replacement in %s',
+  (method) => {
+    const editor = create({
+      deleteDetails: ({ rows }) => rows.map((row) => row.name).join(', '),
+      onBeforeOpen() {
+        table
+          .clear()
+          .rows.add([
+            { id: 'b', name: 'Bob' },
+            { id: 'a', name: 'Ann' },
+          ])
+          .draw();
+      },
+    });
+    editor[method]('#a');
+    const modal = $(editor.modal_selector);
+    expect(editor._dialogContext.rows[0].name).toBe('Ann');
+    if (method === 'openEditDialog')
+      expect(modal.find('[name="name"]').val()).toBe('Ann');
+    else expect(modal.find('.altEditor-delete-details').text()).toBe('Ann');
+    editor.internalCloseDialog(editor.modal_selector);
+    editor.c.dialog.onBeforeOpen = () => table.row('#a').remove().draw();
+    expect(editor[method]('#a')).toBe(false);
+    expect(editor._dialogOpen).toBe(false);
+    expect(table.row('#b').data().name).toBe('Bob');
+  }
+);

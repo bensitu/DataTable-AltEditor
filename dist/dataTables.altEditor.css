@@ -1,5 +1,5 @@
 /*! DataTables AltEditor v4.1.0 | MIT License */
-.altEditor-message .alert,
+.altEditor-message .altEditor-feedback,
 .altEditor-native .altEditor-feedback {
   margin-block: 0.75rem;
   padding: 0.75rem;
