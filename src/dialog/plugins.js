@@ -1,5 +1,5 @@
 import { $, root as window } from '../core/dependencies.js';
-import { fieldElement } from '../data/field-values.js';
+import { fieldElement, isChecked } from '../data/field-values.js';
 
 export const methods = {
   _initializePlugins: function () {
@@ -132,12 +132,7 @@ export const methods = {
     }
 
     if (type.indexOf('checkbox') >= 0) {
-      var checked =
-        normalized === true ||
-        normalized === 1 ||
-        ['true', '1', 'yes', 'on'].indexOf(String(normalized).toLowerCase()) >=
-          0;
-      $element.prop('checked', checked);
+      $element.prop('checked', isChecked(normalized));
       return;
     }
 

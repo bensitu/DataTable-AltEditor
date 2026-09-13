@@ -23,3 +23,40 @@ export function equalFieldValues(left, right, type) {
     })
   );
 }
+
+export function normalizeSelectOptions(options) {
+  if (Array.isArray(options)) {
+    return options.map(function (option) {
+      if (option && typeof option === 'object') {
+        var value =
+          option.id !== undefined
+            ? option.id
+            : option.value !== undefined
+              ? option.value
+              : '';
+        var label =
+          option.text !== undefined
+            ? option.text
+            : option.label !== undefined
+              ? option.label
+              : value;
+        return { value: value, label: label };
+      }
+      return { value: option, label: option };
+    });
+  }
+  if (options && typeof options === 'object') {
+    return Object.keys(options).map(function (key) {
+      return { value: key, label: options[key] };
+    });
+  }
+  return [];
+}
+
+export function isChecked(value) {
+  return (
+    value === true ||
+    value === 1 ||
+    ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
+  );
+}

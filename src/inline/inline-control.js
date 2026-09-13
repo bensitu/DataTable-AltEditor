@@ -1,5 +1,6 @@
 import { document } from '../core/dependencies.js';
 import { mergeOptions } from '../core/options.js';
+import { normalizeSelectOptions, isChecked } from '../data/field-values.js';
 import { segments } from '../data/path.js';
 
 const types = [
@@ -74,26 +75,14 @@ export function createControl(options, value) {
     'cols',
     'placeholder',
   ].forEach((key) => {
-    if (options[key] !== undefined && options[key] !== false)
+    if (options[key] != null && options[key] !== false)
       control.setAttribute(
         key,
         options[key] === true ? '' : String(options[key])
       );
   });
   if (type === 'select') {
-    let entries = Array.isArray(options.options)
-      ? options.options.map((option) => {
-          if (!option || typeof option !== 'object')
-            return { value: option, label: option };
-          return {
-            value: option.id !== undefined ? option.id : option.value,
-            label: option.text !== undefined ? option.text : option.label,
-          };
-        })
-      : Object.keys(options.options || {}).map((key) => ({
-          value: key,
-          label: options.options[key],
-        }));
+    let entries = normalizeSelectOptions(options.options);
     if (options.optionsSortByLabel)
       entries = entries
         .slice()
@@ -107,11 +96,7 @@ export function createControl(options, value) {
       control.appendChild(option);
     });
   }
-  if (type === 'checkbox')
-    control.checked =
-      value === true ||
-      value === 1 ||
-      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1;
+  if (type === 'checkbox') control.checked = isChecked(value);
   else if (type === 'select' && options.multiple) {
     const values = (Array.isArray(value) ? value : [value]).map(String);
     Array.prototype.forEach.call(control.options, (option) => {

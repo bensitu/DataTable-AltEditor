@@ -40,14 +40,39 @@ test('normalizes supported select formats and retains multiple selected values',
   expect(control.querySelector('Alpha')).toBeNull();
   editor.reloadOptions(control);
   expect(control.options).toHaveLength(0);
+  const fallbackOptions = [{ text: 'Choose' }, { id: 0 }, {}];
+  const normalized = fields._normalizeOptions(fallbackOptions);
+  const fallback = createControl(
+    { type: 'select', options: fallbackOptions },
+    ''
+  );
+  expect(
+    [...fallback.options].map((option) => ({
+      value: option.value,
+      label: option.textContent,
+    }))
+  ).toEqual(
+    normalized.map((option) => ({
+      value: String(option.value),
+      label: String(option.label),
+    }))
+  );
 });
 
 test('preserves numeric, empty, multiline and checkbox values with native constraints', () => {
   const number = createControl(
-    { type: 'number', min: 0, max: 10, step: 2, required: true },
+    {
+      type: 'number',
+      min: 0,
+      max: 10,
+      step: 2,
+      required: true,
+      placeholder: null,
+    },
     4
   );
   expect(controlValue(number)).toBe(4);
+  expect(number.hasAttribute('placeholder')).toBe(false);
   number.value = '3';
   expect(number.checkValidity()).toBe(false);
   number.value = '';

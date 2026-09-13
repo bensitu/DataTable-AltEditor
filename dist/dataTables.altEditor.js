@@ -309,7 +309,44 @@
     );
   }
 
-  const methods$3 = {
+  function normalizeSelectOptions(options) {
+    if (Array.isArray(options)) {
+      return options.map(function (option) {
+        if (option && typeof option === 'object') {
+          var value =
+            option.id !== undefined
+              ? option.id
+              : option.value !== undefined
+                ? option.value
+                : '';
+          var label =
+            option.text !== undefined
+              ? option.text
+              : option.label !== undefined
+                ? option.label
+                : value;
+          return { value: value, label: label };
+        }
+        return { value: option, label: option };
+      });
+    }
+    if (options && typeof options === 'object') {
+      return Object.keys(options).map(function (key) {
+        return { value: key, label: options[key] };
+      });
+    }
+    return [];
+  }
+
+  function isChecked(value) {
+    return (
+      value === true ||
+      value === 1 ||
+      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
+    );
+  }
+
+  const methods$4 = {
     _setup: function () {
       var that = this;
       var dt = this.s.dt;
@@ -795,6 +832,115 @@
     },
   };
 
+  const methods$3 = {
+    _collectFormData: function ($form) {
+      var that = this;
+      var values = this.completeColumnDefs().every(function (column) {
+        return typeof column.name === 'number';
+      })
+        ? []
+        : {};
+      var fileTasks = [];
+      var columns = this.columnDefs || this.completeColumnDefs();
+
+      $form.find('select, textarea, input').each(function () {
+        if (this.disabled) return;
+        var $input = $(this);
+        var id = $input.attr('id');
+        if (!id) return;
+        var type = String($input.attr('type') || '').toLowerCase();
+
+        if (type === 'file') {
+          var files = $input.prop('files');
+          var file = files && files[0];
+          if (!file) return;
+          const column = columns.find((item) => String(item.name) === id);
+          if (
+            column &&
+            column.maxFileSize !== undefined &&
+            (!Number.isFinite(column.maxFileSize) ||
+              column.maxFileSize < 0 ||
+              file.size > column.maxFileSize)
+          )
+            throw new Error(that.language.error.fileSize);
+          if (that.encodeFiles) {
+            fileTasks.push(function () {
+              return new Promise(function (resolve, reject) {
+                that.getBase64(
+                  file,
+                  function (content) {
+                    try {
+                      that._setValueByPath(values, id, content);
+                      resolve();
+                    } catch (error) {
+                      reject(error);
+                    }
+                  },
+                  reject
+                );
+              });
+            });
+          } else {
+            that._setValueByPath(values, id, file);
+          }
+          return;
+        }
+
+        if (type === 'checkbox') {
+          that._setValueByPath(values, id, this.checked);
+          return;
+        }
+        if (type === 'radio') {
+          if (this.checked) that._setValueByPath(values, id, $input.val());
+          return;
+        }
+        that._setValueByPath(values, id, $input.val());
+      });
+
+      return Promise.all(
+        fileTasks.map(function (readFile) {
+          return readFile();
+        })
+      ).then(function () {
+        return values;
+      });
+    },
+    _validateFormData: function ($form) {
+      var errors = [];
+      $form.find('select, textarea, input').each(function () {
+        if (this.disabled) return;
+        var $input = $(this);
+        var id = this.id || this.name || 'field';
+        if ($input.attr('data-unique') === 'true') {
+          $input.trigger($input.is('select') ? 'change' : 'input');
+        }
+        if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
+          errors.push(this.validationMessage || id + ' is invalid');
+        }
+      });
+      return Array.from(new Set(errors));
+    },
+    getBase64: function (file, onSuccess, onError) {
+      var language = this.language.error;
+      var reader = new root.FileReader();
+      reader.onload = function () {
+        if (onSuccess) onSuccess(reader.result);
+      };
+      reader.onerror = function () {
+        var error = reader.error || new Error(language.fileRead);
+        if (onError) onError(error);
+      };
+      reader.onabort = function () {
+        if (onError) onError(new Error(language.fileAborted));
+      };
+      try {
+        reader.readAsDataURL(file);
+      } catch (error) {
+        if (onError) onError(error);
+      }
+    },
+  };
+
   const methods$2 = {
     createDialog: function (
       columnDefs,
@@ -1001,121 +1147,7 @@
       temp.appendChild(fragment.cloneNode(true));
       return temp.innerHTML;
     },
-    _normalizeOptions: function (options) {
-      if (Array.isArray(options)) {
-        return options.map(function (option) {
-          if (option && typeof option === 'object') {
-            var value =
-              option.id !== undefined
-                ? option.id
-                : option.value !== undefined
-                  ? option.value
-                  : '';
-            var label =
-              option.text !== undefined
-                ? option.text
-                : option.label !== undefined
-                  ? option.label
-                  : value;
-            return { value: value, label: label };
-          }
-          return { value: option, label: option };
-        });
-      }
-      if (options && typeof options === 'object') {
-        return Object.keys(options).map(function (key) {
-          return { value: key, label: options[key] };
-        });
-      }
-      return [];
-    },
-    _collectFormData: function ($form) {
-      var that = this;
-      var values = this.completeColumnDefs().every(function (column) {
-        return typeof column.name === 'number';
-      })
-        ? []
-        : {};
-      var fileTasks = [];
-      var columns = this.columnDefs || this.completeColumnDefs();
-
-      $form.find('select, textarea, input').each(function () {
-        if (this.disabled) return;
-        var $input = $(this);
-        var id = $input.attr('id');
-        if (!id) return;
-        var type = String($input.attr('type') || '').toLowerCase();
-
-        if (type === 'file') {
-          var files = $input.prop('files');
-          var file = files && files[0];
-          if (!file) return;
-          const column = columns.find((item) => String(item.name) === id);
-          if (
-            column &&
-            column.maxFileSize !== undefined &&
-            (!Number.isFinite(column.maxFileSize) ||
-              column.maxFileSize < 0 ||
-              file.size > column.maxFileSize)
-          )
-            throw new Error(that.language.error.fileSize);
-          if (that.encodeFiles) {
-            fileTasks.push(function () {
-              return new Promise(function (resolve, reject) {
-                that.getBase64(
-                  file,
-                  function (content) {
-                    try {
-                      that._setValueByPath(values, id, content);
-                      resolve();
-                    } catch (error) {
-                      reject(error);
-                    }
-                  },
-                  reject
-                );
-              });
-            });
-          } else {
-            that._setValueByPath(values, id, file);
-          }
-          return;
-        }
-
-        if (type === 'checkbox') {
-          that._setValueByPath(values, id, this.checked);
-          return;
-        }
-        if (type === 'radio') {
-          if (this.checked) that._setValueByPath(values, id, $input.val());
-          return;
-        }
-        that._setValueByPath(values, id, $input.val());
-      });
-
-      return Promise.all(
-        fileTasks.map(function (readFile) {
-          return readFile();
-        })
-      ).then(function () {
-        return values;
-      });
-    },
-    _validateFormData: function ($form) {
-      var errors = [];
-      $form.find('select, textarea, input').each(function () {
-        if (this.disabled) return;
-        var $input = $(this);
-        var id = this.id || this.name || 'field';
-        if ($input.attr('data-unique') === 'true') {
-          $input.trigger($input.is('select') ? 'change' : 'input');
-        }
-        if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
-          errors.push(this.validationMessage || id + ' is invalid');
-        }
-      });
-      return Array.from(new Set(errors));
-    },
+    _normalizeOptions: normalizeSelectOptions,
     _setElementAttributes: function (element, columnDef, attributes) {
       if (columnDef.special !== undefined)
         element.setAttribute('data-special', String(columnDef.special));
@@ -1134,25 +1166,6 @@
         }
         element.setAttribute(attribute, String(value));
       });
-    },
-    getBase64: function (file, onSuccess, onError) {
-      var language = this.language.error;
-      var reader = new root.FileReader();
-      reader.onload = function () {
-        if (onSuccess) onSuccess(reader.result);
-      };
-      reader.onerror = function () {
-        var error = reader.error || new Error(language.fileRead);
-        if (onError) onError(error);
-      };
-      reader.onabort = function () {
-        if (onError) onError(new Error(language.fileAborted));
-      };
-      try {
-        reader.readAsDataURL(file);
-      } catch (error) {
-        if (onError) onError(error);
-      }
     },
   };
 
@@ -1287,12 +1300,7 @@
       }
 
       if (type.indexOf('checkbox') >= 0) {
-        var checked =
-          normalized === true ||
-          normalized === 1 ||
-          ['true', '1', 'yes', 'on'].indexOf(String(normalized).toLowerCase()) >=
-            0;
-        $element.prop('checked', checked);
+        $element.prop('checked', isChecked(normalized));
         return;
       }
 
@@ -1674,26 +1682,14 @@
       'cols',
       'placeholder',
     ].forEach((key) => {
-      if (options[key] !== undefined && options[key] !== false)
+      if (options[key] != null && options[key] !== false)
         control.setAttribute(
           key,
           options[key] === true ? '' : String(options[key])
         );
     });
     if (type === 'select') {
-      let entries = Array.isArray(options.options)
-        ? options.options.map((option) => {
-            if (!option || typeof option !== 'object')
-              return { value: option, label: option };
-            return {
-              value: option.id !== undefined ? option.id : option.value,
-              label: option.text !== undefined ? option.text : option.label,
-            };
-          })
-        : Object.keys(options.options || {}).map((key) => ({
-            value: key,
-            label: options.options[key],
-          }));
+      let entries = normalizeSelectOptions(options.options);
       if (options.optionsSortByLabel)
         entries = entries
           .slice()
@@ -1707,11 +1703,7 @@
         control.appendChild(option);
       });
     }
-    if (type === 'checkbox')
-      control.checked =
-        value === true ||
-        value === 1 ||
-        ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1;
+    if (type === 'checkbox') control.checked = isChecked(value);
     else if (type === 'select' && options.multiple) {
       const values = (Array.isArray(value) ? value : [value]).map(String);
       Array.prototype.forEach.call(control.options, (option) => {
@@ -2168,155 +2160,163 @@
         });
       api.on('destroy' + this.s.namespace, () => this.destroy());
     }
-    Object.assign(AltEditor.prototype, methods$3, methods$2, methods$1, methods, {
-      selectionListener: function () {
-        var dt = this.s.dt;
-        var toggleEditButton = () => {
-          if (typeof dt.buttons !== 'function') return;
-          var buttons = dt.buttons('edit:name');
-          if (
-            !buttons ||
-            (typeof buttons.count === 'function' && buttons.count() === 0)
-          )
-            return;
-          if (this._selectedRows().count() === 1) buttons.enable();
-          else buttons.disable();
-        };
+    Object.assign(
+      AltEditor.prototype,
+      methods$4,
+      methods$2,
+      methods$3,
+      methods$1,
+      methods,
+      {
+        selectionListener: function () {
+          var dt = this.s.dt;
+          var toggleEditButton = () => {
+            if (typeof dt.buttons !== 'function') return;
+            var buttons = dt.buttons('edit:name');
+            if (
+              !buttons ||
+              (typeof buttons.count === 'function' && buttons.count() === 0)
+            )
+              return;
+            if (this._selectedRows().count() === 1) buttons.enable();
+            else buttons.disable();
+          };
 
-        dt.off('select' + this.s.namespace + ' deselect' + this.s.namespace);
-        dt.on('select' + this.s.namespace, toggleEditButton);
-        dt.on('deselect' + this.s.namespace, toggleEditButton);
-        toggleEditButton();
-      },
-      /** @returns {DataTable.Api} The associated table API. */
-      api: function () {
-        return this.s.dt;
-      },
-      completeColumnDefs: function () {
-        return normalizeColumns(this.api());
-      },
-      _getValueByPath: readPath,
-      _setValueByPath: writePath,
-      _resolveSnapshotRow: function (snapshot) {
-        return resolveRow(this.api(), snapshot);
-      },
-      _selectedRows: function (selector) {
-        const api = this.api();
-        if (selector !== undefined) return api.rows(selector);
-        return typeof api.rows().select === 'function'
-          ? api.rows({ selected: true })
-          : api.rows(() => false);
-      },
-      /** @deprecated Use openAddDialog(). */
-      _openAddModal: function () {
-        return this.openAddDialog();
-      },
-      /** @deprecated Use openEditDialog(rowSelector). */
-      _openEditModal: function (selector) {
-        return this.openEditDialog(selector);
-      },
-      /** @deprecated Use openDeleteDialog(rowSelector). */
-      _openDeleteModal: function (selector) {
-        return this.openDeleteDialog(selector);
-      },
-      _bindDialog: function (action) {
-        if (this._message) this._message.empty();
-        this._action = action;
-        this._completed = false;
-        this._dialogOpen = true;
-        this._dialogToken = {};
-        const editor = this;
-        $(this.modal_selector)
-          .find('form')
-          .off('submit' + this.s.modalNamespace)
-          .on('submit' + this.s.modalNamespace, function (event) {
-            event.preventDefault();
-            editor[
-              action === 'add'
-                ? '_addRowData'
-                : action === 'edit'
-                  ? '_editRowData'
-                  : '_deleteRow'
-            ]();
+          dt.off('select' + this.s.namespace + ' deselect' + this.s.namespace);
+          dt.on('select' + this.s.namespace, toggleEditButton);
+          dt.on('deselect' + this.s.namespace, toggleEditButton);
+          toggleEditButton();
+        },
+        /** @returns {DataTable.Api} The associated table API. */
+        api: function () {
+          return this.s.dt;
+        },
+        completeColumnDefs: function () {
+          return normalizeColumns(this.api());
+        },
+        _getValueByPath: readPath,
+        _setValueByPath: writePath,
+        _resolveSnapshotRow: function (snapshot) {
+          return resolveRow(this.api(), snapshot);
+        },
+        _selectedRows: function (selector) {
+          const api = this.api();
+          if (selector !== undefined) return api.rows(selector);
+          return typeof api.rows().select === 'function'
+            ? api.rows({ selected: true })
+            : api.rows(() => false);
+        },
+        /** @deprecated Use openAddDialog(). */
+        _openAddModal: function () {
+          return this.openAddDialog();
+        },
+        /** @deprecated Use openEditDialog(rowSelector). */
+        _openEditModal: function (selector) {
+          return this.openEditDialog(selector);
+        },
+        /** @deprecated Use openDeleteDialog(rowSelector). */
+        _openDeleteModal: function (selector) {
+          return this.openDeleteDialog(selector);
+        },
+        _bindDialog: function (action) {
+          if (this._message) this._message.empty();
+          this._action = action;
+          this._completed = false;
+          this._dialogOpen = true;
+          this._dialogToken = {};
+          const editor = this;
+          $(this.modal_selector)
+            .find('form')
+            .off('submit' + this.s.modalNamespace)
+            .on('submit' + this.s.modalNamespace, function (event) {
+              event.preventDefault();
+              editor[
+                action === 'add'
+                  ? '_addRowData'
+                  : action === 'edit'
+                    ? '_editRowData'
+                    : '_deleteRow'
+              ]();
+            });
+          emit(this, 'open', { action, mode: 'dialog' });
+        },
+        /** Start editing an eligible DataTables cell selector. @returns {boolean} Whether editing started. */
+        startInlineEdit: function (cellSelector) {
+          return this._inline.start(cellSelector);
+        },
+        /** Validate and submit the active cell. @returns {boolean} Whether submission started. */
+        commitInlineEdit: function () {
+          return this._inline.commit();
+        },
+        /** Cancel an unsaved cell. Pending persistence cannot be canceled. @returns {boolean} Whether editing was canceled. */
+        cancelInlineEdit: function () {
+          return this._inline.cancel();
+        },
+        /** @returns {boolean} Whether a cell is editing or awaiting persistence. */
+        isInlineEditing: function () {
+          return !!this._inline.session;
+        },
+        internalOpenDialog: function (selector, fill) {
+          this._returnFocus = document.activeElement;
+          const adapter = available$1()
+            ? bootstrap
+            : available()
+              ? foundation
+              : null;
+          if (!adapter) {
+            const error = new Error(this.language.error.dialogFramework);
+            this._showErrorMessage(error.message);
+            emit(this, 'error', { action: 'open', mode: 'dialog', error });
+            return false;
+          }
+          this._adapter = adapter;
+          fill();
+          adapter.show($(selector)[0]);
+        },
+        internalCloseDialog: function (selector) {
+          if (this._adapter) this._adapter.hide($(selector)[0]);
+        },
+        /** Refresh Ajax data, or redraw client-side data. */
+        refresh: function () {
+          const api = this.api();
+          const payload = { action: 'refresh', mode: 'dialog' };
+          if (!emit(this, 'pre-submit', payload)) return;
+          emit(this, 'submit', payload);
+          if (api.ajax.url())
+            api.ajax.reload(() => emit(this, 'success', payload), false);
+          else {
+            api.draw(false);
+            emit(this, 'success', payload);
+          }
+        },
+        /** Dispose editor-owned listeners, integrations, and dialog elements. */
+        destroy: function () {
+          if (this._destroyed) return;
+          this._destroyed = true;
+          this._inline.destroy();
+          this._buttonActions.forEach((entry) => {
+            const button = this.api().button(entry.name + ':name');
+            if (button.count() && button.action() === entry.action)
+              button.action(entry.original || function () {});
           });
-        emit(this, 'open', { action, mode: 'dialog' });
-      },
-      /** Start editing an eligible DataTables cell selector. @returns {boolean} Whether editing started. */
-      startInlineEdit: function (cellSelector) {
-        return this._inline.start(cellSelector);
-      },
-      /** Validate and submit the active cell. @returns {boolean} Whether submission started. */
-      commitInlineEdit: function () {
-        return this._inline.commit();
-      },
-      /** Cancel an unsaved cell. Pending persistence cannot be canceled. @returns {boolean} Whether editing was canceled. */
-      cancelInlineEdit: function () {
-        return this._inline.cancel();
-      },
-      /** @returns {boolean} Whether a cell is editing or awaiting persistence. */
-      isInlineEditing: function () {
-        return !!this._inline.session;
-      },
-      internalOpenDialog: function (selector, fill) {
-        this._returnFocus = document.activeElement;
-        const adapter = available$1()
-          ? bootstrap
-          : available()
-            ? foundation
-            : null;
-        if (!adapter) {
-          const error = new Error(this.language.error.dialogFramework);
-          this._showErrorMessage(error.message);
-          emit(this, 'error', { action: 'open', mode: 'dialog', error });
-          return false;
-        }
-        this._adapter = adapter;
-        fill();
-        adapter.show($(selector)[0]);
-      },
-      internalCloseDialog: function (selector) {
-        if (this._adapter) this._adapter.hide($(selector)[0]);
-      },
-      /** Refresh Ajax data, or redraw client-side data. */
-      refresh: function () {
-        const api = this.api();
-        const payload = { action: 'refresh', mode: 'dialog' };
-        if (!emit(this, 'pre-submit', payload)) return;
-        emit(this, 'submit', payload);
-        if (api.ajax.url())
-          api.ajax.reload(() => emit(this, 'success', payload), false);
-        else {
-          api.draw(false);
-          emit(this, 'success', payload);
-        }
-      },
-      /** Dispose editor-owned listeners, integrations, and dialog elements. */
-      destroy: function () {
-        if (this._destroyed) return;
-        this._destroyed = true;
-        this._inline.destroy();
-        this._buttonActions.forEach((entry) => {
-          const button = this.api().button(entry.name + ':name');
-          if (button.count() && button.action() === entry.action)
-            button.action(entry.original || function () {});
-        });
-        this._buttonActions = [];
-        if (this._languageRequest) this._languageRequest.abort();
-        this._cleanupPlugins();
-        const modal = $(this.modal_selector);
-        if (this._adapter && modal.length) {
-          this._adapter.dispose(modal[0]);
-        }
-        modal.off(this.s.namespace).remove();
-        if (this._message) this._message.remove();
-        this.api().off(this.s.namespace);
-        delete this.api().table().node().altEditor;
-        emit(this, 'destroy', {});
-      },
-      _destroy: function () {
-        this.destroy();
-      },
-    });
+          this._buttonActions = [];
+          if (this._languageRequest) this._languageRequest.abort();
+          this._cleanupPlugins();
+          const modal = $(this.modal_selector);
+          if (this._adapter && modal.length) {
+            this._adapter.dispose(modal[0]);
+          }
+          modal.off(this.s.namespace).remove();
+          if (this._message) this._message.remove();
+          this.api().off(this.s.namespace);
+          delete this.api().table().node().altEditor;
+          emit(this, 'destroy', {});
+        },
+        _destroy: function () {
+          this.destroy();
+        },
+      }
+    );
     AltEditor.version = '4.0.2';
     AltEditor.defaults = defaults;
     AltEditor.classes = { btn: 'btn' };
