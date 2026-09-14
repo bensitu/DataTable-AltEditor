@@ -67,3 +67,36 @@ test('native templates retain keyboard focus and save and delete records with ot
     .click();
   await expect(dialog).toBeHidden();
 });
+
+for (const framework of ['bootstrap', 'native']) {
+  test(`${framework} releases a failed field callback and permits reopening`, async ({
+    page,
+  }) => {
+    await page.goto('/tests/browser/table.html');
+    await page.evaluate((framework) => {
+      table.altEditor().destroy();
+      table.column(0).init().editorOnChange = () => {
+        throw new Error('Field unavailable');
+      };
+      window.editor = table.altEditor({ dialog: { framework } });
+      window.openResult = editor.openEditDialog(0);
+    }, framework);
+    expect(await page.evaluate(() => openResult)).toBe(false);
+    await expect(page.locator('.altEditor-modal')).toBeHidden();
+    await expect.poll(() => page.evaluate(() => !!editor._closing)).toBe(false);
+    await expect(page.locator('.altEditor-message')).toContainText(
+      'Field unavailable'
+    );
+    await page.evaluate(() => {
+      delete table.column(0).init().editorOnChange;
+      editor.openEditDialog(0);
+    });
+    await expect(page.locator('.altEditor-modal [name="name"]')).toHaveValue(
+      'Alice'
+    );
+    await page.locator('.altEditor-modal [name="name"]').fill('Ann');
+    await page.locator('.altEditor-modal [type="submit"]').click();
+    await expect(page.locator('.altEditor-modal')).toBeHidden();
+    await expect(page.locator('tbody')).toContainText('Ann');
+  });
+}

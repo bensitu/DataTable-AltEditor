@@ -538,6 +538,55 @@
     return modal;
   }
 
+  /** Translate framework notifications into editor lifecycle operations. */
+  function bindDialogEvents(editor, $modal) {
+    const useNative = $modal.is('dialog');
+    $modal.on(
+      'shown.bs.modal' +
+        editor.s.namespace +
+        ' open.zf.reveal' +
+        editor.s.namespace,
+      function () {
+        editor._focusFirstInput();
+      }
+    );
+    $modal.on('submit' + editor.s.namespace, 'form', function (event) {
+      event.preventDefault();
+    });
+    if (useNative) {
+      $modal.on(
+        'close' +
+          editor.s.namespace +
+          ' alteditor-native-closed' +
+          editor.s.namespace,
+        function () {
+          if (!this.open) editor._handleDialogClosed();
+        }
+      );
+      $modal.on('cancel' + editor.s.namespace, function (event) {
+        event.preventDefault();
+      });
+      $modal.on(
+        'click' + editor.s.namespace,
+        '.altEditor-close, [data-alteditor-close]',
+        function () {
+          if (!editor._submitting)
+            editor.internalCloseDialog(editor.modal_selector);
+        }
+      );
+    }
+    $modal.on('hidden.bs.modal' + editor.s.namespace, () =>
+      editor._handleDialogClosed()
+    );
+    $modal.on('hide.bs.modal' + editor.s.namespace, function (event) {
+      if (editor._submitting && !editor._destroyed) event.preventDefault();
+      else editor._closing = true;
+    });
+    $modal.on('closed.zf.reveal' + editor.s.namespace, function () {
+      editor._handleDialogClosed();
+    });
+  }
+
   function available$2() {
     return (
       !!(
@@ -803,7 +852,7 @@
     $(control).val(control.multiple ? values : values.length ? values[0] : '');
   }
 
-  const methods$4 = {
+  const methods$5 = {
     _prepareDialog: function () {
       if (
         this._destroyed ||
@@ -928,14 +977,26 @@
           selected.name,
           framework === 'foundation'
         );
+        this._dialogShown = true;
         selected.api.show(element);
       } catch (error) {
-        this._opening = false;
-        this._cleanupPlugins();
-        this._showErrorMessage(error.message);
-        emit(this, 'error', { action: 'open', mode: 'dialog', error });
-        return false;
+        return this._abortDialogOpening(error);
       }
+    },
+    _abortDialogOpening: function (error) {
+      if (this._destroyed) return false;
+      this._opening = false;
+      this._dialogOpen = false;
+      this._dialogToken = {};
+      this._dialogContext = null;
+      this._editSnapshot = null;
+      this._deleteSnapshot = null;
+      this._cleanupPlugins();
+      if (this._adapter && this._dialogShown)
+        this.internalCloseDialog(this.modal_selector);
+      this._showErrorMessage(error.message);
+      emit(this, 'error', { action: 'open', mode: 'dialog', error });
+      return false;
     },
     internalCloseDialog: function (selector) {
       if (this._adapter) {
@@ -944,6 +1005,28 @@
       }
     },
 
+    _handleDialogClosed: function () {
+      this._closing = false;
+      this._dialogShown = false;
+      if (!this._dialogOpen) return;
+      this._dialogOpen = false;
+      this._dialogToken = {};
+      this._cleanupPlugins();
+      this._removeModalEvents(this.modal_selector);
+      this._editSnapshot = null;
+      this._deleteSnapshot = null;
+      this._setDialogSubmitting(false);
+      if (this._returnFocus && this._returnFocus.isConnected)
+        this._returnFocus.focus();
+      const context = this._dialogContext;
+      try {
+        this._notifyDialog('close', 'onClose');
+      } catch (error) {
+        emit(this, 'error', { action: this._action, mode: 'dialog', error });
+      } finally {
+        if (this._dialogContext === context) this._dialogContext = null;
+      }
+    },
     _setup: function () {
       var that = this;
       var dt = this.s.dt;
@@ -958,67 +1041,7 @@
       document.body.appendChild(modal);
 
       var $modal = $(this.modal_selector);
-      $modal.on(
-        'shown.bs.modal' +
-          this.s.namespace +
-          ' open.zf.reveal' +
-          this.s.namespace,
-        function () {
-          that._focusFirstInput();
-        }
-      );
-      $modal.on('submit' + this.s.namespace, 'form', function (event) {
-        event.preventDefault();
-      });
-      var cleanupDialog = function () {
-        if (!that._dialogOpen) return;
-        that._closing = false;
-        that._dialogOpen = false;
-        that._dialogToken = {};
-        that._cleanupPlugins();
-        that._removeModalEvents(this);
-        that._editSnapshot = null;
-        that._deleteSnapshot = null;
-        that._setDialogSubmitting(false);
-        if (that._returnFocus && that._returnFocus.isConnected)
-          that._returnFocus.focus();
-        try {
-          const context = that._dialogContext;
-          that._notifyDialog('close', 'onClose');
-          if (that._dialogContext === context) that._dialogContext = null;
-        } catch (error) {
-          emit(that, 'error', { action: that._action, mode: 'dialog', error });
-        }
-      };
-      if (useNative) {
-        $modal.on(
-          'close' +
-            this.s.namespace +
-            ' alteditor-native-closed' +
-            this.s.namespace,
-          function () {
-            if (!this.open) cleanupDialog.call(this);
-          }
-        );
-        $modal.on('cancel' + this.s.namespace, function (event) {
-          event.preventDefault();
-        });
-        $modal.on(
-          'click' + this.s.namespace,
-          '.altEditor-close, [data-alteditor-close]',
-          function () {
-            if (!that._submitting) that.internalCloseDialog(that.modal_selector);
-          }
-        );
-      }
-      $modal.on('hidden.bs.modal' + this.s.namespace, cleanupDialog);
-      $modal.on('hide.bs.modal' + this.s.namespace, function (event) {
-        if (that._submitting && !that._destroyed) event.preventDefault();
-        else that._closing = true;
-      });
-      $modal.on('closed.zf.reveal' + this.s.namespace, function () {
-        cleanupDialog.call(this);
-      });
+      bindDialogEvents(this, $modal);
 
       if (typeof dt.button === 'function') {
         ['add', 'edit', 'delete', 'refresh'].forEach(function (name) {
@@ -1120,26 +1143,7 @@
       this._editSnapshot = snapshotRow(rows[0]);
       rowData = rows[0].data();
 
-      var columnDefs = this.completeColumnDefs();
-      if (
-        this.createDialog(
-          columnDefs,
-          this.language.edit.title,
-          this.language.edit.button,
-          this.language.modalClose,
-          'editRowBtn',
-          'altEditor-edit-form'
-        ) === false
-      )
-        return false;
-
-      this._populateDialogFields(columnDefs, rowData);
-
-      this._focusFirstInput();
-      $(this.modal_selector)
-        .trigger('alteditor:some_dialog_opened')
-        .trigger('alteditor:edit_dialog_opened');
-      this._bindDialog('edit');
+      return this._openFormDialog('edit', rowData);
     },
     /** Open the delete dialog.
      * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
@@ -1196,36 +1200,21 @@
       };
 
       if (this.internalOpenDialog(selector, fill) === false) return false;
-      this._focusFirstInput();
-      $(selector)
-        .trigger('alteditor:some_dialog_opened')
-        .trigger('alteditor:delete_dialog_opened');
-      this._bindDialog('delete');
+      this._finishDialogOpening('delete');
     },
     /** Open the add dialog. */
     openAddDialog: function () {
       if (!this._prepareDialog()) return false;
       if (!this._beginDialog('add', [])) return false;
-      var columnDefs = this.completeColumnDefs();
-      if (
-        this.createDialog(
-          columnDefs,
-          this.language.add.title,
-          this.language.add.button,
-          this.language.modalClose,
-          'addRowBtn',
-          'altEditor-add-form'
-        ) === false
-      )
-        return false;
-
-      this._populateDialogFields(columnDefs);
-
+      return this._openFormDialog('add');
+    },
+    _finishDialogOpening: function (action) {
+      if (this._destroyed) return;
       this._focusFirstInput();
       $(this.modal_selector)
         .trigger('alteditor:some_dialog_opened')
-        .trigger('alteditor:add_dialog_opened');
-      this._bindDialog('add');
+        .trigger('alteditor:' + action + '_dialog_opened');
+      this._bindDialog(action);
     },
     _removeModalEvents: function (modal) {
       var $modal = modal && modal.jquery ? modal : $(modal);
@@ -1313,7 +1302,7 @@
     },
   };
 
-  const methods$3 = {
+  const methods$4 = {
     _collectFormData: function ($form) {
       var that = this;
       var columns = this.columnDefs || this.completeColumnDefs();
@@ -1422,6 +1411,179 @@
     },
   };
 
+  /** Build detached field controls without opening a dialog or initializing plugins. */
+  function renderFields(columnDefs, instanceId) {
+    var fragment = document.createDocumentFragment();
+    var container = document.createElement('div');
+    container.className = 'altEditor-fields';
+    var row = document.createElement('div');
+    row.className = 'altEditor-field-list';
+    var col = document.createElement('div');
+    col.className = 'altEditor-field-content';
+    row.appendChild(col);
+    container.appendChild(row);
+    fragment.appendChild(container);
+
+    var inlineCount = 0;
+
+    columnDefs.forEach(function (columnDef, index) {
+      var fieldId = instanceId + '-field-' + index;
+      var title = String(columnDef.title || '').trim();
+      if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
+
+      if (String(columnDef.type).indexOf('hidden') >= 0) {
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.id = fieldId;
+        setElementAttributes(hidden, columnDef, ['name', 'disabled']);
+        if (columnDef.value !== undefined && columnDef.value !== null)
+          hidden.value = columnDef.value;
+        col.appendChild(hidden);
+        return;
+      }
+
+      if (!title || columnDef.editable === false) return;
+
+      var formGroup = document.createElement('div');
+      formGroup.className =
+        'altEditor-field' + (columnDef.visible === false ? ' nonDisplay' : '');
+      formGroup.id = fieldId + '-row';
+
+      if (!columnDef.inline || inlineCount === 0) {
+        var labelCol = document.createElement('div');
+        labelCol.className = 'altEditor-label';
+        var label = document.createElement('label');
+        label.className = 'col-form-label col-form-label-sm';
+        label.htmlFor = fieldId;
+        label.textContent = title + ':';
+        labelCol.appendChild(label);
+        formGroup.appendChild(labelCol);
+      }
+
+      var inputCol = document.createElement('div');
+      inputCol.className =
+        'altEditor-input' + (columnDef.inline ? ' altEditor-input-compact' : '');
+      formGroup.appendChild(inputCol);
+
+      var type = String(columnDef.type || 'text');
+      if (type.indexOf('select') >= 0) {
+        var select = document.createElement('select');
+        select.className =
+          'form-control form-control-sm' + (columnDef.select2 ? ' select2' : '');
+        select.id = fieldId;
+        setElementAttributes(select, columnDef, [
+          'name',
+          'style',
+          'disabled',
+          'required',
+          'multiple',
+        ]);
+        select.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
+        if (columnDef.placeholder != null)
+          select.setAttribute('data-placeholder', String(columnDef.placeholder));
+
+        var normalized = normalizeSelectOptions(columnDef.options);
+        normalized.forEach(function (option) {
+          var optionElement = document.createElement('option');
+          optionElement.value = String(option.value);
+          optionElement.textContent = String(option.label);
+          if (String(option.value) === String(columnDef.value))
+            optionElement.selected = true;
+          select.appendChild(optionElement);
+        });
+        inputCol.appendChild(select);
+      } else if (type.indexOf('textarea') >= 0) {
+        var textarea = document.createElement('textarea');
+        textarea.className = 'form-control form-control-sm';
+        textarea.id = fieldId;
+        setElementAttributes(textarea, columnDef, [
+          'name',
+          'style',
+          'rows',
+          'cols',
+          'maxLength',
+          'readonly',
+          'disabled',
+          'required',
+        ]);
+        textarea.placeholder = String(
+          columnDef.placeholder == null ? title : columnDef.placeholder
+        );
+        textarea.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
+        if (columnDef.value !== undefined && columnDef.value !== null)
+          textarea.value = columnDef.value;
+        inputCol.appendChild(textarea);
+      } else {
+        var input = document.createElement('input');
+        input.className =
+          'form-control form-control-sm' +
+          (columnDef.readonly ? ' readonlyText' : '');
+        input.id = fieldId;
+        input.title = String(columnDef.hoverMsg || '');
+        input.placeholder = String(
+          columnDef.placeholder == null ? title : columnDef.placeholder
+        );
+        input.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
+        setElementAttributes(input, columnDef, [
+          'type',
+          'pattern',
+          'accept',
+          'name',
+          'step',
+          'min',
+          'max',
+          'maxLength',
+          'readonly',
+          'disabled',
+          'required',
+          'style',
+        ]);
+        if (columnDef.value !== undefined && columnDef.value !== null)
+          input.value = columnDef.value;
+        inputCol.appendChild(input);
+      }
+
+      if (columnDef.inline && inlineCount > 0) {
+        inputCol
+          .querySelector('input, select, textarea')
+          .setAttribute('aria-label', title);
+      }
+      col.appendChild(formGroup);
+      inlineCount++;
+    });
+
+    return fragment;
+  }
+
+  function setElementAttributes(element, columnDef, attributes) {
+    if (columnDef.special !== undefined)
+      element.setAttribute('data-special', String(columnDef.special));
+    attributes.forEach(function (attribute) {
+      var value = columnDef[attribute];
+      if (value === undefined || value === null || value === false) return;
+      if (['disabled', 'readonly', 'required', 'multiple'].includes(attribute)) {
+        if (value) element.setAttribute(attribute, '');
+        return;
+      }
+      if (typeof value === 'boolean') {
+        element.setAttribute(attribute, '');
+        return;
+      }
+      if (attribute === 'style' && typeof value === 'object') {
+        Object.keys(value).forEach(function (property) {
+          element.style[property] = value[property];
+        });
+        return;
+      }
+      element.setAttribute(attribute, String(value));
+    });
+  }
+
+  const methods$3 = {
+    _normalizeOptions: normalizeSelectOptions,
+    _setElementAttributes: setElementAttributes,
+  };
+
   const methods$2 = {
     createDialog: function (
       columnDefs,
@@ -1431,175 +1593,47 @@
       buttonClass,
       formName
     ) {
-      formName = formName + '-' + this.random_id;
-      var fragment = document.createDocumentFragment();
-      var container = document.createElement('div');
-      container.className = 'altEditor-fields';
-      var row = document.createElement('div');
-      row.className = 'altEditor-field-list';
-      var col = document.createElement('div');
-      col.className = 'altEditor-field-content';
-      row.appendChild(col);
-      container.appendChild(row);
-      fragment.appendChild(container);
-
-      var that = this;
-      var inlineCount = 0;
-
-      columnDefs.forEach(function (columnDef, index) {
-        var fieldId = that.random_id + '-field-' + index;
-        var title = String(columnDef.title || '').trim();
-        if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
-
-        if (String(columnDef.type).indexOf('hidden') >= 0) {
-          var hidden = document.createElement('input');
-          hidden.type = 'hidden';
-          hidden.id = fieldId;
-          that._setElementAttributes(hidden, columnDef, ['name', 'disabled']);
-          if (columnDef.value !== undefined && columnDef.value !== null)
-            hidden.value = columnDef.value;
-          col.appendChild(hidden);
-          return;
-        }
-
-        if (!title || columnDef.editable === false) return;
-
-        var formGroup = document.createElement('div');
-        formGroup.className =
-          'altEditor-field' + (columnDef.visible === false ? ' nonDisplay' : '');
-        formGroup.id = fieldId + '-row';
-
-        if (!columnDef.inline || inlineCount === 0) {
-          var labelCol = document.createElement('div');
-          labelCol.className = 'altEditor-label';
-          var label = document.createElement('label');
-          label.className = 'col-form-label col-form-label-sm';
-          label.htmlFor = fieldId;
-          label.textContent = title + ':';
-          labelCol.appendChild(label);
-          formGroup.appendChild(labelCol);
-        }
-
-        var inputCol = document.createElement('div');
-        inputCol.className =
-          'altEditor-input' +
-          (columnDef.inline ? ' altEditor-input-compact' : '');
-        formGroup.appendChild(inputCol);
-
-        var type = String(columnDef.type || 'text');
-        if (type.indexOf('select') >= 0) {
-          var select = document.createElement('select');
-          select.className =
-            'form-control form-control-sm' +
-            (columnDef.select2 ? ' select2' : '');
-          select.id = fieldId;
-          that._setElementAttributes(select, columnDef, [
-            'name',
-            'style',
-            'disabled',
-            'required',
-            'multiple',
-          ]);
-          select.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-          if (columnDef.placeholder != null)
-            select.setAttribute(
-              'data-placeholder',
-              String(columnDef.placeholder)
-            );
-
-          var normalized = that._normalizeOptions(columnDef.options);
-          normalized.forEach(function (option) {
-            var optionElement = document.createElement('option');
-            optionElement.value = String(option.value);
-            optionElement.textContent = String(option.label);
-            if (String(option.value) === String(columnDef.value))
-              optionElement.selected = true;
-            select.appendChild(optionElement);
-          });
-          inputCol.appendChild(select);
-        } else if (type.indexOf('textarea') >= 0) {
-          var textarea = document.createElement('textarea');
-          textarea.className = 'form-control form-control-sm';
-          textarea.id = fieldId;
-          that._setElementAttributes(textarea, columnDef, [
-            'name',
-            'style',
-            'rows',
-            'cols',
-            'maxLength',
-            'readonly',
-            'disabled',
-            'required',
-          ]);
-          textarea.placeholder = String(
-            columnDef.placeholder == null ? title : columnDef.placeholder
-          );
-          textarea.setAttribute(
-            'data-unique',
-            columnDef.unique ? 'true' : 'false'
-          );
-          if (columnDef.value !== undefined && columnDef.value !== null)
-            textarea.value = columnDef.value;
-          inputCol.appendChild(textarea);
-        } else {
-          var input = document.createElement('input');
-          input.className =
-            'form-control form-control-sm' +
-            (columnDef.readonly ? ' readonlyText' : '');
-          input.id = fieldId;
-          input.title = String(columnDef.hoverMsg || '');
-          input.placeholder = String(
-            columnDef.placeholder == null ? title : columnDef.placeholder
-          );
-          input.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-          that._setElementAttributes(input, columnDef, [
-            'type',
-            'pattern',
-            'accept',
-            'name',
-            'step',
-            'min',
-            'max',
-            'maxLength',
-            'readonly',
-            'disabled',
-            'required',
-            'style',
-          ]);
-          if (columnDef.value !== undefined && columnDef.value !== null)
-            input.value = columnDef.value;
-          inputCol.appendChild(input);
-        }
-
-        if (columnDef.inline && inlineCount > 0) {
-          inputCol
-            .querySelector('input, select, textarea')
-            .setAttribute('aria-label', title);
-        }
-        col.appendChild(formGroup);
-        inlineCount++;
-      });
-
       this.columnDefs = columnDefs;
-      var selector = this.modal_selector;
-      var fill = function () {
-        renderDialog($(selector), {
+      const fields = renderFields(columnDefs, this.random_id);
+      const body = applyTemplate(
+        this.c.dialog.templates[buttonClass === 'addRowBtn' ? 'add' : 'edit'],
+        fields,
+        this._dialogContext
+      );
+      if (this._destroyed) return false;
+      const fill = () =>
+        renderDialog($(this.modal_selector), {
           title: modalTitle,
-          body: applyTemplate(
-            that.c.dialog.templates[buttonClass === 'addRowBtn' ? 'add' : 'edit'],
-            fragment.cloneNode(true),
-            that._dialogContext
-          ),
+          body,
           closeCaption,
           buttonCaption,
           buttonId: buttonClass,
-          formName,
+          formName: formName + '-' + this.random_id,
         });
-      };
-
-      if (this.internalOpenDialog(selector, fill) === false) return false;
+      if (this.internalOpenDialog(this.modal_selector, fill) === false)
+        return false;
       this._initializePlugins();
       return true;
+    },
+    _openFormDialog: function (action, rowData) {
+      try {
+        const columns = this.completeColumnDefs();
+        if (
+          this.createDialog(
+            columns,
+            this.language[action].title,
+            this.language[action].button,
+            this.language.modalClose,
+            action + 'RowBtn',
+            'altEditor-' + action + '-form'
+          ) === false
+        )
+          return false;
+        this._populateDialogFields(columns, rowData);
+        this._finishDialogOpening(action);
+      } catch (error) {
+        return this._abortDialogOpening(error);
+      }
     },
     _populateDialogFields: function (columns, rowData) {
       for (const column of columns) {
@@ -1617,32 +1651,6 @@
         this._setFieldValue(element, column, value);
         element.trigger('change');
       }
-    },
-    _normalizeOptions: normalizeSelectOptions,
-    _setElementAttributes: function (element, columnDef, attributes) {
-      if (columnDef.special !== undefined)
-        element.setAttribute('data-special', String(columnDef.special));
-      attributes.forEach(function (attribute) {
-        var value = columnDef[attribute];
-        if (value === undefined || value === null || value === false) return;
-        if (
-          ['disabled', 'readonly', 'required', 'multiple'].includes(attribute)
-        ) {
-          if (value) element.setAttribute(attribute, '');
-          return;
-        }
-        if (typeof value === 'boolean') {
-          element.setAttribute(attribute, '');
-          return;
-        }
-        if (attribute === 'style' && typeof value === 'object') {
-          Object.keys(value).forEach(function (property) {
-            element.style[property] = value[property];
-          });
-          return;
-        }
-        element.setAttribute(attribute, String(value));
-      });
     },
   };
 
@@ -2576,9 +2584,10 @@
     }
     Object.assign(
       AltEditor.prototype,
-      methods$4,
+      methods$5,
       methods$2,
       methods$3,
+      methods$4,
       methods$1,
       methods,
       {
@@ -2678,6 +2687,9 @@
           this._destroyed = true;
           if (this._inline) this._inline.destroy();
           this._dialogOpen = false;
+          this._dialogShown = false;
+          this._opening = false;
+          this._closing = false;
           this._dialogContext = null;
           this._editSnapshot = null;
           this._deleteSnapshot = null;

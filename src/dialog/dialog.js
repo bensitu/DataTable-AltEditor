@@ -4,6 +4,7 @@ import {
   configureDialogFramework,
   renderDialog,
 } from './dialog-view.js';
+import { bindDialogEvents } from './adapters/events.js';
 import { selectAdapter } from './adapters/index.js';
 import { emit } from '../core/events.js';
 import { resolveLanguage } from '../core/language.js';
@@ -135,14 +136,26 @@ export const methods = {
         selected.name,
         framework === 'foundation'
       );
+      this._dialogShown = true;
       selected.api.show(element);
     } catch (error) {
-      this._opening = false;
-      this._cleanupPlugins();
-      this._showErrorMessage(error.message);
-      emit(this, 'error', { action: 'open', mode: 'dialog', error });
-      return false;
+      return this._abortDialogOpening(error);
     }
+  },
+  _abortDialogOpening: function (error) {
+    if (this._destroyed) return false;
+    this._opening = false;
+    this._dialogOpen = false;
+    this._dialogToken = {};
+    this._dialogContext = null;
+    this._editSnapshot = null;
+    this._deleteSnapshot = null;
+    this._cleanupPlugins();
+    if (this._adapter && this._dialogShown)
+      this.internalCloseDialog(this.modal_selector);
+    this._showErrorMessage(error.message);
+    emit(this, 'error', { action: 'open', mode: 'dialog', error });
+    return false;
   },
   internalCloseDialog: function (selector) {
     if (this._adapter) {
@@ -151,6 +164,28 @@ export const methods = {
     }
   },
 
+  _handleDialogClosed: function () {
+    this._closing = false;
+    this._dialogShown = false;
+    if (!this._dialogOpen) return;
+    this._dialogOpen = false;
+    this._dialogToken = {};
+    this._cleanupPlugins();
+    this._removeModalEvents(this.modal_selector);
+    this._editSnapshot = null;
+    this._deleteSnapshot = null;
+    this._setDialogSubmitting(false);
+    if (this._returnFocus && this._returnFocus.isConnected)
+      this._returnFocus.focus();
+    const context = this._dialogContext;
+    try {
+      this._notifyDialog('close', 'onClose');
+    } catch (error) {
+      emit(this, 'error', { action: this._action, mode: 'dialog', error });
+    } finally {
+      if (this._dialogContext === context) this._dialogContext = null;
+    }
+  },
   _setup: function () {
     var that = this;
     var dt = this.s.dt;
@@ -165,67 +200,7 @@ export const methods = {
     document.body.appendChild(modal);
 
     var $modal = $(this.modal_selector);
-    $modal.on(
-      'shown.bs.modal' +
-        this.s.namespace +
-        ' open.zf.reveal' +
-        this.s.namespace,
-      function () {
-        that._focusFirstInput();
-      }
-    );
-    $modal.on('submit' + this.s.namespace, 'form', function (event) {
-      event.preventDefault();
-    });
-    var cleanupDialog = function () {
-      if (!that._dialogOpen) return;
-      that._closing = false;
-      that._dialogOpen = false;
-      that._dialogToken = {};
-      that._cleanupPlugins();
-      that._removeModalEvents(this);
-      that._editSnapshot = null;
-      that._deleteSnapshot = null;
-      that._setDialogSubmitting(false);
-      if (that._returnFocus && that._returnFocus.isConnected)
-        that._returnFocus.focus();
-      try {
-        const context = that._dialogContext;
-        that._notifyDialog('close', 'onClose');
-        if (that._dialogContext === context) that._dialogContext = null;
-      } catch (error) {
-        emit(that, 'error', { action: that._action, mode: 'dialog', error });
-      }
-    };
-    if (useNative) {
-      $modal.on(
-        'close' +
-          this.s.namespace +
-          ' alteditor-native-closed' +
-          this.s.namespace,
-        function () {
-          if (!this.open) cleanupDialog.call(this);
-        }
-      );
-      $modal.on('cancel' + this.s.namespace, function (event) {
-        event.preventDefault();
-      });
-      $modal.on(
-        'click' + this.s.namespace,
-        '.altEditor-close, [data-alteditor-close]',
-        function () {
-          if (!that._submitting) that.internalCloseDialog(that.modal_selector);
-        }
-      );
-    }
-    $modal.on('hidden.bs.modal' + this.s.namespace, cleanupDialog);
-    $modal.on('hide.bs.modal' + this.s.namespace, function (event) {
-      if (that._submitting && !that._destroyed) event.preventDefault();
-      else that._closing = true;
-    });
-    $modal.on('closed.zf.reveal' + this.s.namespace, function () {
-      cleanupDialog.call(this);
-    });
+    bindDialogEvents(this, $modal);
 
     if (typeof dt.button === 'function') {
       ['add', 'edit', 'delete', 'refresh'].forEach(function (name) {
@@ -327,26 +302,7 @@ export const methods = {
     this._editSnapshot = snapshotRow(rows[0]);
     rowData = rows[0].data();
 
-    var columnDefs = this.completeColumnDefs();
-    if (
-      this.createDialog(
-        columnDefs,
-        this.language.edit.title,
-        this.language.edit.button,
-        this.language.modalClose,
-        'editRowBtn',
-        'altEditor-edit-form'
-      ) === false
-    )
-      return false;
-
-    this._populateDialogFields(columnDefs, rowData);
-
-    this._focusFirstInput();
-    $(this.modal_selector)
-      .trigger('alteditor:some_dialog_opened')
-      .trigger('alteditor:edit_dialog_opened');
-    this._bindDialog('edit');
+    return this._openFormDialog('edit', rowData);
   },
   /** Open the delete dialog.
    * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
@@ -403,36 +359,21 @@ export const methods = {
     };
 
     if (this.internalOpenDialog(selector, fill) === false) return false;
-    this._focusFirstInput();
-    $(selector)
-      .trigger('alteditor:some_dialog_opened')
-      .trigger('alteditor:delete_dialog_opened');
-    this._bindDialog('delete');
+    this._finishDialogOpening('delete');
   },
   /** Open the add dialog. */
   openAddDialog: function () {
     if (!this._prepareDialog()) return false;
     if (!this._beginDialog('add', [])) return false;
-    var columnDefs = this.completeColumnDefs();
-    if (
-      this.createDialog(
-        columnDefs,
-        this.language.add.title,
-        this.language.add.button,
-        this.language.modalClose,
-        'addRowBtn',
-        'altEditor-add-form'
-      ) === false
-    )
-      return false;
-
-    this._populateDialogFields(columnDefs);
-
+    return this._openFormDialog('add');
+  },
+  _finishDialogOpening: function (action) {
+    if (this._destroyed) return;
     this._focusFirstInput();
     $(this.modal_selector)
       .trigger('alteditor:some_dialog_opened')
-      .trigger('alteditor:add_dialog_opened');
-    this._bindDialog('add');
+      .trigger('alteditor:' + action + '_dialog_opened');
+    this._bindDialog(action);
   },
   _removeModalEvents: function (modal) {
     var $modal = modal && modal.jquery ? modal : $(modal);

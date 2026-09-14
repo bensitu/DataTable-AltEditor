@@ -6,6 +6,7 @@ import { readPath, writePath } from '../data/path.js';
 import { resolveRow } from '../data/row-data.js';
 import { methods as dialogs } from '../dialog/dialog.js';
 import { methods as formData } from '../dialog/form-data.js';
+import { methods as dialogForms } from '../dialog/dialog-form.js';
 import { methods as fields } from '../dialog/field-renderer.js';
 import { methods as plugins } from '../dialog/plugins.js';
 import { methods as actions } from '../crud/actions.js';
@@ -90,6 +91,7 @@ export function createAltEditor(DataTable) {
   Object.assign(
     AltEditor.prototype,
     dialogs,
+    dialogForms,
     fields,
     formData,
     plugins,
@@ -191,6 +193,9 @@ export function createAltEditor(DataTable) {
         this._destroyed = true;
         if (this._inline) this._inline.destroy();
         this._dialogOpen = false;
+        this._dialogShown = false;
+        this._opening = false;
+        this._closing = false;
         this._dialogContext = null;
         this._editSnapshot = null;
         this._deleteSnapshot = null;

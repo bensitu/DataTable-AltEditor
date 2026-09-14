@@ -176,3 +176,35 @@ test.each(['openEditDialog', 'openDeleteDialog'])(
     expect(table.row('#b').data().name).toBe('Bob');
   }
 );
+
+test('recovers after field initialization fails and releases close context after callback errors', () => {
+  const editor = create({
+    onClose() {
+      throw new Error('Close callback failed');
+    },
+  });
+  const errors = vi.fn();
+  table.on('alteditor-error.dt', errors);
+  const original = editor._initializePlugins;
+  editor._initializePlugins = () => {
+    throw new Error('Control initialization failed');
+  };
+  expect(editor.openEditDialog(0)).toBe(false);
+  expect(editor._opening).toBe(false);
+  expect(editor._closing).toBe(false);
+  expect(editor._dialogContext).toBeNull();
+  editor._initializePlugins = original;
+  editor.openEditDialog(0);
+  expect(editor._dialogOpen).toBe(true);
+  editor.internalCloseDialog(editor.modal_selector);
+  expect(editor._dialogContext).toBeNull();
+  expect(errors).toHaveBeenCalledTimes(2);
+  editor.c.dialog.templates.add = () => {
+    throw new Error('Invalid layout');
+  };
+  expect(editor.openAddDialog()).toBe(false);
+  expect(editor._closing).toBe(false);
+  editor.c.dialog.templates.add = null;
+  editor.openAddDialog();
+  expect(editor._dialogOpen).toBe(true);
+});
