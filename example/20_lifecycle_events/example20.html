@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lifecycle and event callbacks | AltEditor examples</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css"
+    />
+
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="../examples.css" />
+    <script src="../theme.js"></script>
+  </head>
+
+  <body class="examples-page">
+    <main class="example-main">
+      <header class="example-header">
+        <nav aria-label="Example navigation">
+          <a href="../../index.html">← All examples</a>
+          · <a href="./example20.js">Configuration source</a> ·
+          <a
+            href="https://github.com/bensitu/DataTable-AltEditor/blob/develop/docs/examples.md"
+            >Example guide</a
+          >
+        </nav>
+        <p class="example-eyebrow">DataTable-AltEditor / Example 20</p>
+        <h1>Lifecycle and event callbacks</h1>
+        <p>
+          Watch dialog and inline events in order. Add, edit, delete, or
+          refresh; double-click a name to edit a cell. Changes reset on reload.
+        </p>
+      </header>
+      <p>
+        <label
+          ><input id="block-opening" type="checkbox" /> Prevent dialog
+          opening</label
+        >
+      </p>
+      <p>
+        <label
+          ><input id="fail-next" type="checkbox" /> Fail the next save</label
+        >
+      </p>
+      <p>
+        Enter <code>blocked</code> as a name to cancel submission before
+        persistence. Clear the option after a rejected opening, or correct the
+        name after a rejected save.
+      </p>
+      <p class="example-actions">
+        <button id="toggle-editor" type="button">Destroy editor</button>
+        <button id="clear-events" type="button">Clear event log</button>
+      </p>
+      <div
+        class="example-table"
+        tabindex="0"
+        role="region"
+        aria-label="Editable table 1"
+      >
+        <table class="dataTable display" id="example"></table>
+      </div>
+      <p id="result" role="status">Ready.</p>
+      <h2>Event log</h2>
+      <ol id="event-log" aria-label="Recent editor events"></ol>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/select/3.1.3/js/dataTables.select.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.js"></script>
+
+    <script src="../../dist/dataTables.altEditor.js"></script>
+    <script src="./example20.js"></script>
+  </body>
+</html>

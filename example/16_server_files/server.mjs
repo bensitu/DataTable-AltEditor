@@ -154,8 +154,10 @@ createServer(async (request, response) => {
     });
     response.end(content);
   } catch (error) {
+    console.error('Request failed:', error);
     json(response, error.code === 'ENOENT' ? 404 : 400, {
-      message: error.message,
+      message:
+        error.code === 'ENOENT' ? 'Not found' : 'Unable to process the request',
     });
   }
 }).listen(8090, '127.0.0.1', () => {

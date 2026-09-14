@@ -7,7 +7,7 @@ Start with the [quick start](../README.md#get-started), then choose a guide for 
 | Topic                                      | What you will find                                                                                                     |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | [Dialog templates](dialogs.md)             | Independent form layouts, deletion summaries, lifecycle callbacks, and framework selection.                            |
-| [Examples](examples.md)                    | All 19 examples, source locations, suggested interactions, and simulated persistence limits.                           |
+| [Examples](examples.md)                    | All 20 examples, source locations, suggested interactions, and simulated persistence limits.                           |
 | [Configuration and API](api.md)            | Editor and column options, public methods, persistence callbacks, file handling, module loading, and server-side data. |
 | [Inline editing](inline-edit.md)           | Supported controls, immutable updates, keyboard navigation, validation, and retry behavior.                            |
 | [Events](events.md)                        | Event names, payloads, cancellation, and dialog compatibility events.                                                  |

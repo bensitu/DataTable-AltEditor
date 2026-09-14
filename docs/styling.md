@@ -84,3 +84,20 @@ Dialog inputs share font, line height, and padding across adapters. Select2 mult
 Explicit native mode uses `.altEditor-native`, `.altEditor-control`, and `.altEditor-button` without Bootstrap or Foundation component classes. It shares the existing theme variables; `--alteditor-backdrop` additionally sets its backdrop color (default `rgb(0 0 0 / 50%)`). The native adapter is optional and does not alter the default dialog browser requirements.
 
 Template field slots receive `--alteditor-spacing` between adjacent fields by default. Application layout rules can override this low-specificity spacing. Native dialogs constrain long forms to the viewport and scroll the body while retaining visible header and footer actions.
+
+## Applications with older color support
+
+If a browser supports the required layout selectors but not `light-dark()`, supply explicit color variables in an application stylesheet. Set every color your application uses, including control, placeholder, border, hover, accent, and error colors; switch the variables with your application theme. This does not provide support for older layout engines.
+
+```css
+html {
+  --alteditor-surface: #fff;
+  --alteditor-text: #243247;
+  --alteditor-control-background: #fff;
+  --alteditor-placeholder: #64748b;
+  --alteditor-border: #cbd5e1;
+  --alteditor-hover: #e2e8f0;
+  --alteditor-accent: #2458b8;
+  --alteditor-error: #b91c1c;
+}
+```

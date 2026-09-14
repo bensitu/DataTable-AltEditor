@@ -29,6 +29,7 @@ CDN resources are convenient for these examples. For production deployments, man
 - **Save records and upload raw files:** use Example 16 and its [local server instructions](../example/16_server_files/README.md).
 - **Customize dialog layouts and deletion summaries:** use Example 18 and the [dialog guide](dialogs.md).
 - **Use optional native dialogs without a UI framework:** use Example 19; keep a framework adapter when native dialogs are unavailable.
+- **Observe lifecycle callbacks and events:** use Example 20 for event order, opening and submission cancellation, failed saves, retries, refresh, and editor destruction.
 - **Customize inline controls:** use Example 17 for formatted values, explicit setters, blur saving, and the public API.
 
 ## Try the features
@@ -56,6 +57,7 @@ For toolbar-based examples, select a row before choosing Edit or Delete. Add ope
 | [17: Advanced inline editing](https://bensitu.github.io/DataTable-AltEditor/example/17_inline_options/example17.html)    | Try blur saving, public edit controls, formatted numbers, checkboxes, and a function-based source with an explicit setter.                                                                                                  |
 | [18: Dialog templates](https://bensitu.github.io/DataTable-AltEditor/example/18_dialog_templates/example18.html)         | Compare Add and Edit layouts, validate an email, select one or several rows for deletion, and toggle the deletion summary.                                                                                                  |
 | [19: Native dialogs](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)              | Select rows, edit numeric/date/checkbox/textarea fields and Select2 skills, then reopen to verify raw values behind custom table renderers. Delete one or several rows with a text summary.                                 |
+| [20: Lifecycle and events](https://bensitu.github.io/DataTable-AltEditor/example/20_lifecycle_events/example20.html)     | Watch event order, prevent opening, reject the name blocked, fail and retry a save, edit a cell, refresh, and destroy or re-enable the editor.                                                                              |
 
 The Appearance selector supports system, light, and dark modes. See [styling and themes](styling.md) for application customization.
 
@@ -86,6 +88,7 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 | 17      | [HTML](../example/17_inline_options/example17.html) · [JavaScript](../example/17_inline_options/example17.js)               | Advanced inline editing.                                                                           |
 | 18      | [HTML](../example/18_dialog_templates/example18.html) · [JavaScript](../example/18_dialog_templates/example18.js)           | Independent templates, DOM deletion summaries, and render / close callbacks.                       |
 | 19      | [HTML](../example/19_native_dialog/example19.html) · [JavaScript](../example/19_native_dialog/example19.js)                 | Native dialog templates, typed values, Select2, DataTables Select, and custom display renderers.   |
+| 20      | [HTML](../example/20_lifecycle_events/example20.html) · [JavaScript](../example/20_lifecycle_events/example20.js)           | Lifecycle callbacks, event order, cancellation, retries, inline editing, refresh, and destruction. |
 
 ## Adapt an example to your application
 

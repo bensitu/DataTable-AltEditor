@@ -2,6 +2,8 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
+[Example 20](../example/20_lifecycle_events/example20.html) demonstrates the callbacks and event sequence with cancellation, failed saves, retries, inline editing, refresh, and destruction.
+
 AltEditor uses jQuery events on the DataTables table node. New event names have the `.dt` namespace, `event.dt` contains the table API, and the second handler argument is a payload containing `editor`.
 
 ```js
@@ -73,3 +75,5 @@ These existing events still originate on the dialog element and bubble through j
 - `alteditor:delete_dialog_opened`
 
 They retain their existing names and argument behavior. Use the table lifecycle events for structured payloads and table-specific subscriptions.
+
+An explicit open call may replace an idle dialog, including one retained after success. Replacement does not emit a framework close event. Release application listeners before replacing such a dialog, or close it and wait for `alteditor-close.dt` when each form needs a matching close callback. Recursive opening, pending submissions, and closing transitions reject replacement.

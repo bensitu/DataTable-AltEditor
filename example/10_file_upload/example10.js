@@ -20,11 +20,18 @@ $(document).ready(function () {
       render: function (data, type) {
         if (type !== 'display') return data || '';
         if (!data) return '';
+        let url;
+        try {
+          url = new URL(data, document.baseURI);
+        } catch (_error) {
+          return '';
+        }
+        if (!['http:', 'https:'].includes(url.protocol)) return '';
         const link = document.createElement('a');
-        link.href = data;
+        link.href = url.href;
         link.download = 'avatar.svg';
         const image = document.createElement('img');
-        image.src = data;
+        image.src = url.href;
         image.alt = 'Download sample avatar';
         image.width = 64;
         image.height = 64;
