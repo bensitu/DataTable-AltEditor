@@ -217,7 +217,7 @@ export function createAltEditor(DataTable) {
       },
     }
   );
-  AltEditor.version = '4.1.0';
+  AltEditor.version = '4.1.1';
   AltEditor.defaults = defaults;
   AltEditor.classes = { btn: 'btn' };
   return AltEditor;

@@ -7,6 +7,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
+## 4.1.1 - 2026-09-14
+
+### Added
+
+- Example 20 demonstrates lifecycle callbacks, event order, cancellation, failed saves, retries, inline editing, refresh, and editor destruction and recreation.
+
+### Changed
+
+- Unique validation reads column values in one operation instead of creating a separate cell API for each row.
+- Documentation explains value conversion, persistence timeouts, select option replacement, event exceptions, field lookup, and explicit color overrides.
+
+### Fixed
+
+- Failed initialization releases partially attached resources so the editor can be initialized again.
+- Event listener exceptions no longer leave submission controls disabled or interrupt cleanup. Exceptions before opening or submitting cancel the operation.
+- Dialog fields use instance-specific identifiers and retain correctly associated labels across multiple tables. Compact fields have accessible names, literal title text is preserved, and empty placeholders remain empty.
+- Select controls retain stored values absent from their initial options. Literal JSON option strings remain intact, and multiple selections support serialized arrays without discarding matching literal options.
+- Missing row identifiers containing selector characters and invalid public row or cell selectors are handled without uncaught selector errors.
+- Add submissions omit unrelated deletion snapshots, and form collection uses a consistent set of column definitions.
+- Inline cleanup handles controls moved into nested elements, and failed saves display feedback when the edited cell is outside the visible table body.
+- File examples restrict avatar links to HTTP or HTTPS and return generic server errors without internal paths.
+- Removed unnecessary dialog serialization and duplicate initialization work; normalized boolean attributes and cleared dialog state on destruction.
+
 ## 4.1.0 - 2026-09-14
 
 ### Added
