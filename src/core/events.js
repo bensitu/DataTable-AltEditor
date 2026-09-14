@@ -12,8 +12,14 @@ import { $ } from './dependencies.js';
 export function emit(editor, name, payload) {
   const event = $.Event('alteditor-' + name + '.dt');
   event.dt = editor.api();
-  $(editor.api().table().node()).trigger(event, [
-    Object.assign({ editor }, payload),
-  ]);
+  try {
+    $(editor.api().table().node()).trigger(event, [
+      Object.assign({ editor }, payload),
+    ]);
+  } catch (error) {
+    if (name === 'before-open' || name.endsWith('pre-submit'))
+      event.preventDefault();
+    console.error('AltEditor event handler failed:', name, error);
+  }
   return !event.isDefaultPrevented();
 }

@@ -516,3 +516,67 @@ test('restores application toolbar actions when the editor is destroyed', () => 
   table.button('add:name').trigger();
   expect(action).toHaveBeenCalledOnce();
 });
+
+test('recovers from submission listener exceptions and keeps successful changes', async () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+  const { editor, table } = create();
+  editor.openEditDialog(0);
+  $(editor.modal_selector).find('[name="name"]').val('Ann');
+  table.one('alteditor-pre-submit.dt', () => {
+    throw new Error('Invalid business rule');
+  });
+  await editor._editRowData();
+  expect(editor._submitting).toBe(false);
+  expect(table.row(0).data().name).toBe('Alice');
+  table.one('alteditor-success.dt', () => {
+    throw new Error('Unavailable status widget');
+  });
+  await editor._editRowData();
+  expect(editor._submitting).toBe(false);
+  expect(table.row(0).data().name).toBe('Ann');
+  expect(log).toHaveBeenCalledTimes(2);
+});
+
+test('rejects unavailable special row identifiers without leaving an opening operation active', () => {
+  const { editor, table } = create({ data: [{ id: "a'[", name: 'Alice' }] });
+  table.one('alteditor-before-open.dt', () => table.clear().draw());
+  expect(editor.openEditDialog(0)).toBe(false);
+  expect(editor._opening).toBe(false);
+  expect(editor.openEditDialog('[')).toBe(false);
+});
+
+test('add submission does not include deletion targets from a failed opening', async () => {
+  const { editor, table } = create();
+  editor.c.dialog.deleteDetails = () => {
+    throw new Error('Unavailable details');
+  };
+  delete editor.internalOpenDialog;
+  expect(editor.openDeleteDialog(0)).toBe(false);
+  editor.internalOpenDialog = (_selector, fill) => fill();
+  editor.openAddDialog();
+  $(editor.modal_selector).find('[name="name"]').val('Carol');
+  const listener = vi.fn();
+  table.on('alteditor-pre-submit.dt', listener);
+  await editor._addRowData();
+  expect(listener.mock.calls[0][1].rows).toBeFalsy();
+});
+
+test('retains literal field titles and explicitly empty placeholders', () => {
+  const { editor } = create({
+    columns: [
+      { data: 'id', title: 'ID' },
+      {
+        data: 'name',
+        title: 'Value &lt;10&gt;',
+        placeholder: '',
+        inline: true,
+        readonly: 0,
+      },
+    ],
+  });
+  editor.openEditDialog(0);
+  const field = $(editor.modal_selector).find('[name="name"]')[0];
+  expect(field.placeholder).toBe('');
+  expect(field.readOnly).toBe(false);
+  expect(field.getAttribute('aria-label')).toBe('Value <10>');
+});

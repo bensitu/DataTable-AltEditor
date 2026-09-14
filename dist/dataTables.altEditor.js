@@ -143,9 +143,15 @@
   function emit(editor, name, payload) {
     const event = $.Event('alteditor-' + name + '.dt');
     event.dt = editor.api();
-    $(editor.api().table().node()).trigger(event, [
-      Object.assign({ editor }, payload),
-    ]);
+    try {
+      $(editor.api().table().node()).trigger(event, [
+        Object.assign({ editor }, payload),
+      ]);
+    } catch (error) {
+      if (name === 'before-open' || name.endsWith('pre-submit'))
+        event.preventDefault();
+      console.error('AltEditor event handler failed:', name, error);
+    }
     return !event.isDefaultPrevented();
   }
 
@@ -235,8 +241,12 @@
   function resolveRow(api, snapshot) {
     if (!snapshot) return null;
     if (snapshot.rowId !== undefined && snapshot.rowId !== '') {
-      const byId = api.row('#' + snapshot.rowId);
-      if (byId.any()) return byId;
+      try {
+        const byId = api.row('#' + snapshot.rowId);
+        if (byId.any()) return byId;
+      } catch (_error) {
+        // A missing identifier can reach DataTables' CSS selector fallback.
+      }
     }
     if (
       snapshot.rowNode &&
@@ -768,6 +778,31 @@
     );
   }
 
+  /** Preserve stored selections that are absent from the configured options. */
+  function setSelectValue(control, value) {
+    let values = value == null ? [] : Array.isArray(value) ? value : [value];
+    const available = new Set(
+      Array.from(control.options, (option) => option.value)
+    );
+    if (control.multiple && typeof value === 'string' && !available.has(value)) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) values = parsed;
+      } catch (_error) {}
+    }
+    values = values.map(String);
+    values.forEach((value) => {
+      if (value !== '' && !available.has(value)) {
+        const option = control.ownerDocument.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        control.appendChild(option);
+        available.add(value);
+      }
+    });
+    $(control).val(control.multiple ? values : values.length ? values[0] : '');
+  }
+
   const methods$4 = {
     _prepareDialog: function () {
       if (
@@ -918,8 +953,6 @@
       var modalId = 'altEditor-modal-' + this.random_id;
       this.modal_selector = '#' + modalId;
 
-      this._initLanguage();
-
       const useNative = this.c.dialog.framework === 'native';
       var modal = createDialogShell(modalId, useNative, this.language.modalClose);
       document.body.appendChild(modal);
@@ -1029,13 +1062,11 @@
         var rowIndexes = dt.rows().indexes().toArray();
 
         event.target.setCustomValidity('');
-        var duplicate = rowIndexes.some(function (rowIndex) {
+        var values = dt.column(column.index).data().toArray();
+        var duplicate = values.some(function (value, index) {
+          var rowIndex = rowIndexes[index];
           if (editIndex !== null && rowIndex === editIndex) return false;
-          return equalFieldValues(
-            candidate,
-            dt.cell(rowIndex, column.index).data(),
-            column.type
-          );
+          return equalFieldValues(candidate, value, column.type);
         });
         if (duplicate)
           event.target.setCustomValidity(
@@ -1080,7 +1111,7 @@
 
       var rowIndex = selectedRows.indexes().toArray()[0];
       var rowData = selectedRows.data()[0];
-      if (rowIndex === undefined || rowData === undefined) return;
+      if (rowIndex === undefined || rowData === undefined) return false;
 
       const target = snapshotRow(dt.row(rowIndex));
       if (!this._beginDialog('edit', [rowData])) return false;
@@ -1171,9 +1202,7 @@
         .trigger('alteditor:delete_dialog_opened');
       this._bindDialog('delete');
     },
-    /** Open the add dialog.
-     * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
-     */
+    /** Open the add dialog. */
     openAddDialog: function () {
       if (!this._prepareDialog()) return false;
       if (!this._beginDialog('add', [])) return false;
@@ -1287,13 +1316,13 @@
   const methods$3 = {
     _collectFormData: function ($form) {
       var that = this;
-      var values = this.completeColumnDefs().every(function (column) {
+      var columns = this.columnDefs || this.completeColumnDefs();
+      var values = columns.every(function (column) {
         return typeof column.name === 'number';
       })
         ? []
         : {};
       var fileTasks = [];
-      var columns = this.columnDefs || this.completeColumnDefs();
 
       $form.find('select, textarea, input').each(function () {
         if (this.disabled) return;
@@ -1418,9 +1447,7 @@
       var inlineCount = 0;
 
       columnDefs.forEach(function (columnDef) {
-        var title = String(columnDef.title || '')
-          .replace(/(<([^>]+)>)/gi, '')
-          .trim();
+        var title = String(columnDef.title || '').trim();
         if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
 
         if (String(columnDef.type).indexOf('hidden') >= 0) {
@@ -1473,7 +1500,7 @@
             'multiple',
           ]);
           select.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-          if (columnDef.placeholder)
+          if (columnDef.placeholder != null)
             select.setAttribute(
               'data-placeholder',
               String(columnDef.placeholder)
@@ -1503,7 +1530,9 @@
             'disabled',
             'required',
           ]);
-          textarea.placeholder = String(columnDef.placeholder || title);
+          textarea.placeholder = String(
+            columnDef.placeholder == null ? title : columnDef.placeholder
+          );
           textarea.setAttribute(
             'data-unique',
             columnDef.unique ? 'true' : 'false'
@@ -1518,7 +1547,9 @@
             (columnDef.readonly ? ' readonlyText' : '');
           input.id = String(columnDef.name);
           input.title = String(columnDef.hoverMsg || '');
-          input.placeholder = String(columnDef.placeholder || title);
+          input.placeholder = String(
+            columnDef.placeholder == null ? title : columnDef.placeholder
+          );
           input.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
           that._setElementAttributes(input, columnDef, [
             'type',
@@ -1539,6 +1570,11 @@
           inputCol.appendChild(input);
         }
 
+        if (columnDef.inline && inlineCount > 0) {
+          inputCol
+            .querySelector('input, select, textarea')
+            .setAttribute('aria-label', title);
+        }
         col.appendChild(formGroup);
         inlineCount++;
       });
@@ -1562,11 +1598,7 @@
 
       if (this.internalOpenDialog(selector, fill) === false) return false;
       this._initializePlugins();
-      this._focusFirstInput();
-
-      var temp = document.createElement('div');
-      temp.appendChild(fragment.cloneNode(true));
-      return temp.innerHTML;
+      return true;
     },
     _populateDialogFields: function (columns, rowData) {
       for (const column of columns) {
@@ -1592,6 +1624,12 @@
       attributes.forEach(function (attribute) {
         var value = columnDef[attribute];
         if (value === undefined || value === null || value === false) return;
+        if (
+          ['disabled', 'readonly', 'required', 'multiple'].includes(attribute)
+        ) {
+          if (value) element.setAttribute(attribute, '');
+          return;
+        }
         if (typeof value === 'boolean') {
           element.setAttribute(attribute, '');
           return;
@@ -1720,19 +1758,11 @@
       var normalized = value === null || value === undefined ? '' : value;
 
       if (type.indexOf('select') >= 0) {
-        var selectValue = normalized;
-        if (typeof normalized === 'string') {
-          var trimmed = normalized.trim();
-          if (trimmed.charAt(0) === '[' || trimmed.charAt(0) === '{') {
-            try {
-              selectValue = JSON.parse(trimmed);
-            } catch (_error) {}
-          }
-        }
+        $element.each(function () {
+          setSelectValue(this, normalized);
+        });
         if (columnDef.select2 && $element.hasClass('select2-hidden-accessible')) {
-          $element.val(selectValue).trigger('change');
-        } else {
-          $element.val(selectValue);
+          $element.trigger('change');
         }
         return;
       }
@@ -1786,7 +1816,7 @@
    * @param {Object|Array} [originalRowData] Original row for editing.
    */
   const methods = {
-    _errorCallback: function (response, status, more) {
+    _errorCallback: function (response) {
       var error = response || {};
       var message =
         typeof response === 'string' ? response : this.language.error.message;
@@ -1842,7 +1872,11 @@
       if (this._destroyed || this._submitting || this._completed) return;
       const editor = this;
       const snapshot =
-        action === 'edit' ? this._editSnapshot : this._deleteSnapshot;
+        action === 'edit'
+          ? this._editSnapshot
+          : action === 'delete'
+            ? this._deleteSnapshot
+            : null;
       const token = this._dialogToken;
       const active = () => !editor._destroyed && token === editor._dialogToken;
       const payload = {
@@ -2070,19 +2104,17 @@
       });
     }
     if (type === 'checkbox') control.checked = isChecked(value);
-    else if (type === 'select' && options.multiple) {
-      const values = (Array.isArray(value) ? value : [value]).map(String);
-      Array.prototype.forEach.call(control.options, (option) => {
-        option.selected = values.indexOf(option.value) !== -1;
-      });
-    } else control.value = value == null ? '' : value;
+    else if (type === 'select') setSelectValue(control, value);
+    else control.value = value == null ? '' : value;
     return control;
   }
 
   function controlValue(control) {
     if (control.type === 'checkbox') return control.checked;
     if (control.type === 'number')
-      return control.value === '' ? '' : control.valueAsNumber;
+      return Number.isFinite(control.valueAsNumber)
+        ? control.valueAsNumber
+        : control.value;
     if (control.tagName === 'SELECT' && control.multiple)
       return Array.prototype.filter
         .call(control.options, (option) => option.selected)
@@ -2158,7 +2190,12 @@
         (this.session && this.session.state === 'submitting')
       )
         return false;
-      const cell = this.api.cell(selector);
+      let cell;
+      try {
+        cell = this.api.cell(selector);
+      } catch (_error) {
+        return false;
+      }
       const index = cell.index();
       if (!index || !cell.node() || !this.body.contains(cell.node()))
         return false;
@@ -2266,8 +2303,8 @@
       if (!node) return;
       session.detaching = true;
       if (node.contains(session.control)) {
-        node.removeChild(session.control);
-        node.removeChild(session.errorNode);
+        session.control.remove();
+        session.errorNode.remove();
         node.appendChild(session.display);
       }
       node.classList.remove(
@@ -2299,7 +2336,9 @@
           ? error.message
           : String(error || this.editor.language.error.message);
       session.control.setAttribute('aria-invalid', 'true');
-      session.control.focus();
+      if (!session.displayNode)
+        this.editor._showErrorMessage(session.errorNode.textContent);
+      else session.control.focus();
       this.event('error', session, { error });
     }
 
@@ -2312,18 +2351,15 @@
       control.setCustomValidity('');
       if (session.options.unique) {
         const row = resolveRow(this.api, session);
+        const indexes = this.api.rows().indexes().toArray();
         const duplicate = this.api
-          .rows()
-          .indexes()
+          .column(session.columnIndex)
+          .data()
           .toArray()
           .some(
-            (index) =>
-              (!row || index !== row.index()) &&
-              equalFieldValues(
-                session.newValue,
-                this.api.cell(index, session.columnIndex).data(),
-                session.options.type
-              )
+            (value, index) =>
+              (!row || indexes[index] !== row.index()) &&
+              equalFieldValues(session.newValue, value, session.options.type)
           );
         if (duplicate)
           control.setCustomValidity(
@@ -2501,33 +2537,41 @@
       const language = api.init().language || {};
       this.language = language.altEditor || {};
       this._initLanguage();
-      table.altEditor = this;
-      this.selectionListener();
-      this._setup();
-      this._inline = new InlineEditor(this);
-      if (!language.altEditor && language.altEditorUrl)
-        this._languageRequest = $.ajax({
-          url: language.altEditorUrl,
-          dataType: 'json',
-          timeout: 15000,
-          success: (json) => {
-            if (!this._destroyed) {
-              try {
-                this._initLanguage(json);
-              } catch (error) {
-                emit(this, 'error', { action: 'language', error });
-                console.warn('AltEditor could not apply the translation', error);
+      try {
+        table.altEditor = this;
+        this.selectionListener();
+        this._setup();
+        this._inline = new InlineEditor(this);
+        if (!language.altEditor && language.altEditorUrl)
+          this._languageRequest = $.ajax({
+            url: language.altEditorUrl,
+            dataType: 'json',
+            timeout: 15000,
+            success: (json) => {
+              if (!this._destroyed) {
+                try {
+                  this._initLanguage(json);
+                } catch (error) {
+                  emit(this, 'error', { action: 'language', error });
+                  console.warn(
+                    'AltEditor could not apply the translation',
+                    error
+                  );
+                }
               }
-            }
-          },
-          error: (_response, status, error) => {
-            if (this._destroyed || status === 'abort') return;
-            const failure = new Error(String(error || status));
-            emit(this, 'error', { action: 'language', error: failure });
-            console.warn('AltEditor could not load the translation', failure);
-          },
-        });
-      api.on('destroy' + this.s.namespace, () => this.destroy());
+            },
+            error: (_response, status, error) => {
+              if (this._destroyed || status === 'abort') return;
+              const failure = new Error(String(error || status));
+              emit(this, 'error', { action: 'language', error: failure });
+              console.warn('AltEditor could not load the translation', failure);
+            },
+          });
+        api.on('destroy' + this.s.namespace, () => this.destroy());
+      } catch (error) {
+        this.destroy();
+        throw error;
+      }
     }
     Object.assign(
       AltEditor.prototype,
@@ -2570,7 +2614,13 @@
         },
         _selectedRows: function (selector) {
           const api = this.api();
-          if (selector !== undefined) return api.rows(selector);
+          if (selector !== undefined) {
+            try {
+              return api.rows(selector);
+            } catch (_error) {
+              return api.rows(() => false);
+            }
+          }
           return typeof api.rows().select === 'function'
             ? api.rows({ selected: true })
             : api.rows(() => false);
@@ -2625,7 +2675,11 @@
         destroy: function () {
           if (this._destroyed) return;
           this._destroyed = true;
-          this._inline.destroy();
+          if (this._inline) this._inline.destroy();
+          this._dialogOpen = false;
+          this._dialogContext = null;
+          this._editSnapshot = null;
+          this._deleteSnapshot = null;
           this._buttonActions.forEach((entry) => {
             const button = this.api().button(entry.name + ':name');
             if (button.count() && button.action() === entry.action)

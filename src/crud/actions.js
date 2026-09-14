@@ -11,7 +11,7 @@ import { withValue } from '../data/path.js';
  * @param {Object|Array} [originalRowData] Original row for editing.
  */
 export const methods = {
-  _errorCallback: function (response, status, more) {
+  _errorCallback: function (response) {
     var error = response || {};
     var message =
       typeof response === 'string' ? response : this.language.error.message;
@@ -67,7 +67,11 @@ export const methods = {
     if (this._destroyed || this._submitting || this._completed) return;
     const editor = this;
     const snapshot =
-      action === 'edit' ? this._editSnapshot : this._deleteSnapshot;
+      action === 'edit'
+        ? this._editSnapshot
+        : action === 'delete'
+          ? this._deleteSnapshot
+          : null;
     const token = this._dialogToken;
     const active = () => !editor._destroyed && token === editor._dialogToken;
     const payload = {

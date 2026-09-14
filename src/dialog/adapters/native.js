@@ -1,3 +1,5 @@
+import { $ } from '../../core/dependencies.js';
+
 export function available(element) {
   return typeof element.showModal === 'function';
 }
@@ -11,4 +13,3 @@ export function hide(element) {
 export function dispose(element) {
   if (element.open) element.close();
 }
-import { $ } from '../../core/dependencies.js';

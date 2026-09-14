@@ -157,3 +157,26 @@ test('loads translated dialog labels and close accessibility text asynchronously
     request.mockRestore();
   }
 });
+
+test('releases partially initialized editors so initialization can be retried', () => {
+  document.body.innerHTML = '<table id="table"></table>';
+  const table = new DataTable('#table', {
+    data: [[1]],
+    columns: [{ title: 'Value' }],
+    altEditor: false,
+  });
+  const request = vi.spyOn($, 'ajax').mockImplementation(() => {
+    throw new Error('Transport unavailable');
+  });
+  table.init().language = { altEditorUrl: '/translation.json' };
+  try {
+    expect(() => table.altEditor({})).toThrow('Transport unavailable');
+    expect(table.altEditor()).toBeNull();
+    expect(document.querySelector('.altEditor-modal')).toBeNull();
+    table.init().language = {};
+    expect(table.altEditor({})).toBeTruthy();
+  } finally {
+    table.destroy();
+    request.mockRestore();
+  }
+});

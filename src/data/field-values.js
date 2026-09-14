@@ -60,3 +60,28 @@ export function isChecked(value) {
     ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
   );
 }
+
+/** Preserve stored selections that are absent from the configured options. */
+export function setSelectValue(control, value) {
+  let values = value == null ? [] : Array.isArray(value) ? value : [value];
+  const available = new Set(
+    Array.from(control.options, (option) => option.value)
+  );
+  if (control.multiple && typeof value === 'string' && !available.has(value)) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) values = parsed;
+    } catch (_error) {}
+  }
+  values = values.map(String);
+  values.forEach((value) => {
+    if (value !== '' && !available.has(value)) {
+      const option = control.ownerDocument.createElement('option');
+      option.value = value;
+      option.textContent = value;
+      control.appendChild(option);
+      available.add(value);
+    }
+  });
+  $(control).val(control.multiple ? values : values.length ? values[0] : '');
+}

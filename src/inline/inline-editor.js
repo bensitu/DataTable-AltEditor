@@ -77,7 +77,12 @@ export class InlineEditor {
       (this.session && this.session.state === 'submitting')
     )
       return false;
-    const cell = this.api.cell(selector);
+    let cell;
+    try {
+      cell = this.api.cell(selector);
+    } catch (_error) {
+      return false;
+    }
     const index = cell.index();
     if (!index || !cell.node() || !this.body.contains(cell.node()))
       return false;
@@ -185,8 +190,8 @@ export class InlineEditor {
     if (!node) return;
     session.detaching = true;
     if (node.contains(session.control)) {
-      node.removeChild(session.control);
-      node.removeChild(session.errorNode);
+      session.control.remove();
+      session.errorNode.remove();
       node.appendChild(session.display);
     }
     node.classList.remove(
@@ -218,7 +223,9 @@ export class InlineEditor {
         ? error.message
         : String(error || this.editor.language.error.message);
     session.control.setAttribute('aria-invalid', 'true');
-    session.control.focus();
+    if (!session.displayNode)
+      this.editor._showErrorMessage(session.errorNode.textContent);
+    else session.control.focus();
     this.event('error', session, { error });
   }
 
@@ -231,18 +238,15 @@ export class InlineEditor {
     control.setCustomValidity('');
     if (session.options.unique) {
       const row = resolveRow(this.api, session);
+      const indexes = this.api.rows().indexes().toArray();
       const duplicate = this.api
-        .rows()
-        .indexes()
+        .column(session.columnIndex)
+        .data()
         .toArray()
         .some(
-          (index) =>
-            (!row || index !== row.index()) &&
-            equalFieldValues(
-              session.newValue,
-              this.api.cell(index, session.columnIndex).data(),
-              session.options.type
-            )
+          (value, index) =>
+            (!row || indexes[index] !== row.index()) &&
+            equalFieldValues(session.newValue, value, session.options.type)
         );
       if (duplicate)
         control.setCustomValidity(

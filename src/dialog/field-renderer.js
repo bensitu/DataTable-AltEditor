@@ -29,9 +29,7 @@ export const methods = {
     var inlineCount = 0;
 
     columnDefs.forEach(function (columnDef) {
-      var title = String(columnDef.title || '')
-        .replace(/(<([^>]+)>)/gi, '')
-        .trim();
+      var title = String(columnDef.title || '').trim();
       if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
 
       if (String(columnDef.type).indexOf('hidden') >= 0) {
@@ -84,7 +82,7 @@ export const methods = {
           'multiple',
         ]);
         select.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-        if (columnDef.placeholder)
+        if (columnDef.placeholder != null)
           select.setAttribute(
             'data-placeholder',
             String(columnDef.placeholder)
@@ -114,7 +112,9 @@ export const methods = {
           'disabled',
           'required',
         ]);
-        textarea.placeholder = String(columnDef.placeholder || title);
+        textarea.placeholder = String(
+          columnDef.placeholder == null ? title : columnDef.placeholder
+        );
         textarea.setAttribute(
           'data-unique',
           columnDef.unique ? 'true' : 'false'
@@ -129,7 +129,9 @@ export const methods = {
           (columnDef.readonly ? ' readonlyText' : '');
         input.id = String(columnDef.name);
         input.title = String(columnDef.hoverMsg || '');
-        input.placeholder = String(columnDef.placeholder || title);
+        input.placeholder = String(
+          columnDef.placeholder == null ? title : columnDef.placeholder
+        );
         input.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
         that._setElementAttributes(input, columnDef, [
           'type',
@@ -150,6 +152,11 @@ export const methods = {
         inputCol.appendChild(input);
       }
 
+      if (columnDef.inline && inlineCount > 0) {
+        inputCol
+          .querySelector('input, select, textarea')
+          .setAttribute('aria-label', title);
+      }
       col.appendChild(formGroup);
       inlineCount++;
     });
@@ -173,11 +180,7 @@ export const methods = {
 
     if (this.internalOpenDialog(selector, fill) === false) return false;
     this._initializePlugins();
-    this._focusFirstInput();
-
-    var temp = document.createElement('div');
-    temp.appendChild(fragment.cloneNode(true));
-    return temp.innerHTML;
+    return true;
   },
   _populateDialogFields: function (columns, rowData) {
     for (const column of columns) {
@@ -203,6 +206,12 @@ export const methods = {
     attributes.forEach(function (attribute) {
       var value = columnDef[attribute];
       if (value === undefined || value === null || value === false) return;
+      if (
+        ['disabled', 'readonly', 'required', 'multiple'].includes(attribute)
+      ) {
+        if (value) element.setAttribute(attribute, '');
+        return;
+      }
       if (typeof value === 'boolean') {
         element.setAttribute(attribute, '');
         return;

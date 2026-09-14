@@ -160,8 +160,6 @@ export const methods = {
     var modalId = 'altEditor-modal-' + this.random_id;
     this.modal_selector = '#' + modalId;
 
-    this._initLanguage();
-
     const useNative = this.c.dialog.framework === 'native';
     var modal = createDialogShell(modalId, useNative, this.language.modalClose);
     document.body.appendChild(modal);
@@ -271,13 +269,11 @@ export const methods = {
       var rowIndexes = dt.rows().indexes().toArray();
 
       event.target.setCustomValidity('');
-      var duplicate = rowIndexes.some(function (rowIndex) {
+      var values = dt.column(column.index).data().toArray();
+      var duplicate = values.some(function (value, index) {
+        var rowIndex = rowIndexes[index];
         if (editIndex !== null && rowIndex === editIndex) return false;
-        return equalFieldValues(
-          candidate,
-          dt.cell(rowIndex, column.index).data(),
-          column.type
-        );
+        return equalFieldValues(candidate, value, column.type);
       });
       if (duplicate)
         event.target.setCustomValidity(
@@ -322,7 +318,7 @@ export const methods = {
 
     var rowIndex = selectedRows.indexes().toArray()[0];
     var rowData = selectedRows.data()[0];
-    if (rowIndex === undefined || rowData === undefined) return;
+    if (rowIndex === undefined || rowData === undefined) return false;
 
     const target = snapshotRow(dt.row(rowIndex));
     if (!this._beginDialog('edit', [rowData])) return false;
@@ -413,9 +409,7 @@ export const methods = {
       .trigger('alteditor:delete_dialog_opened');
     this._bindDialog('delete');
   },
-  /** Open the add dialog.
-   * @param {*} [rowSelector] Explicit DataTables row selector; otherwise use selected rows.
-   */
+  /** Open the add dialog. */
   openAddDialog: function () {
     if (!this._prepareDialog()) return false;
     if (!this._beginDialog('add', [])) return false;

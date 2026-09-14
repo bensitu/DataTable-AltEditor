@@ -51,33 +51,41 @@ export function createAltEditor(DataTable) {
     const language = api.init().language || {};
     this.language = language.altEditor || {};
     this._initLanguage();
-    table.altEditor = this;
-    this.selectionListener();
-    this._setup();
-    this._inline = new InlineEditor(this);
-    if (!language.altEditor && language.altEditorUrl)
-      this._languageRequest = $.ajax({
-        url: language.altEditorUrl,
-        dataType: 'json',
-        timeout: 15000,
-        success: (json) => {
-          if (!this._destroyed) {
-            try {
-              this._initLanguage(json);
-            } catch (error) {
-              emit(this, 'error', { action: 'language', error });
-              console.warn('AltEditor could not apply the translation', error);
+    try {
+      table.altEditor = this;
+      this.selectionListener();
+      this._setup();
+      this._inline = new InlineEditor(this);
+      if (!language.altEditor && language.altEditorUrl)
+        this._languageRequest = $.ajax({
+          url: language.altEditorUrl,
+          dataType: 'json',
+          timeout: 15000,
+          success: (json) => {
+            if (!this._destroyed) {
+              try {
+                this._initLanguage(json);
+              } catch (error) {
+                emit(this, 'error', { action: 'language', error });
+                console.warn(
+                  'AltEditor could not apply the translation',
+                  error
+                );
+              }
             }
-          }
-        },
-        error: (_response, status, error) => {
-          if (this._destroyed || status === 'abort') return;
-          const failure = new Error(String(error || status));
-          emit(this, 'error', { action: 'language', error: failure });
-          console.warn('AltEditor could not load the translation', failure);
-        },
-      });
-    api.on('destroy' + this.s.namespace, () => this.destroy());
+          },
+          error: (_response, status, error) => {
+            if (this._destroyed || status === 'abort') return;
+            const failure = new Error(String(error || status));
+            emit(this, 'error', { action: 'language', error: failure });
+            console.warn('AltEditor could not load the translation', failure);
+          },
+        });
+      api.on('destroy' + this.s.namespace, () => this.destroy());
+    } catch (error) {
+      this.destroy();
+      throw error;
+    }
   }
   Object.assign(
     AltEditor.prototype,
@@ -120,7 +128,13 @@ export function createAltEditor(DataTable) {
       },
       _selectedRows: function (selector) {
         const api = this.api();
-        if (selector !== undefined) return api.rows(selector);
+        if (selector !== undefined) {
+          try {
+            return api.rows(selector);
+          } catch (_error) {
+            return api.rows(() => false);
+          }
+        }
         return typeof api.rows().select === 'function'
           ? api.rows({ selected: true })
           : api.rows(() => false);
@@ -175,7 +189,11 @@ export function createAltEditor(DataTable) {
       destroy: function () {
         if (this._destroyed) return;
         this._destroyed = true;
-        this._inline.destroy();
+        if (this._inline) this._inline.destroy();
+        this._dialogOpen = false;
+        this._dialogContext = null;
+        this._editSnapshot = null;
+        this._deleteSnapshot = null;
         this._buttonActions.forEach((entry) => {
           const button = this.api().button(entry.name + ':name');
           if (button.count() && button.action() === entry.action)

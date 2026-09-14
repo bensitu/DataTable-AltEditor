@@ -33,6 +33,8 @@ The first argument is always the AltEditor instance; `editor.api()` returns its 
 
 Dialog add/edit callbacks receive enabled form values; disabled controls are omitted. Delete receives an array of the captured rows. Inline editing receives a complete candidate row and a snapshot of the original row. Inline editing uses `onEditRow` if `onInlineEditRow` is absent. If no applicable callback is supplied, the update succeeds locally.
 
+Set a timeout in the application transport and call `error()` when it expires. The editor does not impose a persistence deadline or cancel an in-flight server write. Returning a Promise alone does not settle the callback contract.
+
 Call `success(persistedRow)` with a row object or array. Calling `success()` uses the submitted candidate; dialog editing preserves fields outside the form. JSON row strings are accepted. Delete ignores the response body. Call `error(errorValue)` to retain the form for correction and retry. Error content is rendered as text. Only the first success or error settlement is accepted, and callbacks completed after destruction are ignored.
 
 Dialog editing captures eligible fields before asynchronous collection and constructs its candidate before invoking persistence. Changing form controls or disabling them while the request is pending does not change the submitted candidate. Return `success(persistedRow)` explicitly for server-adjusted data.
@@ -90,7 +92,7 @@ Without an explicit row selector, edit and delete use the Select extension. Edit
 | `accept`, `maxFileSize`                                                       | File input type hint and optional nonnegative size limit in bytes.                                                                             |
 | `style`                                                                       | Dialog control inline styles, as a string or property object.                                                                                  |
 | `select2`, `datepicker`, `datetimepicker`                                     | Optional dialog plugin configuration; meaningful native controls remain usable when plugins are absent.                                        |
-| `dateFormat`, `dateInputFormat`                                               | Format dialog date/time values using Moment when available; parse strictly with the input format or ISO 8601.                                  |
+| `dateFormat`, `dateInputFormat`                                               | Format dialog date/time values using Moment on `window.moment` when available; parse strictly with the input format or ISO 8601.               |
 | `editorOnChange(event, editor)`                                               | Handle a dialog field change.                                                                                                                  |
 | `inline`                                                                      | Compact dialog field layout; this is distinct from cell editing.                                                                               |
 | `special`                                                                     | Deprecated compatibility data attribute; has no built-in validation behavior.                                                                  |
@@ -99,6 +101,10 @@ Without an explicit row selector, edit and delete use the Select extension. Edit
 Object rows, numeric array sources including 0, and dotted object paths are supported. Writable paths containing `__proto__`, `prototype`, or `constructor` are rejected, while unrelated metadata with those names is preserved when rows are copied. Complex DataTables sources, including bracket, function, and escaped-dot notation, need an explicit setter for inline editing and are excluded from dialogs. Dialogs also exclude radio fields and fields with an empty title, except hidden inputs. Use a titled select for a single choice or `editable: false` to explicitly exclude a column.
 
 Uniqueness compares text and select values as strings, number fields numerically, and multiple selections by overlapping values. Empty values do not count as duplicates; use `required` when a value is mandatory. `optionsSortByLabel` uses the browser's default locale. Supply options in the desired order without this option when applications require a fixed ordering.
+
+Dialog text and number fields retain HTML form string values; convert numeric values in the persistence callback when the data model requires numbers. Checkboxes return booleans and multiple selects return arrays of strings. Inline number controls return numbers.
+
+Stored select values absent from the initial options are included as plain-text options so opening an editor does not discard them. Single selections preserve literal JSON strings; multiple selections also accept JSON arrays unless the string itself matches an option. `reloadOptions()` intentionally replaces the available choices and only retains values present in the new list, which is useful for dependent fields. Validate required choices after reloading.
 
 Native date, time, and datetime-local controls require values such as `2026-09-11`, `14:30`, and `2026-09-11T14:30`. Store native-compatible values and use a DataTables renderer for presentation. Dialog `dateFormat` also applies to time fields; custom source formats require `dateInputFormat` to avoid ambiguous parsing. Inline controls use raw values without Moment conversion.
 

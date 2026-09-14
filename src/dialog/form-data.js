@@ -3,13 +3,13 @@ import { $, root as window } from '../core/dependencies.js';
 export const methods = {
   _collectFormData: function ($form) {
     var that = this;
-    var values = this.completeColumnDefs().every(function (column) {
+    var columns = this.columnDefs || this.completeColumnDefs();
+    var values = columns.every(function (column) {
       return typeof column.name === 'number';
     })
       ? []
       : {};
     var fileTasks = [];
-    var columns = this.columnDefs || this.completeColumnDefs();
 
     $form.find('select, textarea, input').each(function () {
       if (this.disabled) return;

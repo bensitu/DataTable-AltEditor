@@ -144,3 +144,23 @@ test('restricts inline controls to writable sources and honors explicit override
     controlOptions({ name: 'items[].name', inlineEditSetValue: () => ({}) })
   ).not.toBeNull();
 });
+
+test('preserves literal JSON option values and stored selections missing from options', () => {
+  for (const multiple of [false, true]) {
+    const control = createControl(
+      { type: 'select', multiple, options: ['[]', '{}'] },
+      '[]'
+    );
+    expect(controlValue(control)).toEqual(multiple ? ['[]'] : '[]');
+    plugins._setFieldValue($(control), { type: 'select' }, '{}');
+    expect(controlValue(control)).toEqual(multiple ? ['{}'] : '{}');
+    plugins._setFieldValue($(control), { type: 'select' }, 'Retired');
+    expect(controlValue(control)).toEqual(multiple ? ['Retired'] : 'Retired');
+    expect(control.options[2].textContent).toBe('Retired');
+  }
+  const control = createControl(
+    { type: 'select', multiple: true, options: ['a'] },
+    '["a","b"]'
+  );
+  expect(controlValue(control)).toEqual(['a', 'b']);
+});

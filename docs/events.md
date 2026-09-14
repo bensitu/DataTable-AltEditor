@@ -61,7 +61,7 @@ $(table.table().node()).on(
 );
 ```
 
-Canceling pre-submit does not call persistence and does not discard the user's value. Event handlers should be synchronous; asynchronous persistence belongs in the CRUD callbacks. There is no separate native event channel.
+Canceling pre-submit does not call persistence and does not discard the user's value. Exceptions in before-open or pre-submit event handlers cancel that operation. Other event handler exceptions are logged without interrupting editor cleanup or reverting an accepted update. Handle application errors inside each listener when later listeners must also run. Event handlers should be synchronous; asynchronous persistence belongs in the CRUD callbacks. There is no separate native event channel.
 
 ## Modal compatibility events
 

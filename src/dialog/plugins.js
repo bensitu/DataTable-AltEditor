@@ -1,5 +1,9 @@
 import { $, root as window } from '../core/dependencies.js';
-import { fieldElement, isChecked } from '../data/field-values.js';
+import {
+  fieldElement,
+  isChecked,
+  setSelectValue,
+} from '../data/field-values.js';
 
 export const methods = {
   _initializePlugins: function () {
@@ -114,19 +118,11 @@ export const methods = {
     var normalized = value === null || value === undefined ? '' : value;
 
     if (type.indexOf('select') >= 0) {
-      var selectValue = normalized;
-      if (typeof normalized === 'string') {
-        var trimmed = normalized.trim();
-        if (trimmed.charAt(0) === '[' || trimmed.charAt(0) === '{') {
-          try {
-            selectValue = JSON.parse(trimmed);
-          } catch (_error) {}
-        }
-      }
+      $element.each(function () {
+        setSelectValue(this, normalized);
+      });
       if (columnDef.select2 && $element.hasClass('select2-hidden-accessible')) {
-        $element.val(selectValue).trigger('change');
-      } else {
-        $element.val(selectValue);
+        $element.trigger('change');
       }
       return;
     }

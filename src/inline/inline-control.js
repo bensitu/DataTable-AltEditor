@@ -1,6 +1,10 @@
 import { document } from '../core/dependencies.js';
 import { mergeOptions } from '../core/options.js';
-import { normalizeSelectOptions, isChecked } from '../data/field-values.js';
+import {
+  normalizeSelectOptions,
+  isChecked,
+  setSelectValue,
+} from '../data/field-values.js';
 import { segments } from '../data/path.js';
 
 const types = [
@@ -97,19 +101,17 @@ export function createControl(options, value) {
     });
   }
   if (type === 'checkbox') control.checked = isChecked(value);
-  else if (type === 'select' && options.multiple) {
-    const values = (Array.isArray(value) ? value : [value]).map(String);
-    Array.prototype.forEach.call(control.options, (option) => {
-      option.selected = values.indexOf(option.value) !== -1;
-    });
-  } else control.value = value == null ? '' : value;
+  else if (type === 'select') setSelectValue(control, value);
+  else control.value = value == null ? '' : value;
   return control;
 }
 
 export function controlValue(control) {
   if (control.type === 'checkbox') return control.checked;
   if (control.type === 'number')
-    return control.value === '' ? '' : control.valueAsNumber;
+    return Number.isFinite(control.valueAsNumber)
+      ? control.valueAsNumber
+      : control.value;
   if (control.tagName === 'SELECT' && control.multiple)
     return Array.prototype.filter
       .call(control.options, (option) => option.selected)

@@ -10,8 +10,12 @@ export function snapshotRow(row) {
 export function resolveRow(api, snapshot) {
   if (!snapshot) return null;
   if (snapshot.rowId !== undefined && snapshot.rowId !== '') {
-    const byId = api.row('#' + snapshot.rowId);
-    if (byId.any()) return byId;
+    try {
+      const byId = api.row('#' + snapshot.rowId);
+      if (byId.any()) return byId;
+    } catch (_error) {
+      // A missing identifier can reach DataTables' CSS selector fallback.
+    }
   }
   if (
     snapshot.rowNode &&
