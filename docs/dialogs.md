@@ -123,3 +123,5 @@ The application supplies `canCreateRecords`; client checks do not replace server
 Use an application class inside the template and standard CSS layout rules. The [styling guide](styling.md) documents shared `--alteditor-*` properties. The shell also exposes `.altEditor-title`, `.altEditor-header`, `.altEditor-body`, `.altEditor-footer`, and `.altEditor-content` across adapters. Native controls use `.altEditor-control` and native action buttons use `.altEditor-button`.
 
 Templates and returned DOM are trusted application configuration; the library does not sanitize them. Do not interpolate untrusted values into markup or HTML strings. Use `textContent` for row data and sanitize external HTML before creating a template. Deletion strings are safely inserted as text.
+
+Generated field identifiers are unique to each editor instance. Locate controls by their `name` inside the supplied `form` or dialog element; do not assume that a field name is its DOM identifier. Labels remain associated with their corresponding controls.

@@ -4,7 +4,7 @@ export function fieldElement(container, name) {
   return $(container)
     .find('input, select, textarea')
     .filter(function () {
-      return this.id === String(name);
+      return (this.name || this.id) === String(name);
     });
 }
 

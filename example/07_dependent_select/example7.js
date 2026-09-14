@@ -44,7 +44,10 @@ $(document).ready(function () {
         if (previousRequest) previousRequest.abort();
         message.text('');
         const hasTowns = country === 'Italy' || country === 'France';
-        modal.find('#alteditor-row-town').toggle(hasTowns);
+        modal
+          .find('[name="town"]')
+          .closest('.altEditor-field')
+          .toggle(hasTowns);
         town.prop('required', hasTowns);
         if (!hasTowns) {
           editor.reloadOptions(town, ['']);

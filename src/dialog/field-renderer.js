@@ -28,14 +28,15 @@ export const methods = {
     var that = this;
     var inlineCount = 0;
 
-    columnDefs.forEach(function (columnDef) {
+    columnDefs.forEach(function (columnDef, index) {
+      var fieldId = that.random_id + '-field-' + index;
       var title = String(columnDef.title || '').trim();
       if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
 
       if (String(columnDef.type).indexOf('hidden') >= 0) {
         var hidden = document.createElement('input');
         hidden.type = 'hidden';
-        hidden.id = String(columnDef.name);
+        hidden.id = fieldId;
         that._setElementAttributes(hidden, columnDef, ['name', 'disabled']);
         if (columnDef.value !== undefined && columnDef.value !== null)
           hidden.value = columnDef.value;
@@ -48,14 +49,14 @@ export const methods = {
       var formGroup = document.createElement('div');
       formGroup.className =
         'altEditor-field' + (columnDef.visible === false ? ' nonDisplay' : '');
-      formGroup.id = 'alteditor-row-' + String(columnDef.name);
+      formGroup.id = fieldId + '-row';
 
       if (!columnDef.inline || inlineCount === 0) {
         var labelCol = document.createElement('div');
         labelCol.className = 'altEditor-label';
         var label = document.createElement('label');
         label.className = 'col-form-label col-form-label-sm';
-        label.htmlFor = String(columnDef.name);
+        label.htmlFor = fieldId;
         label.textContent = title + ':';
         labelCol.appendChild(label);
         formGroup.appendChild(labelCol);
@@ -73,7 +74,7 @@ export const methods = {
         select.className =
           'form-control form-control-sm' +
           (columnDef.select2 ? ' select2' : '');
-        select.id = String(columnDef.name);
+        select.id = fieldId;
         that._setElementAttributes(select, columnDef, [
           'name',
           'style',
@@ -101,7 +102,7 @@ export const methods = {
       } else if (type.indexOf('textarea') >= 0) {
         var textarea = document.createElement('textarea');
         textarea.className = 'form-control form-control-sm';
-        textarea.id = String(columnDef.name);
+        textarea.id = fieldId;
         that._setElementAttributes(textarea, columnDef, [
           'name',
           'style',
@@ -127,7 +128,7 @@ export const methods = {
         input.className =
           'form-control form-control-sm' +
           (columnDef.readonly ? ' readonlyText' : '');
-        input.id = String(columnDef.name);
+        input.id = fieldId;
         input.title = String(columnDef.hoverMsg || '');
         input.placeholder = String(
           columnDef.placeholder == null ? title : columnDef.placeholder

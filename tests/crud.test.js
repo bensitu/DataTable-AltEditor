@@ -207,7 +207,7 @@ test('renders field constraints and collects only enabled form values', async ()
   expect(form.find('textarea').val()).toBe('First\nSecond');
   expect(form.find('textarea')[0].style.color).toBe('red');
   expect(form.find('textarea').attr('data-special')).toBe('note');
-  expect(form.find('label[for="notes"]').text()).toBe('Notes:');
+  expect(form.find('textarea')[0].labels[0].textContent).toBe('Notes:');
   expect(form.find('option').first().text()).toBe('<Admin>');
   expect(form.find('[name="fixed"]').prop('readOnly')).toBe(true);
   expect(form.find('.nonDisplay [name="secret"]').val()).toBe('hidden text');
@@ -579,4 +579,20 @@ test('retains literal field titles and explicitly empty placeholders', () => {
   expect(field.placeholder).toBe('');
   expect(field.readOnly).toBe(false);
   expect(field.getAttribute('aria-label')).toBe('Value <10>');
+});
+
+test('keeps fields and labels independent across editor instances', async () => {
+  const first = create(),
+    second = create();
+  first.editor.openEditDialog(0);
+  second.editor.openEditDialog(0);
+  const firstField = $(first.editor.modal_selector).find('[name="name"]')[0];
+  const secondField = $(second.editor.modal_selector).find('[name="name"]')[0];
+  expect(firstField.id).not.toBe(secondField.id);
+  expect(firstField.labels[0].control).toBe(firstField);
+  expect(secondField.labels[0].control).toBe(secondField);
+  firstField.value = 'Ann';
+  await first.editor._editRowData();
+  expect(first.table.row(0).data().name).toBe('Ann');
+  expect(second.table.row(0).data().name).toBe('Alice');
 });

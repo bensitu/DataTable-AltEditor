@@ -14,7 +14,7 @@ export const methods = {
     $form.find('select, textarea, input').each(function () {
       if (this.disabled) return;
       var $input = $(this);
-      var id = $input.attr('id');
+      var id = this.name || this.id;
       if (!id) return;
       var type = String($input.attr('type') || '').toLowerCase();
 
@@ -78,7 +78,7 @@ export const methods = {
     $form.find('select, textarea, input').each(function () {
       if (this.disabled) return;
       var $input = $(this);
-      var id = this.id || this.name || 'field';
+      var id = this.name || this.id || 'field';
       if ($input.attr('data-unique') === 'true') {
         $input.trigger($input.is('select') ? 'change' : 'input');
       }
