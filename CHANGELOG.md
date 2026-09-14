@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
-## 4.1.1 - 2026-09-14
+## 4.1.1 - 2026-09-15
 
 ### Added
 
@@ -15,11 +15,13 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- Detached field rendering, template composition, form initialization, and framework event handling have separate responsibilities. Add and edit share one opening path, and template composition avoids an extra field clone.
 - Unique validation reads column values in one operation instead of creating a separate cell API for each row.
 - Documentation explains value conversion, persistence timeouts, select option replacement, event exceptions, field lookup, and explicit color overrides.
 
 ### Fixed
 
+- Field plugin and change-callback failures during dialog initialization close the incomplete form and allow retry. Close callback exceptions release the previous dialog context.
 - Failed initialization releases partially attached resources so the editor can be initialized again.
 - Event listener exceptions no longer leave submission controls disabled or interrupt cleanup. Exceptions before opening or submitting cancel the operation.
 - Dialog fields use instance-specific identifiers and retain correctly associated labels across multiple tables. Compact fields have accessible names, literal title text is preserved, and empty placeholders remain empty.
