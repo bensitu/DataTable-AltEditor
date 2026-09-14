@@ -51,7 +51,7 @@ jobs:
       - run: npm run build
       - run: npm run test:coverage
       - run: npx --no-install playwright install --with-deps chromium firefox webkit
-      - run: npm run test:compat
+      - run: npm run test:compat -- --skip-build
       - name: Pack release files
         shell: bash
         run: |

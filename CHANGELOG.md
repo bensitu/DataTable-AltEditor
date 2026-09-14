@@ -16,6 +16,9 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 ### Changed
 
 - Updated the Rollup build dependency to 4.63.3.
+- The jQuery peer dependency and documentation consistently require `>=1.8 <4.0.0`.
+- Release validation reuses the existing build for compatibility checks.
+- Minimum aggregate test coverage is 85% for statements, branches, functions, and lines, with additional coverage for native dialog closure, nested data updates, and file read recovery.
 - Detached field rendering, template composition, form initialization, and framework event handling have separate responsibilities. Add and edit share one opening path, and template composition avoids an extra field clone.
 - Unique validation reads column values in one operation instead of creating a separate cell API for each row.
 - Documentation explains value conversion, persistence timeouts, select option replacement, event exceptions, field lookup, and explicit color overrides.

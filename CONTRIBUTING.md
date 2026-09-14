@@ -28,7 +28,7 @@ Open [the local examples](http://127.0.0.1:8080/). Examples load `dist/`, so reb
 | `datatables.net-buttons` | `3.x`            | Buttons for DataTables 2                                                         |
 | `datatables.net-select`  | `3.x`            | Select for DataTables 2                                                          |
 | `datatables21`           | `2.1.x`          | Minimum supported DataTables compatibility, currently `npm:datatables.net@2.1.8` |
-| `jquery`                 | `3.7.x`          | Development and example dependency                                               |
+| `jquery`                 | `<4.0.0`         | Development and example dependency                                               |
 
 Bootstrap 4 is excluded from automatic updates. The Bootstrap package rule also excludes later 4.x releases while allowing 5.x updates. npm alias handling can differ from ordinary dependencies in Dependabot; preserve the compatibility aliases when reviewing updates. New DataTables extensions and framework integration packages must use versions compatible with DataTables 2 and receive their own update limits. Extension major versions do not necessarily match the core major version.
 
@@ -53,9 +53,9 @@ npm run format:check
 npm run lint
 ```
 
-For behavior changes, run `npm test` and add a focused regression test when it demonstrates the problem. `npm run test:coverage` measures all JavaScript source with an aggregate minimum of 80% for statements, branches, functions, and lines. Prefer meaningful coverage over repetitive assertions or tests of static file contents.
+For behavior changes, run `npm test` and add a focused regression test when it demonstrates the problem. `npm run test:coverage` measures all JavaScript source with an aggregate minimum of 85% for statements, branches, functions, and lines. Prefer meaningful coverage over repetitive assertions or tests of static file contents.
 
-For browser behavior or styles, rebuild and run the relevant Playwright tests. Install Chromium once with `npx playwright install chromium`; `npm run test:e2e` runs the regular Chromium suite. For broader compatibility changes, install all browsers with `npx playwright install` and run `npm run test:compat`. That command also checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation.
+For browser behavior or styles, rebuild and run the relevant Playwright tests. Install Chromium once with `npx playwright install chromium`; `npm run test:e2e` runs the regular Chromium suite. For broader compatibility changes, install all browsers with `npx playwright install` and run `npm run test:compat`. After building once, `npm run test:compat -- --skip-build` runs the same compatibility checks without rebuilding. The release workflow uses this option. That command also checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation.
 
 Documentation-only changes need link, formatting, and content checks rather than the complete runtime test suite. Check screenshots against the current examples and keep image files small. Existing source syntax targets ES2015; tests and build scripts use newer Node.js APIs.
 

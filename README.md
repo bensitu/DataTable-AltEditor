@@ -27,7 +27,7 @@ Screenshots show the included examples; table and page styling belongs to the ex
 
 ## Requirements
 
-- DataTables `>=2.1.0 <3` and jQuery `>=1.8 <5`. Examples use DataTables 2.3.8 and jQuery 3.7.1; choose versions supported by your optional plugins.
+- DataTables `>=2.1.0 <3` and jQuery `>=1.8 <4.0.0`. Examples use DataTables 2.3.8 and jQuery 3.7.1; choose versions supported by your optional plugins. See [jQuery compatibility](docs/api.md#jquery-compatibility) for the known jQuery 4 limitations.
 - For row dialogs: Bootstrap 5, Bootstrap 4, or Foundation Reveal 6. Bootstrap 3 compatibility is best effort. Optional native dialogs are available through `dialog.framework: 'native'`; see [dialog configuration](docs/dialogs.md#framework-selection-and-browser-compatibility).
 - For toolbar actions: DataTables Buttons and Select. Programmatic methods accept explicit row selectors without these extensions.
 - Inline editing uses native controls and does not require a dialog framework.

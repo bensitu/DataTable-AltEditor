@@ -125,3 +125,16 @@ Use `dist/dataTables.altEditor.min.js` for minified JavaScript. Both builds incl
 Each loaded module uses one window and jQuery context. Load a separate copy within each iframe; do not reuse one CommonJS module factory across multiple active windows.
 
 See [inline editing](inline-edit.md), [events](events.md), and [troubleshooting](troubleshooting.md) for related behavior.
+
+## jQuery compatibility
+
+The supported jQuery range is `>=1.8 <4.0.0`; optional frameworks and field plugins may require a narrower range. Development dependencies and examples use 3.7.1.
+
+A compatibility check with jQuery 4.0.0 and DataTables 2.3.8 produced a successful Rollup build, but did not pass all runtime checks. Rollup treats jQuery as an external dependency, so a successful build does not establish runtime compatibility.
+
+- 82 of 83 unit tests passed. CommonJS loading without a global DOM window failed because jQuery 4 requires a different factory entry point in that environment.
+- 13 Chromium checks covering Bootstrap 5, native dialogs, templates, and inline editing passed. These results do not establish compatibility for every optional field plugin or browser.
+- Bootstrap 4.6.2 rejects jQuery 4 during initialization.
+- Foundation 6.9.0 dialog focus handling calls `.sort()` on a jQuery collection, which jQuery 4 no longer provides. Both Foundation browser checks failed to open a usable dialog.
+
+See the [jQuery 4 upgrade guide](https://jquery.com/upgrade-guide/4.0/) for the factory entry point and removed collection methods. Use jQuery 3.7.1 for the bundled examples and supported framework combinations.
