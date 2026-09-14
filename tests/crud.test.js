@@ -470,9 +470,11 @@ test('uses uniqueMsg and handles encoded files, read failures and aborts', async
   editor.encodeFiles = false;
   expect((await editor._collectFormData(form)).attachment).toBe(file);
   editor.encodeFiles = true;
-  for (const event of ['error', 'abort']) {
+  for (const event of ['error', 'abort', 'throw']) {
     vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(
       function () {
+        if (event === 'throw')
+          throw new Error('Unable to read the selected file');
         this.dispatchEvent(new Event(event));
       }
     );
@@ -481,6 +483,9 @@ test('uses uniqueMsg and handles encoded files, read failures and aborts', async
     expect(table.rows().count()).toBe(2);
     vi.restoreAllMocks();
   }
+  await editor._addRowData();
+  expect(table.rows().count()).toBe(3);
+  expect(table.row(2).data().attachment).toContain('base64,aGVsbG8=');
 });
 
 test('loads language from a URL and ignores persistence after destroy', async () => {

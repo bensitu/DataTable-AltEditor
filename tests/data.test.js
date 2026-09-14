@@ -72,3 +72,29 @@ test('merges configuration in precedence order without losing falsy values or fu
     normalizeOptions({}, { altEditor: { inlineEdit: true } }).inlineEdit.enabled
   ).toBe(true);
 });
+
+test('preserves shared and cyclic data while creating missing nested paths', () => {
+  const date = new Date('2026-09-15T00:00:00Z');
+  const file = new File(['data'], 'data.txt');
+  const row = { date, file, children: [] };
+  row.self = row;
+  row.children.push(row);
+  const copy = cloneRow(row);
+  expect(copy).not.toBe(row);
+  expect(copy.self).toBe(copy);
+  expect(copy.children[0]).toBe(copy);
+  expect(copy.date).not.toBe(date);
+  expect(copy.date.getTime()).toBe(date.getTime());
+  expect(copy.file).toBe(file);
+  const source = { profile: null };
+  expect(withValue(source, 'profile.address.city', 'Tokyo')).toEqual({
+    profile: { address: { city: 'Tokyo' } },
+  });
+  expect(source.profile).toBeNull();
+  const target = {};
+  writePath(target, 'items.0.name', 'First');
+  expect(target).toEqual({ items: [{ name: 'First' }] });
+  expect(withValue({}, 'items.0.name', 'First')).toEqual(target);
+  expect(readPath(source, 'profile.address.city')).toBeUndefined();
+  expect(() => writePath({}, 'profile..name', 'Invalid')).toThrow();
+});

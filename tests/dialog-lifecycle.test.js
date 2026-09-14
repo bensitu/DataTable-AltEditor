@@ -125,3 +125,51 @@ test('reports missing dialog frameworks without marking a dialog open', () => {
   expect(failure).toHaveBeenCalledTimes(3);
   expect(editor._dialogOpen).toBeFalsy();
 });
+
+test('native closure ignores delayed notifications and blocks cancellation during persistence', async () => {
+  const initial = create();
+  initial.destroy();
+  const editor = table.altEditor({ dialog: { framework: 'native' } });
+  const element = document.querySelector(editor.modal_selector);
+  element.showModal = function () {
+    this.open = true;
+  };
+  element.close = function () {
+    this.open = false;
+  };
+  const closed = vi.fn();
+  table.on('alteditor-close.dt', closed);
+  editor.openAddDialog();
+  const form = element.querySelector('form');
+  const submit = new Event('submit', { bubbles: true, cancelable: true });
+  form.dispatchEvent(submit);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(submit.defaultPrevented).toBe(true);
+  editor.internalCloseDialog(editor.modal_selector);
+  expect(closed).toHaveBeenCalledOnce();
+  editor.openEditDialog(0);
+  element.dispatchEvent(new Event('close'));
+  expect(editor._dialogOpen).toBe(true);
+  expect(closed).toHaveBeenCalledOnce();
+  let accept;
+  editor.onEditRow = (_editor, _values, success) => {
+    accept = success;
+  };
+  await editor._editRowData();
+  const cancel = new Event('cancel', { cancelable: true });
+  element.dispatchEvent(cancel);
+  expect(cancel.defaultPrevented).toBe(true);
+  $(element).find('.altEditor-close').trigger('click');
+  expect(element.open).toBe(true);
+  accept();
+  expect(element.open).toBe(false);
+  expect(closed).toHaveBeenCalledTimes(2);
+  editor.openEditDialog(0);
+  $(element).find('[data-alteditor-close]').trigger('click');
+  expect(element.open).toBe(false);
+  editor.openEditDialog(0);
+  editor.destroy();
+  expect(element.open).toBe(false);
+  expect(element.isConnected).toBe(false);
+});
