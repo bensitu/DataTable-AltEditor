@@ -19,6 +19,7 @@
     "label": "Hata",
     "responseCode": "Yanıt kodu: ",
     "required": "Bu alan zorunludur",
+    "validation": "Geçersiz alan değeri",
     "unique": "Bu alanın değeri zaten mevcut",
     "editSelection": "Düzenlemek için tam olarak bir satır seçin.",
     "deleteSelection": "Silmek için en az bir satır seçin.",

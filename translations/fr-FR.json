@@ -19,6 +19,7 @@
     "label": "Erreur",
     "responseCode": "Code de réponse : ",
     "required": "Ce champ est obligatoire",
+    "validation": "Valeur du champ non valide",
     "unique": "La valeur de ce champ existe déjà",
     "editSelection": "Sélectionnez exactement une ligne à modifier.",
     "deleteSelection": "Sélectionnez au moins une ligne à supprimer.",

@@ -19,6 +19,7 @@
     "label": "エラー",
     "responseCode": "応答コード：",
     "required": "この項目は必須です",
+    "validation": "入力値が正しくありません",
     "unique": "この項目の値は既に存在します",
     "editSelection": "編集する行を1行選択してください。",
     "deleteSelection": "削除する行を1行以上選択してください。",

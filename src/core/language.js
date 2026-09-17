@@ -12,6 +12,7 @@ const defaults = {
     label: 'Error!',
     responseCode: 'Response code: ',
     required: 'Field is required',
+    validation: 'Invalid field value',
     unique: 'Duplicated field',
     editSelection: 'Exactly one row must be selected for editing.',
     deleteSelection: 'At least one row must be selected for deletion.',

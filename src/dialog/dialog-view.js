@@ -76,7 +76,7 @@ export function renderDialog(modal, options) {
     content.wrap($('<form/>', { role: 'form' }));
   content
     .parent()
-    .attr({ name: options.formName, id: options.formName })
+    .attr({ name: options.formName, id: options.formName, novalidate: '' })
     .toggleClass('needs-validation', !useNative);
 }
 

@@ -73,7 +73,7 @@ export const methods = {
       return values;
     });
   },
-  _validateFormData: function ($form) {
+  _validateFormData: function ($form, fieldErrors) {
     var errors = [];
     $form.find('select, textarea, input').each(function () {
       if (this.disabled) return;
@@ -83,7 +83,9 @@ export const methods = {
         $input.trigger($input.is('select') ? 'change' : 'input');
       }
       if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
-        errors.push(this.validationMessage || id + ' is invalid');
+        const message = this.validationMessage || id + ' is invalid';
+        errors.push(message);
+        if (fieldErrors) fieldErrors[id] = message;
       }
     });
     return Array.from(new Set(errors));

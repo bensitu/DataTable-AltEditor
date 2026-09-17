@@ -1,3 +1,6 @@
+import { validateFields } from '../data/validation.js';
+import { fieldElement } from '../data/field-values.js';
+import { feedbackControl } from '../dialog/field-feedback.js';
 import { $ } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { invoke, resolveRow } from '../data/row-data.js';
@@ -67,11 +70,6 @@ export const methods = {
     }
     clearFieldErrors(this);
     const form = $(this.modal_selector).find('form');
-    const errors = this._validateFormData(form);
-    if (errors.length) {
-      fail(new Error(errors.join('\n')));
-      return;
-    }
     if (!active()) return;
     const fieldNames = form
       .find('input, select, textarea')
@@ -99,6 +97,41 @@ export const methods = {
       return;
     }
     return collection
+      .then((values) => {
+        if (!active()) return;
+        const nativeErrors = Object.create(null);
+        editor._validateFormData(form, nativeErrors);
+        if (Object.keys(nativeErrors).length)
+          throw { fieldErrors: nativeErrors };
+        if (!active()) return;
+        const columns = action === 'delete' ? [] : editor.columnDefs;
+        const fields = columns
+          .filter((column) => {
+            const control = fieldElement(form, column.name)[0];
+            return (
+              fieldNames.includes(String(column.name)) &&
+              column.editable !== false &&
+              feedbackControl(control, $(editor.modal_selector)[0])
+            );
+          })
+          .map((column) => ({
+            name: column.name,
+            validate: column.editorValidate,
+            value: editor._getValueByPath(values, column.name),
+          }));
+        const validation = validateFields(
+          fields,
+          editor,
+          values,
+          snapshot && snapshot.originalData,
+          action,
+          active
+        );
+        return Promise.resolve(validation).then((error) => {
+          if (error) throw error;
+          return values;
+        });
+      })
       .then((values) => {
         if (!active()) return;
         payload.values = values;

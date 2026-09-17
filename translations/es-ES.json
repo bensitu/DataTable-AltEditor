@@ -19,6 +19,7 @@
     "label": "Error",
     "responseCode": "Código de respuesta: ",
     "required": "Este campo es obligatorio",
+    "validation": "Valor de campo no válido",
     "unique": "El valor de este campo ya existe",
     "editSelection": "Seleccione exactamente una fila para editar.",
     "deleteSelection": "Seleccione al menos una fila para eliminar.",

@@ -18,6 +18,7 @@
         "label": "Fout",
         "responseCode": "Reactiecode:",
         "required": "Verplichte waarde",
+        "validation": "Ongeldige veldwaarde",
         "unique": "Dubbele waarde",
         "editSelection": "Selecteer precies één rij om te bewerken.",
         "deleteSelection": "Selecteer ten minste één rij om te verwijderen.",

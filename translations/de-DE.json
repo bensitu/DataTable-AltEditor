@@ -19,6 +19,7 @@
     "label": "Fehler",
     "responseCode": "Antwortcode: ",
     "required": "Dieses Feld ist erforderlich",
+    "validation": "Ungültiger Feldwert",
     "unique": "Der Wert dieses Feldes ist bereits vorhanden",
     "editSelection": "Wählen Sie genau eine Zeile zum Bearbeiten aus.",
     "deleteSelection": "Wählen Sie mindestens eine Zeile zum Löschen aus.",

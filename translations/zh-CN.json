@@ -19,6 +19,7 @@
     "label": "错误",
     "responseCode": "响应代码：",
     "required": "此字段为必填项",
+    "validation": "字段值无效",
     "unique": "此字段的值已存在",
     "editSelection": "请选择一行进行编辑。",
     "deleteSelection": "请至少选择一行进行删除。",

@@ -19,6 +19,7 @@
         "label": "Errore",
         "responseCode": "Codice di risposta: ",
         "required": "Valore obbligatorio",
+        "validation": "Valore del campo non valido",
         "unique": "Valore duplicato",
         "editSelection": "Selezionare esattamente una riga da modificare.",
         "deleteSelection": "Selezionare almeno una riga da eliminare.",

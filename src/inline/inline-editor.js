@@ -1,3 +1,4 @@
+import { validateFields } from '../data/validation.js';
 import { normalizeError } from '../data/errors.js';
 import { document } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
@@ -286,8 +287,40 @@ export class InlineEditor {
     }
     // Mark submission before events or focus changes can cause a second submission.
     session.state = 'submitting';
+    control.disabled = true;
+    control.setAttribute('aria-busy', 'true');
+    const active = () => this.session === session && !this.editor._destroyed;
+    const validation = validateFields(
+      [
+        {
+          name: session.dataSrc,
+          value: session.newValue,
+          validate: session.options.editorValidate,
+        },
+      ],
+      this.editor,
+      session.candidate,
+      session.originalRow,
+      'inline-edit',
+      active
+    );
+    const proceed = (error) => {
+      if (!active()) return;
+      if (error) this.fail(session, error);
+      else this.persist(session, direction);
+    };
+    if (validation && typeof validation.then === 'function')
+      validation.then(proceed);
+    else proceed(validation);
+    return true;
+  }
+
+  persist(session, direction) {
+    const control = session.control;
     if (!this.event('pre-submit', session)) {
       session.state = 'editing';
+      control.disabled = false;
+      control.removeAttribute('aria-busy');
       control.focus();
       return false;
     }
@@ -343,7 +376,6 @@ export class InlineEditor {
       },
       (error) => this.fail(session, error)
     );
-    return true;
   }
 
   navigate(rowIndex, columnIndex, direction) {

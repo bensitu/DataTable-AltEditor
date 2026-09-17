@@ -19,6 +19,7 @@
         "label": "Erro!",
         "responseCode": "Código de Resposta: ",
         "required": "Campo é obrigatório",
+        "validation": "Valor de campo inválido",
         "unique": "Valor duplicado",
         "editSelection": "Selecione exatamente uma linha para editar.",
         "deleteSelection": "Selecione pelo menos uma linha para excluir.",
