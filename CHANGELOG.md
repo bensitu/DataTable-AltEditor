@@ -7,6 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
+## 4.2.0 - 2026-09-18
+
+### Added
+
+- Optional Promise and async persistence on the existing add, edit, delete, and inline callbacks, with first-settlement semantics and unchanged callback arguments.
+- Structured `fieldErrors` with accessible dialog feedback, inline correction, and global fallback for fields that cannot display local messages.
+- The `editorValidate` column option for synchronous and asynchronous business rules, isolated submission context, and correction and retry.
+- Example 21 demonstrates delayed Promise saves, custom validation, structured errors, and inline editing. A validation guide describes the contracts and lifecycle behavior.
+- Translated fallback messages for custom validation in all bundled languages.
+
+### Changed
+
+- Validation and persistence share error normalization. Dialog feedback preserves existing accessibility descriptions and clears field messages on input or change.
+- Native constraints and custom validation complete before submission events and persistence. Busy state and operation identity checks also cover asynchronous validation.
+
+### Fixed
+
+- Inline persistence does not start when its target disappears during asynchronous validation.
+
 ## 4.1.1 - 2026-09-15
 
 ### Added

@@ -25,6 +25,10 @@ Double-click a cell, then save with Enter or cancel with Escape. [Try keyboard n
 
 Screenshots show the included examples; table and page styling belongs to the examples. AltEditor styles remain scoped to its own controls and dialogs.
 
+## Async saves and validation
+
+Use Promise-returning CRUD callbacks, structured `fieldErrors`, and `editorValidate` for synchronous or asynchronous field checks. Existing success/error callbacks remain supported. [Read the guide](docs/validation.md) or [try Example 21](https://bensitu.github.io/DataTable-AltEditor/example/21_async_validation/example21.html).
+
 ## Requirements
 
 - DataTables `>=2.1.0 <3` and jQuery `>=1.8 <4.0.0`. Examples use DataTables 2.3.8 and jQuery 3.7.1; choose versions supported by your optional plugins. See [jQuery compatibility](docs/api.md#jquery-compatibility) for the known jQuery 4 limitations.

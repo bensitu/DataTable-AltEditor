@@ -4,18 +4,19 @@
 
 Start with the [quick start](../README.md#get-started), then choose a guide for your integration. Documentation describes the current checkout; the hosted examples follow the deployed default branch and may differ from development changes.
 
-| Topic                                      | What you will find                                                                                                     |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| [Dialog templates](dialogs.md)             | Independent form layouts, deletion summaries, lifecycle callbacks, and framework selection.                            |
-| [Examples](examples.md)                    | All 20 examples, source locations, suggested interactions, and simulated persistence limits.                           |
-| [Configuration and API](api.md)            | Editor and column options, public methods, persistence callbacks, file handling, module loading, and server-side data. |
-| [Inline editing](inline-edit.md)           | Supported controls, immutable updates, keyboard navigation, validation, and retry behavior.                            |
-| [Events](events.md)                        | Event names, payloads, cancellation, and dialog compatibility events.                                                  |
-| [Styling and themes](styling.md)           | Stylesheet loading, scoped selectors, theme attributes, CSS variables, and framework behavior.                         |
-| [Translations](translations.md)            | Available languages, JSON loading, overrides, and browser validation messages.                                         |
-| [Migration from v3](migration-v3-to-v4.md) | Dependency changes, distribution paths, deprecated options, and callback compatibility.                                |
-| [Troubleshooting](troubleshooting.md)      | Common installation, dialog, save, theme, and translation problems.                                                    |
-| [Publishing](publishing.md)                | GitHub Pages deployment and GitHub release drafts.                                                                     |
+| Topic                                       | What you will find                                                                                                     |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| [Dialog templates](dialogs.md)              | Independent form layouts, deletion summaries, lifecycle callbacks, and framework selection.                            |
+| [Examples](examples.md)                     | All 21 examples, source locations, suggested interactions, and simulated persistence limits.                           |
+| [Configuration and API](api.md)             | Editor and column options, public methods, persistence callbacks, file handling, module loading, and server-side data. |
+| [Persistence and validation](validation.md) | Promise saves, structured field errors, custom validators, and retry behavior.                                         |
+| [Inline editing](inline-edit.md)            | Supported controls, immutable updates, keyboard navigation, validation, and retry behavior.                            |
+| [Events](events.md)                         | Event names, payloads, cancellation, and dialog compatibility events.                                                  |
+| [Styling and themes](styling.md)            | Stylesheet loading, scoped selectors, theme attributes, CSS variables, and framework behavior.                         |
+| [Translations](translations.md)             | Available languages, JSON loading, overrides, and browser validation messages.                                         |
+| [Migration from v3](migration-v3-to-v4.md)  | Dependency changes, distribution paths, deprecated options, and callback compatibility.                                |
+| [Troubleshooting](troubleshooting.md)       | Common installation, dialog, save, theme, and translation problems.                                                    |
+| [Publishing](publishing.md)                 | GitHub Pages deployment and GitHub release drafts.                                                                     |
 
 ## Contributing and project policies
 

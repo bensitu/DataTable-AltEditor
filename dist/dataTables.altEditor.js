@@ -1,4 +1,4 @@
-/*! DataTables AltEditor v4.1.1
+/*! DataTables AltEditor v4.2.0
  * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
  * Copyright (c) 2026 Ben Situ and contributors
  * MIT License */
@@ -16,6 +16,212 @@
     root = window;
     document = window.document;
     $ = jquery;
+  }
+
+  function fieldElement(container, name) {
+    return $(container)
+      .find('input, select, textarea')
+      .filter(function () {
+        return (this.name || this.id) === String(name);
+      });
+  }
+
+  function equalFieldValues(left, right, type) {
+    const values = (value) => (Array.isArray(value) ? value : [value]);
+    return values(left).some((a) =>
+      values(right).some((b) => {
+        if (a === '' || a == null || b === '' || b == null) return false;
+        if (type === 'number')
+          return (
+            Number.isFinite(Number(a)) &&
+            Number.isFinite(Number(b)) &&
+            Number(a) === Number(b)
+          );
+        return String(a) === String(b);
+      })
+    );
+  }
+
+  function normalizeSelectOptions(options) {
+    if (Array.isArray(options)) {
+      return options.map(function (option) {
+        if (option && typeof option === 'object') {
+          var value =
+            option.id !== undefined
+              ? option.id
+              : option.value !== undefined
+                ? option.value
+                : '';
+          var label =
+            option.text !== undefined
+              ? option.text
+              : option.label !== undefined
+                ? option.label
+                : value;
+          return { value: value, label: label };
+        }
+        return { value: option, label: option };
+      });
+    }
+    if (options && typeof options === 'object') {
+      return Object.keys(options).map(function (key) {
+        return { value: key, label: options[key] };
+      });
+    }
+    return [];
+  }
+
+  function isChecked(value) {
+    return (
+      value === true ||
+      value === 1 ||
+      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
+    );
+  }
+
+  /** Preserve stored selections that are absent from the configured options. */
+  function setSelectValue(control, value) {
+    let values = value == null ? [] : Array.isArray(value) ? value : [value];
+    const available = new Set(
+      Array.from(control.options, (option) => option.value)
+    );
+    if (control.multiple && typeof value === 'string' && !available.has(value)) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) values = parsed;
+      } catch (_error) {}
+    }
+    values = values.map(String);
+    values.forEach((value) => {
+      if (value !== '' && !available.has(value)) {
+        const option = control.ownerDocument.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        control.appendChild(option);
+        available.add(value);
+      }
+    });
+    $(control).val(control.multiple ? values : values.length ? values[0] : '');
+  }
+
+  /** Normalize persistence and validation failures without interpreting messages as HTML. */
+  function normalizeError(error, language) {
+    const fields = [];
+    let message = typeof error === 'string' ? error : '';
+    if (error && typeof error === 'object') {
+      if (typeof error.message === 'string') message = error.message;
+      if (error.fieldErrors && typeof error.fieldErrors === 'object') {
+        Object.keys(error.fieldErrors).forEach((name) => {
+          const value = error.fieldErrors[name];
+          if (typeof value === 'string' && value) fields.push([name, value]);
+        });
+      }
+      if (!message && error.responseJSON && error.responseJSON.errors) {
+        const messages = [];
+        Object.values(error.responseJSON.errors).forEach((value) => {
+          (Array.isArray(value) ? value : [value]).forEach((item) => {
+            if (item != null) messages.push(String(item));
+          });
+        });
+        message = messages.join('\n');
+      }
+      if (!message && error.responseText) message = String(error.responseText);
+      if (!message && error.status != null)
+        message = language.responseCode + error.status;
+    }
+    return {
+      message: message || (fields.length ? '' : language.message),
+      fields,
+    };
+  }
+
+  function clearFieldErrors(editor, name) {
+    if (!editor._fieldErrors) return;
+    editor._fieldErrors.forEach((entry, key) => {
+      if (name !== undefined && key !== String(name)) return;
+      entry.controls.forEach(({ element, invalid, styled }) => {
+        const ids = (element.getAttribute('aria-describedby') || '')
+          .split(/\s+/)
+          .filter((id) => id && id !== entry.node.id);
+        if (ids.length) element.setAttribute('aria-describedby', ids.join(' '));
+        else element.removeAttribute('aria-describedby');
+        if (invalid === null) element.removeAttribute('aria-invalid');
+        else element.setAttribute('aria-invalid', invalid);
+        if (!styled) element.classList.remove('altEditor-field-invalid');
+      });
+      entry.node.remove();
+      editor._fieldErrors.delete(key);
+    });
+  }
+
+  /** Locate an editable visible control, including the visible Select2 replacement. */
+  function feedbackControl(element, modal) {
+    if (
+      !element ||
+      element.disabled ||
+      element.readOnly ||
+      element.type === 'hidden'
+    )
+      return null;
+    const replacement = $(element).hasClass('select2-hidden-accessible')
+      ? $(element).next('.select2-container').find('.select2-selection')[0]
+      : null;
+    const target = replacement || element;
+    for (let node = target; node && node !== modal; node = node.parentElement) {
+      const style = root.getComputedStyle(node);
+      if (
+        node.hidden ||
+        style.display === 'none' ||
+        style.visibility === 'hidden'
+      )
+        return null;
+    }
+    return target;
+  }
+
+  function showFieldErrors(editor, error) {
+    clearFieldErrors(editor);
+    const feedback = normalizeError(error, editor.language.error);
+    const messages = feedback.message ? [feedback.message] : [];
+    const modal = $(editor.modal_selector)[0];
+    let first;
+    editor._fieldErrors = new Map();
+    feedback.fields.forEach(([name, message]) => {
+      const element = fieldElement(modal, name)[0];
+      const target = editor._dialogOpen && feedbackControl(element, modal);
+      if (!target) {
+        messages.push(message);
+        return;
+      }
+      const node = document.createElement('span');
+      node.className = 'altEditor-field-error';
+      editor._fieldErrorId = (editor._fieldErrorId || 0) + 1;
+      node.id = editor.random_id + '-error-' + editor._fieldErrorId;
+      node.setAttribute('role', 'alert');
+      node.textContent = message;
+      const controls = [...new Set([element, target])].map((control) => {
+        const state = {
+          element: control,
+          invalid: control.getAttribute('aria-invalid'),
+          styled: control.classList.contains('altEditor-field-invalid'),
+        };
+        control.setAttribute('aria-invalid', 'true');
+        const described = control.getAttribute('aria-describedby');
+        control.setAttribute(
+          'aria-describedby',
+          described ? described + ' ' + node.id : node.id
+        );
+        control.classList.add('altEditor-field-invalid');
+        return state;
+      });
+      const container = $(element).next('.select2-container')[0] || element;
+      container.insertAdjacentElement('afterend', node);
+      editor._fieldErrors.set(name, { node, controls });
+      if (!first) first = target;
+    });
+    $(modal).find('.altEditor-feedback').remove();
+    if (messages.length) editor._showErrorMessage(messages.join('\n'));
+    if (first && first.isConnected) first.focus();
   }
 
   function isPlainObject(value) {
@@ -99,7 +305,7 @@
   }
 
   const keys =
-    'editable visible type readonly disabled required hoverMsg pattern unique uniqueMsg maxLength multiple select2 datepicker datetimepicker editorOnChange style dateFormat dateInputFormat optionsSortByLabel inline step min max value options rows cols accept maxFileSize special placeholder inlineEditable inlineEditType inlineEditOptions inlineEditSetValue'.split(
+    'editable visible type readonly disabled required hoverMsg pattern unique uniqueMsg maxLength multiple select2 datepicker datetimepicker editorOnChange editorValidate style dateFormat dateInputFormat optionsSortByLabel inline step min max value options rows cols accept maxFileSize special placeholder inlineEditable inlineEditType inlineEditOptions inlineEditSetValue'.split(
       ' '
     );
 
@@ -273,12 +479,14 @@
     const resolve = accept(success);
     const reject = accept(error);
     try {
-      if (callback)
-        callback.apply(
+      if (callback) {
+        const result = callback.apply(
           editor,
           [editor, values, resolve, reject].concat(extra || [])
         );
-      else resolve(values);
+        const then = result != null ? result.then : null;
+        if (typeof then === 'function') then.call(result, resolve, reject);
+      } else resolve(values);
     } catch (failure) {
       if (settled && editor.debug)
         console.error('Persistence callback failed after completion:', failure);
@@ -470,7 +678,7 @@
       content.wrap($('<form/>', { role: 'form' }));
     content
       .parent()
-      .attr({ name: options.formName, id: options.formName })
+      .attr({ name: options.formName, id: options.formName, novalidate: '' })
       .toggleClass('needs-validation', !useNative);
   }
 
@@ -735,6 +943,7 @@
       label: 'Error!',
       responseCode: 'Response code: ',
       required: 'Field is required',
+      validation: 'Invalid field value',
       unique: 'Duplicated field',
       editSelection: 'Exactly one row must be selected for editing.',
       deleteSelection: 'At least one row must be selected for deletion.',
@@ -764,92 +973,6 @@
     if (!validate(defaults, language))
       throw new TypeError('Language values must be strings');
     return language;
-  }
-
-  function fieldElement(container, name) {
-    return $(container)
-      .find('input, select, textarea')
-      .filter(function () {
-        return (this.name || this.id) === String(name);
-      });
-  }
-
-  function equalFieldValues(left, right, type) {
-    const values = (value) => (Array.isArray(value) ? value : [value]);
-    return values(left).some((a) =>
-      values(right).some((b) => {
-        if (a === '' || a == null || b === '' || b == null) return false;
-        if (type === 'number')
-          return (
-            Number.isFinite(Number(a)) &&
-            Number.isFinite(Number(b)) &&
-            Number(a) === Number(b)
-          );
-        return String(a) === String(b);
-      })
-    );
-  }
-
-  function normalizeSelectOptions(options) {
-    if (Array.isArray(options)) {
-      return options.map(function (option) {
-        if (option && typeof option === 'object') {
-          var value =
-            option.id !== undefined
-              ? option.id
-              : option.value !== undefined
-                ? option.value
-                : '';
-          var label =
-            option.text !== undefined
-              ? option.text
-              : option.label !== undefined
-                ? option.label
-                : value;
-          return { value: value, label: label };
-        }
-        return { value: option, label: option };
-      });
-    }
-    if (options && typeof options === 'object') {
-      return Object.keys(options).map(function (key) {
-        return { value: key, label: options[key] };
-      });
-    }
-    return [];
-  }
-
-  function isChecked(value) {
-    return (
-      value === true ||
-      value === 1 ||
-      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
-    );
-  }
-
-  /** Preserve stored selections that are absent from the configured options. */
-  function setSelectValue(control, value) {
-    let values = value == null ? [] : Array.isArray(value) ? value : [value];
-    const available = new Set(
-      Array.from(control.options, (option) => option.value)
-    );
-    if (control.multiple && typeof value === 'string' && !available.has(value)) {
-      try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) values = parsed;
-      } catch (_error) {}
-    }
-    values = values.map(String);
-    values.forEach((value) => {
-      if (value !== '' && !available.has(value)) {
-        const option = control.ownerDocument.createElement('option');
-        option.value = value;
-        option.textContent = value;
-        control.appendChild(option);
-        available.add(value);
-      }
-    });
-    $(control).val(control.multiple ? values : values.length ? values[0] : '');
   }
 
   const methods$5 = {
@@ -1011,6 +1134,7 @@
       if (!this._dialogOpen) return;
       this._dialogOpen = false;
       this._dialogToken = {};
+      clearFieldErrors(this);
       this._cleanupPlugins();
       this._removeModalEvents(this.modal_selector);
       this._editSnapshot = null;
@@ -1097,6 +1221,13 @@
           );
       };
 
+      $modal.on(
+        'input' + this.s.namespace + ' change' + this.s.namespace,
+        'input, select, textarea',
+        function () {
+          clearFieldErrors(that, this.name);
+        }
+      );
       $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
       $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
     },
@@ -1175,6 +1306,7 @@
       var formName = 'altEditor-delete-form-' + this.random_id;
       var that = this;
       var fill = function () {
+        clearFieldErrors(that);
         const body = $('<div/>').append(
           $('<p/>', { class: 'altEditor-delete-message' }).text(
             that.language.deleteMessage
@@ -1375,7 +1507,7 @@
         return values;
       });
     },
-    _validateFormData: function ($form) {
+    _validateFormData: function ($form, fieldErrors) {
       var errors = [];
       $form.find('select, textarea, input').each(function () {
         if (this.disabled) return;
@@ -1385,7 +1517,9 @@
           $input.trigger($input.is('select') ? 'change' : 'input');
         }
         if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
-          errors.push(this.validationMessage || id + ' is invalid');
+          const message = this.validationMessage || id + ' is invalid';
+          errors.push(message);
+          if (fieldErrors) fieldErrors[id] = message;
         }
       });
       return Array.from(new Set(errors));
@@ -1593,6 +1727,7 @@
       buttonClass,
       formName
     ) {
+      clearFieldErrors(this);
       this.columnDefs = columnDefs;
       const fields = renderFields(columnDefs, this.random_id);
       const body = applyTemplate(
@@ -1817,6 +1952,80 @@
     },
   };
 
+  /** Run each validator once against independent copies of the submission snapshot. */
+  function validateFields(
+    fields,
+    editor,
+    values,
+    originalRowData,
+    operation,
+    active
+  ) {
+    const results = [];
+    let asynchronous = false;
+    const failure = (error) => {
+      const normalized = normalizeError(error, editor.language.error);
+      return {
+        message: [
+          normalized.message,
+          ...normalized.fields.map(([, message]) => message),
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      };
+    };
+    fields.forEach((field) => {
+      if (!active() || typeof field.validate !== 'function') return;
+      const interpret = (result) => {
+        if (result === true || result == null) return null;
+        if (result === false || typeof result === 'string')
+          return {
+            field: String(field.name),
+            message: result || editor.language.error.validation,
+          };
+        return failure(
+          new TypeError(
+            'editorValidate must return true, false, a message, null, or undefined'
+          )
+        );
+      };
+      try {
+        const result = field.validate(cloneRow(field.value), {
+          editor,
+          field: field.name,
+          values: cloneRow(values),
+          originalRowData: cloneRow(originalRowData),
+          operation,
+        });
+        const then = result != null ? result.then : null;
+        if (typeof then === 'function') {
+          asynchronous = true;
+          results.push(
+            new Promise((resolve, reject) =>
+              then.call(result, resolve, reject)
+            ).then(interpret, failure)
+          );
+        } else results.push(interpret(result));
+      } catch (error) {
+        results.push(failure(error));
+      }
+    });
+    const combine = (outcomes) => {
+      const fieldErrors = Object.create(null);
+      const messages = [];
+      outcomes.forEach((result) => {
+        if (!result) return;
+        if (result.field !== undefined)
+          fieldErrors[result.field] = result.message;
+        else messages.push(result.message);
+      });
+      return messages.length || Object.keys(fieldErrors).length
+        ? { message: messages.join('\n'), fieldErrors }
+        : null;
+    };
+    return asynchronous ? Promise.all(results).then(combine) : combine(results);
+  }
+
   /** @callback PersistenceCallback
    * @param {Object} editor AltEditor instance.
    * @param {Object|Array} rowData Submitted values; deletion receives an array of rows.
@@ -1826,33 +2035,7 @@
    */
   const methods = {
     _errorCallback: function (response) {
-      var error = response || {};
-      var message =
-        typeof response === 'string' ? response : this.language.error.message;
-
-      if (error instanceof Error && error.message) {
-        message = error.message;
-      } else if (error.responseJSON && error.responseJSON.errors) {
-        var messages = [];
-        Object.keys(error.responseJSON.errors).forEach(function (key) {
-          var value = error.responseJSON.errors[key];
-          if (Array.isArray(value)) {
-            value.forEach(function (item) {
-              if (item !== null && item !== undefined)
-                messages.push(String(item));
-            });
-          } else if (value !== null && value !== undefined) {
-            messages.push(String(value));
-          }
-        });
-        if (messages.length) message = messages.join('\n');
-      } else if (error.responseText) {
-        message = String(error.responseText);
-      } else if (error.status !== null && error.status !== undefined) {
-        message = this.language.error.responseCode + error.status;
-      }
-
-      this._showErrorMessage(message);
+      showFieldErrors(this, response);
       this._setDialogSubmitting(false);
     },
     _normalizeResponseData: function (response) {
@@ -1904,12 +2087,8 @@
         fail(new Error(this.language.error.targetUnavailable));
         return;
       }
+      clearFieldErrors(this);
       const form = $(this.modal_selector).find('form');
-      const errors = this._validateFormData(form);
-      if (errors.length) {
-        fail(new Error(errors.join('\n')));
-        return;
-      }
       if (!active()) return;
       const fieldNames = form
         .find('input, select, textarea')
@@ -1937,6 +2116,47 @@
         return;
       }
       return collection
+        .then((values) => {
+          if (!active()) return;
+          const nativeErrors = Object.create(null);
+          editor._validateFormData(form, nativeErrors);
+          if (Object.keys(nativeErrors).length)
+            throw { fieldErrors: nativeErrors };
+          if (!active()) return;
+          const columns = action === 'delete' ? [] : editor.columnDefs;
+          const fields = columns
+            .filter((column) => {
+              if (
+                typeof column.editorValidate !== 'function' ||
+                column.readonly ||
+                column.visible === false
+              )
+                return false;
+              const control = fieldElement(form, column.name)[0];
+              return (
+                fieldNames.includes(String(column.name)) &&
+                column.editable !== false &&
+                feedbackControl(control, $(editor.modal_selector)[0])
+              );
+            })
+            .map((column) => ({
+              name: column.name,
+              validate: column.editorValidate,
+              value: editor._getValueByPath(values, column.name),
+            }));
+          const validation = validateFields(
+            fields,
+            editor,
+            values,
+            snapshot && snapshot.originalData,
+            action,
+            active
+          );
+          return Promise.resolve(validation).then((error) => {
+            if (error) throw error;
+            return values;
+          });
+        })
         .then((values) => {
           if (!active()) return;
           payload.values = values;
@@ -2281,11 +2501,13 @@
         if (this.editor.c.inlineEdit.submitOnBlur) this.commit();
         else this.cancel('blur', false);
       });
-      listen('input', () => {
+      const clearError = () => {
         session.control.setCustomValidity('');
         session.control.removeAttribute('aria-invalid');
         session.errorNode.textContent = '';
-      });
+      };
+      listen('input', clearError);
+      listen('change', clearError);
       this.attach(session, cell.node());
       this.event('open', session);
       return true;
@@ -2340,10 +2562,17 @@
         this.attach(session, node);
       if (session.displayNode)
         session.displayNode.classList.remove('alteditor-inline-submitting');
-      session.errorNode.textContent =
-        error && error.message
-          ? error.message
-          : String(error || this.editor.language.error.message);
+      const feedback = normalizeError(error, this.editor.language.error);
+      const local = feedback.fields
+        .filter(([name]) => name === String(session.dataSrc))
+        .map(([, message]) => message);
+      const other = feedback.fields
+        .filter(([name]) => name !== String(session.dataSrc))
+        .map(([, message]) => message);
+      session.errorNode.textContent = [feedback.message, ...local, ...other]
+        .filter(Boolean)
+        .join('\n');
+      if (other.length) this.editor._showErrorMessage(other.join('\n'));
       session.control.setAttribute('aria-invalid', 'true');
       if (!session.displayNode)
         this.editor._showErrorMessage(session.errorNode.textContent);
@@ -2398,12 +2627,51 @@
       }
       // Mark submission before events or focus changes can cause a second submission.
       session.state = 'submitting';
+      control.disabled = true;
+      control.setAttribute('aria-busy', 'true');
+      const active = () => this.session === session && !this.editor._destroyed;
+      const validation = validateFields(
+        [
+          {
+            name: session.dataSrc,
+            value: session.newValue,
+            validate: session.options.editorValidate,
+          },
+        ],
+        this.editor,
+        session.candidate,
+        session.originalRow,
+        'inline-edit',
+        active
+      );
+      const proceed = (error) => {
+        if (!active()) return;
+        if (error) this.fail(session, error);
+        else this.persist(session, direction);
+      };
+      if (validation && typeof validation.then === 'function')
+        validation.then(proceed);
+      else proceed(validation);
+      return true;
+    }
+
+    persist(session, direction) {
+      const control = session.control;
       if (!this.event('pre-submit', session)) {
         session.state = 'editing';
+        control.disabled = false;
+        control.removeAttribute('aria-busy');
         control.focus();
         return false;
       }
       if (this.session !== session || this.editor._destroyed) return false;
+      if (!resolveRow(this.api, session)) {
+        this.fail(
+          session,
+          new Error(this.editor.language.error.targetUnavailable)
+        );
+        return false;
+      }
       control.disabled = true;
       control.setAttribute('aria-busy', 'true');
       if (session.displayNode)
@@ -2455,7 +2723,6 @@
         },
         (error) => this.fail(session, error)
       );
-      return true;
     }
 
     navigate(rowIndex, columnIndex, direction) {
@@ -2700,6 +2967,7 @@
           });
           this._buttonActions = [];
           if (this._languageRequest) this._languageRequest.abort();
+          clearFieldErrors(this);
           this._cleanupPlugins();
           const modal = $(this.modal_selector);
           if (this._adapter && modal.length) {
@@ -2716,7 +2984,7 @@
         },
       }
     );
-    AltEditor.version = '4.1.1';
+    AltEditor.version = '4.2.0';
     AltEditor.defaults = defaults$1;
     AltEditor.classes = { btn: 'btn' };
     return AltEditor;
@@ -2745,7 +3013,7 @@
   }
 
   /**
-   * DataTables AltEditor v4.1.1
+   * DataTables AltEditor v4.2.0
    * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
    * Copyright (c) 2026 Ben Situ and contributors
    * SPDX-License-Identifier: MIT

@@ -82,7 +82,7 @@ The setter receives a copy of the row's array and plain-object branches and must
 onInlineEditRow(editor, rowData, success, error, originalRowData, meta);
 ```
 
-The callback falls back to `onEditRow`. Without either callback, the row updates locally. The candidate is not written into DataTables before success. Call `success()` to accept it, `success(persistedRow)` to supply a server result, or `error(errorValue)` to permit correction and retry. Only the first settlement is accepted. `commitInlineEdit()` returns whether submission began; subscribe to events for its outcome.
+The callback falls back to `onEditRow`. Without either callback, the row updates locally. The candidate is not written into DataTables before success. Call `success()` to accept it, `success(persistedRow)` to supply a server result, or `error(errorValue)` to permit correction and retry. Returning a Promise also settles persistence; resolving `undefined` accepts the candidate. Only the first settlement is accepted. Structured `fieldErrors` and synchronous or asynchronous `editorValidate` are supported; see [validation](validation.md). `commitInlineEdit()` returns whether submission began; subscribe to events for its outcome.
 
 `meta` includes rowIndex, columnIndex, dataSrc, oldValue, newValue, rowData, and cellNode. `originalRowData` is a snapshot. Row identity is captured independently of table selection. A stable DataTables rowId is recommended for asynchronous persistence.
 

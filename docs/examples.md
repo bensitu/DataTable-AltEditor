@@ -29,6 +29,7 @@ CDN resources are convenient for these examples. For production deployments, man
 - **Save records and upload raw files:** use Example 16 and its [local server instructions](../example/16_server_files/README.md).
 - **Customize dialog layouts and deletion summaries:** use Example 18 and the [dialog guide](dialogs.md).
 - **Use optional native dialogs without a UI framework:** use Example 19; keep a framework adapter when native dialogs are unavailable.
+- **Validate and save with async functions:** use Example 21 for synchronous and asynchronous validators, structured server errors, and correction and retry.
 - **Observe lifecycle callbacks and events:** use Example 20 for event order, opening and submission cancellation, failed saves, retries, refresh, and editor destruction.
 - **Customize inline controls:** use Example 17 for formatted values, explicit setters, blur saving, and the public API.
 
@@ -90,11 +91,13 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 | 19      | [HTML](../example/19_native_dialog/example19.html) · [JavaScript](../example/19_native_dialog/example19.js)                 | Native dialog templates, typed values, Select2, DataTables Select, and custom display renderers.   |
 | 20      | [HTML](../example/20_lifecycle_events/example20.html) · [JavaScript](../example/20_lifecycle_events/example20.js)           | Lifecycle callbacks, event order, cancellation, retries, inline editing, refresh, and destruction. |
 
+| 21 | [HTML](../example/21_async_validation/example21.html) · [JavaScript](../example/21_async_validation/example21.js) | Promise persistence, field errors, custom validation, and retry. |
+
 ## Adapt an example to your application
 
 1. Copy the relevant HTML dependencies and table configuration. Update relative paths for the AltEditor distribution and any JSON or translation files. Most dialog examples use Bootstrap 5; Example 11 uses Foundation. Load one dialog framework and the optional controls required by your form.
 2. Replace sample rows and column definitions together. Keep raw select values separate from their displayed labels. In Example 06, position and degree store option keys, friends stores an array of keys, and date values use the formats configured on the pickers. Renderers turn stored values into table text.
-3. Replace simulated persistence with your backend calls. Call success only after the server accepts the operation, and call error when it fails. Return a complete persisted row when passing a replacement to success. Do not pass the static acknowledgement JSON as a replacement row. Preserve stable identifiers when editing; let the server assign new identifiers.
+3. Replace simulated persistence with your backend calls. Example 21 uses returned Promises; callback-style examples remain supported. Call success only after the server accepts the operation, and call error when it fails. Return a complete persisted row when passing a replacement to success. Do not pass the static acknowledgement JSON as a replacement row. Preserve stable identifiers when editing; let the server assign new identifiers.
 4. Keep feature-specific behavior that matters to your form. Example 07 prevents saving incomplete town options; Example 10 retains a file when no replacement is selected; Example 12 resolves actions in mobile child rows. For inline editing, follow the [supported controls and save behavior](inline-edit.md).
 5. Style your application's table and page independently. The shared examples.css and theme.js files provide demonstration layout and the Appearance selector; they are not required by AltEditor. See [styling and themes](styling.md) for the editor's stylesheet and customization options.
 

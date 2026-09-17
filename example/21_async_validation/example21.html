@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Async persistence and validation | AltEditor examples</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/select/3.1.3/css/select.dataTables.css"
+    />
+
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="../examples.css" />
+    <script src="../theme.js"></script>
+  </head>
+
+  <body class="examples-page">
+    <main class="example-main">
+      <header class="example-header">
+        <nav aria-label="Example navigation">
+          <a href="../../index.html">← All examples</a>
+          · <a href="./example21.js">Configuration source</a> ·
+          <a
+            href="https://github.com/bensitu/DataTable-AltEditor/blob/develop/docs/examples.md"
+            >Example guide</a
+          >
+        </nav>
+        <p class="example-eyebrow">DataTable-AltEditor / Example 21</p>
+        <h1>Async persistence and validation</h1>
+        <p>
+          Add or edit a contact, or double-click a cell. Validation and saves
+          use short simulated delays; changes reset on reload.
+        </p>
+      </header>
+      <ul>
+        <li>
+          Use a name with at least two characters for synchronous validation.
+        </li>
+        <li>
+          Use <code>taken@example.com</code> to try an asynchronous field check.
+        </li>
+        <li>
+          Use <code>reserved@example.com</code> to receive a field error from
+          the save.
+        </li>
+        <li>
+          Use <code>offline@example.com</code> to receive a global save error.
+        </li>
+        <li>
+          Correct the value and submit again, for example
+          <code>carol@example.com</code>.
+        </li>
+      </ul>
+      <div
+        class="example-table"
+        tabindex="0"
+        role="region"
+        aria-label="Editable table 1"
+      >
+        <table class="dataTable display" id="example"></table>
+      </div>
+      <p id="result" role="status">Ready.</p>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/select/3.1.3/js/dataTables.select.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.js"></script>
+
+    <script src="../../dist/dataTables.altEditor.js"></script>
+    <script src="./example21.js"></script>
+  </body>
+</html>

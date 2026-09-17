@@ -33,9 +33,9 @@ The first argument is always the AltEditor instance; `editor.api()` returns its 
 
 Dialog add/edit callbacks receive enabled form values; disabled controls are omitted. Delete receives an array of the captured rows. Inline editing receives a complete candidate row and a snapshot of the original row. Inline editing uses `onEditRow` if `onInlineEditRow` is absent. If no applicable callback is supplied, the update succeeds locally.
 
-Set a timeout in the application transport and call `error()` when it expires. The editor does not impose a persistence deadline or cancel an in-flight server write. Returning a Promise alone does not settle the callback contract.
+Set a timeout in the application transport and call `error()` when it expires. The editor does not impose a persistence deadline or cancel an in-flight server write. Returning a Promise or thenable settles persistence through its resolution or rejection. Resolving `undefined` is equivalent to `success()`. Normal non-thenable return values are ignored.
 
-Call `success(persistedRow)` with a row object or array. Calling `success()` uses the submitted candidate; dialog editing preserves fields outside the form. JSON row strings are accepted. Delete ignores the response body. Call `error(errorValue)` to retain the form for correction and retry. Error content is rendered as text. Only the first success or error settlement is accepted, and callbacks completed after destruction are ignored.
+Call `success(persistedRow)` with a row object or array. Calling `success()` uses the submitted candidate; dialog editing preserves fields outside the form. JSON row strings are accepted. Delete ignores the response body. Call `error(errorValue)` to retain the form for correction and retry. Error content is rendered as text. Only the first callback, Promise, or synchronous exception settlement is accepted, and callbacks completed after destruction are ignored.
 
 Dialog editing captures eligible fields before asynchronous collection and constructs its candidate before invoking persistence. Changing form controls or disabling them while the request is pending does not change the submitted candidate. Return `success(persistedRow)` explicitly for server-adjusted data.
 
@@ -76,6 +76,8 @@ The target is captured when editing starts and does not change if table selectio
 
 Without an explicit row selector, edit and delete use the Select extension. Edit requires exactly one row; delete requires at least one. Without Select, pass a selector explicitly. Rejected dialog opening returns `false`; successful opening has no return value. Missing framework and selection messages appear beside the table when no dialog is open.
 
+See [persistence and field validation](validation.md) for Promise examples, structured `fieldErrors`, validation order, and `editorValidate`.
+
 ## Column options
 
 | Options                                                                       | Behavior                                                                                                                                       |
@@ -93,6 +95,7 @@ Without an explicit row selector, edit and delete use the Select extension. Edit
 | `style`                                                                       | Dialog control inline styles, as a string or property object.                                                                                  |
 | `select2`, `datepicker`, `datetimepicker`                                     | Optional dialog plugin configuration; meaningful native controls remain usable when plugins are absent.                                        |
 | `dateFormat`, `dateInputFormat`                                               | Format dialog date/time values using Moment on `window.moment` when available; parse strictly with the input format or ISO 8601.               |
+| `editorValidate(value, context)`                                              | Synchronous or asynchronous field validation; see [custom validators](validation.md#custom-validators).                                        |
 | `editorOnChange(event, editor)`                                               | Handle a dialog field change.                                                                                                                  |
 | `inline`                                                                      | Compact dialog field layout; this is distinct from cell editing.                                                                               |
 | `special`                                                                     | Deprecated compatibility data attribute; has no built-in validation behavior.                                                                  |
@@ -130,7 +133,7 @@ See [inline editing](inline-edit.md), [events](events.md), and [troubleshooting]
 
 The supported jQuery range is `>=1.8 <4.0.0`; optional frameworks and field plugins may require a narrower range. Development dependencies and examples use 3.7.1.
 
-A compatibility check with jQuery 4.0.0 and DataTables 2.3.8 produced a successful Rollup build, but did not pass all runtime checks. Rollup treats jQuery as an external dependency, so a successful build does not establish runtime compatibility.
+A compatibility check of AltEditor 4.1.1 with jQuery 4.0.0 and DataTables 2.3.8 produced a successful Rollup build, but did not pass all runtime checks. Rollup treats jQuery as an external dependency, so a successful build does not establish runtime compatibility.
 
 - 82 of 83 unit tests passed. CommonJS loading without a global DOM window failed because jQuery 4 requires a different factory entry point in that environment.
 - 13 Chromium checks covering Bootstrap 5, native dialogs, templates, and inline editing passed. These results do not establish compatibility for every optional field plugin or browser.

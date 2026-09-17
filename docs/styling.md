@@ -37,7 +37,7 @@ Set the following properties on `html` or `body` for all editors, or on an indiv
 | `--alteditor-border`             | Control and dialog separator borders.                                 |
 | `--alteditor-hover`              | Disabled controls, selection chips, and hover backgrounds.            |
 | `--alteditor-accent`             | Focus outlines and active control borders.                            |
-| `--alteditor-error`              | Inline validation messages and invalid control outlines.              |
+| `--alteditor-error`              | Dialog and inline field messages and invalid control borders.         |
 | `--alteditor-action-background`  | Primary action and selected option background; defaults to `#2458b8`. |
 | `--alteditor-action-text`        | Primary action and selected option text; defaults to `#fff`.          |
 | `--alteditor-radius`             | Control and close button corner radius; defaults to `0.375rem`.       |
