@@ -11,6 +11,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Added
 
+- A `style` package entry for the minified stylesheet, alongside the existing JavaScript entries.
 - Optional Promise and async persistence on the existing add, edit, delete, and inline callbacks, with first-settlement semantics and unchanged callback arguments.
 - Structured `fieldErrors` with accessible dialog feedback, inline correction, and global fallback for fields that cannot display local messages.
 - The `editorValidate` column option for synchronous and asynchronous business rules, isolated submission context, and correction and retry.

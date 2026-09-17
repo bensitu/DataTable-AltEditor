@@ -53,6 +53,7 @@
   ],
   "unpkg": "dist/dataTables.altEditor.min.js",
   "jsdelivr": "dist/dataTables.altEditor.min.js",
+  "style": "dist/dataTables.altEditor.min.css",
   "engines": {
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
