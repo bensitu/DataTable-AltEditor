@@ -24,6 +24,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Select2 search controls receive accessible names and field-error descriptions. Default control borders have stronger contrast, and Select2 search and removal controls have minimum target sizes.
 - Inline persistence does not start when its target disappears during asynchronous validation.
 
 ## 4.1.1 - 2026-09-15

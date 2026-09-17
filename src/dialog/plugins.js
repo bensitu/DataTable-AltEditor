@@ -41,6 +41,28 @@ export const methods = {
               : {};
           config.dropdownParent = $(that.modal_selector);
           $element.select2(config);
+          $element.each(function () {
+            const container = $(this).next('.select2-container');
+            const selection = container.find('.select2-selection');
+            const label = this.labels && this.labels[0];
+            const name =
+              this.getAttribute('aria-label') ||
+              String(columnDef.title || columnDef.name);
+            if (label && label.id) {
+              const described = selection.attr('aria-labelledby');
+              selection.attr(
+                'aria-labelledby',
+                label.id + (described ? ' ' + described : '')
+              );
+            } else
+              selection.attr('aria-label', name).removeAttr('aria-labelledby');
+            container.find('.select2-search__field').attr('aria-label', name);
+            $(this).on('select2:open' + that.s.modalNamespace, function () {
+              $(selector)
+                .find('.select2-dropdown .select2-search__field')
+                .attr('aria-label', name);
+            });
+          });
         }
       } else if (
         columnDef.datepicker &&
@@ -110,7 +132,7 @@ export const methods = {
           }
           $(this).removeAttr('data-alteditor-datetimepicker');
         });
-    $(selector).find('[alt-editor-id]').off(this.s.modalNamespace);
+    $(selector).find('input, select, textarea').off(this.s.modalNamespace);
   },
   _setFieldValue: function ($element, columnDef, value) {
     if (!$element || !$element.length) return;

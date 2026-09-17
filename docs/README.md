@@ -13,6 +13,7 @@ Start with the [quick start](../README.md#get-started), then choose a guide for 
 | [Inline editing](inline-edit.md)            | Supported controls, immutable updates, keyboard navigation, validation, and retry behavior.                            |
 | [Events](events.md)                         | Event names, payloads, cancellation, and dialog compatibility events.                                                  |
 | [Styling and themes](styling.md)            | Stylesheet loading, scoped selectors, theme attributes, CSS variables, and framework behavior.                         |
+| [Accessibility](accessibility.md)           | Keyboard entry, labels, feedback, contrast, and application integration requirements.                                  |
 | [Translations](translations.md)             | Available languages, JSON loading, overrides, and browser validation messages.                                         |
 | [Migration from v3](migration-v3-to-v4.md)  | Dependency changes, distribution paths, deprecated options, and callback compatibility.                                |
 | [Troubleshooting](troubleshooting.md)       | Common installation, dialog, save, theme, and translation problems.                                                    |

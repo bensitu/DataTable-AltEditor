@@ -73,3 +73,9 @@ table.on('alteditor-success.dt alteditor-inline-success.dt', () => {
   document.querySelector('#result').textContent =
     'Saved locally. Reloading resets the contacts.';
 });
+
+// Provide a keyboard-accessible entry point as an alternative to double-click.
+document.querySelector('#edit-first-name').addEventListener('click', () => {
+  const row = table.rows({ page: 'current' }).indexes()[0];
+  if (row !== undefined) table.altEditor().startInlineEdit({ row, column: 1 });
+});

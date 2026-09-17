@@ -14,7 +14,10 @@ test('initializes optional controls, scopes popups and releases their handlers',
     '<div id="editor"><select id="user.role"><option value="b">Beta</option><option value="a">Alpha</option></select><input id="date"><input id="timestamp"></div>';
   const change = vi.fn();
   const select2 = vi.fn(function (options) {
-    if (options !== 'destroy') this.addClass('select2-hidden-accessible');
+    if (options !== 'destroy')
+      this.addClass('select2-hidden-accessible').after(
+        '<span class="select2-container"><span class="select2-selection"><input class="select2-search__field"></span></span>'
+      );
     return this;
   });
   const datepicker = vi.fn(function () {
@@ -39,6 +42,7 @@ test('initializes optional controls, scopes popups and releases their handlers',
       columnDefs: [
         {
           name: 'user.role',
+          title: 'Role',
           type: 'select',
           select2: { width: '100%' },
           optionsSortByLabel: true,
@@ -52,6 +56,7 @@ test('initializes optional controls, scopes popups and releases their handlers',
     select.value = 'b';
     editor._initializePlugins();
     expect(select.value).toBe('b');
+    expect($('.select2-search__field').attr('aria-label')).toBe('Role');
     expect([...select.options].map((o) => o.value)).toEqual(['a', 'b']);
     expect(select2.mock.calls[0][0].dropdownParent[0]).toBe(
       document.querySelector('#editor')

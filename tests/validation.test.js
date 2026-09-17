@@ -93,7 +93,7 @@ test('maps template and Select2 errors to controls and falls back for disabled f
   $(field('name'))
     .addClass('select2-hidden-accessible')
     .after(
-      '<span class="select2-container"><span class="select2-selection" tabindex="0"></span></span>'
+      '<span class="select2-container"><span class="select2-selection" tabindex="0"><input class="select2-search__field"></span></span>'
     );
   await editor._editRowData();
   expect(
@@ -102,6 +102,9 @@ test('maps template and Select2 errors to controls and falls back for disabled f
   expect($(editor.modal_selector).find('.altEditor-feedback').text()).toContain(
     'Cannot change email'
   );
+  expect(
+    $(editor.modal_selector).find('.select2-search__field').attr('aria-invalid')
+  ).toBe('true');
   $(field('name')).trigger('change');
   expect(
     $(editor.modal_selector).find('.select2-selection').attr('aria-invalid')
@@ -132,6 +135,7 @@ test('inline structured failures retain an editable control and show unrelated e
   editor.commitInlineEdit();
   await flush();
   expect(table.row(0).data().name).toBe('Ann');
+  expect(document.querySelector('.altEditor-message').textContent).toBe('');
 });
 
 test.each([true, undefined, null, false, '', 'Reserved'])(

@@ -33,7 +33,7 @@ for (const framework of ['bootstrap4', 'foundation-sites']) {
       });
       const modal = page.locator('.altEditor-modal');
       await expect(modal).toHaveCSS('background-color', 'rgb(24, 34, 49)');
-      await expect(modal).toHaveCSS('border-top-color', 'rgb(82, 97, 120)');
+      await expect(modal).toHaveCSS('border-top-color', 'rgb(116, 131, 153)');
       await expect(page.locator('#other-dialog')).toHaveCSS(
         'background-color',
         'rgb(254, 254, 254)'

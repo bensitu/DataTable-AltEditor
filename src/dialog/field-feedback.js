@@ -66,7 +66,12 @@ export function showFieldErrors(editor, error) {
     node.id = editor.random_id + '-error-' + editor._fieldErrorId;
     node.setAttribute('role', 'alert');
     node.textContent = message;
-    const controls = [...new Set([element, target])].map((control) => {
+    const search = $(element)
+      .next('.select2-container')
+      .find('.select2-search__field')[0];
+    const controls = [
+      ...new Set([element, target, search].filter(Boolean)),
+    ].map((control) => {
       const state = {
         element: control,
         invalid: control.getAttribute('aria-invalid'),
@@ -84,7 +89,7 @@ export function showFieldErrors(editor, error) {
     const container = $(element).next('.select2-container')[0] || element;
     container.insertAdjacentElement('afterend', node);
     editor._fieldErrors.set(name, { node, controls });
-    if (!first) first = target;
+    if (!first) first = search || target;
   });
   $(modal).find('.altEditor-feedback').remove();
   if (messages.length) editor._showErrorMessage(messages.join('\n'));

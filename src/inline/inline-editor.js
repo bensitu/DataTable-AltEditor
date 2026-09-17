@@ -105,6 +105,7 @@ export class InlineEditor {
     )
       return false;
     if (this.session) this.cancel('replace', false);
+    if (this.editor._message) this.editor._message.empty();
     const row = this.api.row(index.row);
     const session = Object.assign(snapshotRow(row), {
       columnIndex: index.column,
@@ -245,6 +246,7 @@ export class InlineEditor {
     if (!session || session.state !== 'editing' || session.composing)
       return false;
     const control = session.control;
+    if (this.editor._message) this.editor._message.empty();
     session.newValue = controlValue(control);
     control.setCustomValidity('');
     if (session.options.unique) {

@@ -199,7 +199,12 @@
       node.id = editor.random_id + '-error-' + editor._fieldErrorId;
       node.setAttribute('role', 'alert');
       node.textContent = message;
-      const controls = [...new Set([element, target])].map((control) => {
+      const search = $(element)
+        .next('.select2-container')
+        .find('.select2-search__field')[0];
+      const controls = [
+        ...new Set([element, target, search].filter(Boolean)),
+      ].map((control) => {
         const state = {
           element: control,
           invalid: control.getAttribute('aria-invalid'),
@@ -217,7 +222,7 @@
       const container = $(element).next('.select2-container')[0] || element;
       container.insertAdjacentElement('afterend', node);
       editor._fieldErrors.set(name, { node, controls });
-      if (!first) first = target;
+      if (!first) first = search || target;
     });
     $(modal).find('.altEditor-feedback').remove();
     if (messages.length) editor._showErrorMessage(messages.join('\n'));
@@ -1369,6 +1374,7 @@
       this._submitting = !!submitting;
       if (!this.modal_selector) return;
       var $modal = $(this.modal_selector);
+      $modal.find('form').attr('aria-busy', this._submitting ? 'true' : 'false');
       $modal
         .find('button[type="submit"]')
         .prop('disabled', this._submitting)
@@ -1589,6 +1595,7 @@
         var label = document.createElement('label');
         label.className = 'col-form-label col-form-label-sm';
         label.htmlFor = fieldId;
+        label.id = fieldId + '-label';
         label.textContent = title + ':';
         labelCol.appendChild(label);
         formGroup.appendChild(labelCol);
@@ -1825,6 +1832,28 @@
                 : {};
             config.dropdownParent = $(that.modal_selector);
             $element.select2(config);
+            $element.each(function () {
+              const container = $(this).next('.select2-container');
+              const selection = container.find('.select2-selection');
+              const label = this.labels && this.labels[0];
+              const name =
+                this.getAttribute('aria-label') ||
+                String(columnDef.title || columnDef.name);
+              if (label && label.id) {
+                const described = selection.attr('aria-labelledby');
+                selection.attr(
+                  'aria-labelledby',
+                  label.id + (described ? ' ' + described : '')
+                );
+              } else
+                selection.attr('aria-label', name).removeAttr('aria-labelledby');
+              container.find('.select2-search__field').attr('aria-label', name);
+              $(this).on('select2:open' + that.s.modalNamespace, function () {
+                $(selector)
+                  .find('.select2-dropdown .select2-search__field')
+                  .attr('aria-label', name);
+              });
+            });
           }
         } else if (
           columnDef.datepicker &&
@@ -1894,7 +1923,7 @@
             }
             $(this).removeAttr('data-alteditor-datetimepicker');
           });
-      $(selector).find('[alt-editor-id]').off(this.s.modalNamespace);
+      $(selector).find('input, select, textarea').off(this.s.modalNamespace);
     },
     _setFieldValue: function ($element, columnDef, value) {
       if (!$element || !$element.length) return;
@@ -2445,6 +2474,7 @@
       )
         return false;
       if (this.session) this.cancel('replace', false);
+      if (this.editor._message) this.editor._message.empty();
       const row = this.api.row(index.row);
       const session = Object.assign(snapshotRow(row), {
         columnIndex: index.column,
@@ -2585,6 +2615,7 @@
       if (!session || session.state !== 'editing' || session.composing)
         return false;
       const control = session.control;
+      if (this.editor._message) this.editor._message.empty();
       session.newValue = controlValue(control);
       control.setCustomValidity('');
       if (session.options.unique) {

@@ -85,7 +85,7 @@ const toolbarOptions = {
 
 Pass these options together with `data`, `columns`, and `altEditor` when constructing the table. [Example 2](https://bensitu.github.io/DataTable-AltEditor/example/02_in_memory_objects/example2.html) includes the complete page and script.
 
-For server persistence, configure `onAddRow`, `onEditRow`, and `onDeleteRow`. Call `success(persistedRow)` or `error(errorValue)` when your request finishes. Stable `rowId` values preserve update targets across reloads. See the [callback contract and PATCH example](docs/api.md#persistence-callbacks); server-side validation and authorization remain application responsibilities.
+For server persistence, configure `onAddRow`, `onEditRow`, and `onDeleteRow`. Return a Promise with the saved row, or call `success(persistedRow)` or `error(errorValue)` when your request finishes. Stable `rowId` values preserve update targets across reloads. See the [callback contract and PATCH example](docs/api.md#persistence-callbacks); server-side validation and authorization remain application responsibilities.
 
 ## Customize dialogs
 
@@ -95,44 +95,45 @@ Use `altEditor.dialog.templates.add` and `.edit` for independent form layouts. G
 
 **[Browse all live examples](https://bensitu.github.io/DataTable-AltEditor/)** or open a specific feature below. Start with Example 02 for object-based row dialogs, Example 03 for persistence callbacks, or Example 13 for cell editing. The [example guide](docs/examples.md) maps integration needs to demos, links to each configuration file, and explains how to adapt the simulated operations.
 
-| No. | Feature                       | Live demo                                                                                                     | Code                                        |
-| --- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| 01  | Array rows                    | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/01_in_memory_arrays/example1.html)       | [Source](example/01_in_memory_arrays/)      |
-| 02  | Object rows                   | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/02_in_memory_objects/example2.html)      | [Source](example/02_in_memory_objects/)     |
-| 03  | Ajax persistence              | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/03_ajax_objects/example3.html)           | [Source](example/03_ajax_objects/)          |
-| 04  | Field options                 | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/04_more/DataTableExample.html)           | [Source](example/04_more/)                  |
-| 05  | Multiple tables               | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/05_two_datatables/example5.html)         | [Source](example/05_two_datatables/)        |
-| 06  | Select2 and date pickers      | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/06_select_datepicker/example6.html)      | [Source](example/06_select_datepicker/)     |
-| 07  | Dependent selects             | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/07_dependent_select/example7.html)       | [Source](example/07_dependent_select/)      |
-| 08  | Validation                    | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/08_validation/example8.html)             | [Source](example/08_validation/)            |
-| 09  | Translations                  | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/09_translations/example9.html)           | [Source](example/09_translations/)          |
-| 10  | File attachments              | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/10_file_upload/example10.html)           | [Source](example/10_file_upload/)           |
-| 11  | Foundation dialogs            | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/11_foundation/example11.html)            | [Source](example/11_foundation/)            |
-| 12  | Custom action buttons         | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/12_custom_action_buttons/example12.html) | [Source](example/12_custom_action_buttons/) |
-| 13  | Cell inline editing           | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/13_inline_edit/example13.html)           | [Source](example/13_inline_edit/)           |
-| 14  | Rendered controls             | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/14_rendered_controls/example14.html)     | [Source](example/14_rendered_controls/)     |
-| 15  | Multiple-row deletion         | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/15_bulk_delete/example15.html)           | [Source](example/15_bulk_delete/)           |
-| 16  | Server persistence and files  | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/16_server_files/example16.html)          | [Source](example/16_server_files/)          |
-| 17  | Advanced inline editing       | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/17_inline_options/example17.html)        | [Source](example/17_inline_options/)        |
-| 18  | Custom dialog templates       | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/18_dialog_templates/example18.html)      | [Source](example/18_dialog_templates/)      |
-| 19  | Optional native dialogs       | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)         | [Source](example/19_native_dialog/)         |
-| 20  | Lifecycle and event callbacks | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/20_lifecycle_events/example20.html)      | [Source](example/20_lifecycle_events/)      |
+| No. | Feature                          | Live demo                                                                                                     | Code                                        |
+| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 01  | Array rows                       | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/01_in_memory_arrays/example1.html)       | [Source](example/01_in_memory_arrays/)      |
+| 02  | Object rows                      | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/02_in_memory_objects/example2.html)      | [Source](example/02_in_memory_objects/)     |
+| 03  | Ajax persistence                 | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/03_ajax_objects/example3.html)           | [Source](example/03_ajax_objects/)          |
+| 04  | Field options                    | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/04_more/DataTableExample.html)           | [Source](example/04_more/)                  |
+| 05  | Multiple tables                  | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/05_two_datatables/example5.html)         | [Source](example/05_two_datatables/)        |
+| 06  | Select2 and date pickers         | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/06_select_datepicker/example6.html)      | [Source](example/06_select_datepicker/)     |
+| 07  | Dependent selects                | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/07_dependent_select/example7.html)       | [Source](example/07_dependent_select/)      |
+| 08  | Validation                       | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/08_validation/example8.html)             | [Source](example/08_validation/)            |
+| 09  | Translations                     | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/09_translations/example9.html)           | [Source](example/09_translations/)          |
+| 10  | File attachments                 | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/10_file_upload/example10.html)           | [Source](example/10_file_upload/)           |
+| 11  | Foundation dialogs               | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/11_foundation/example11.html)            | [Source](example/11_foundation/)            |
+| 12  | Custom action buttons            | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/12_custom_action_buttons/example12.html) | [Source](example/12_custom_action_buttons/) |
+| 13  | Cell inline editing              | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/13_inline_edit/example13.html)           | [Source](example/13_inline_edit/)           |
+| 14  | Rendered controls                | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/14_rendered_controls/example14.html)     | [Source](example/14_rendered_controls/)     |
+| 15  | Multiple-row deletion            | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/15_bulk_delete/example15.html)           | [Source](example/15_bulk_delete/)           |
+| 16  | Server persistence and files     | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/16_server_files/example16.html)          | [Source](example/16_server_files/)          |
+| 17  | Advanced inline editing          | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/17_inline_options/example17.html)        | [Source](example/17_inline_options/)        |
+| 18  | Custom dialog templates          | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/18_dialog_templates/example18.html)      | [Source](example/18_dialog_templates/)      |
+| 19  | Optional native dialogs          | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)         | [Source](example/19_native_dialog/)         |
+| 20  | Lifecycle and event callbacks    | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/20_lifecycle_events/example20.html)      | [Source](example/20_lifecycle_events/)      |
+| 21  | Async persistence and validation | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/21_async_validation/example21.html)      | [Source](example/21_async_validation/)      |
 
 Examples 03, 05, 06, 07, and 10 use static Ajax responses. Example 16 includes a [local Node.js server](example/16_server_files/README.md) for real persistence and file uploads; GitHub Pages only shows its setup instructions. Refresh restores the static examples' original data. The Appearance selector provides system, light, and dark modes. Examples require internet access for CDN dependencies.
 
 ## Find the documentation
 
-| I want to…                                            | Read                                          |
-| ----------------------------------------------------- | --------------------------------------------- |
-| Configure fields, callbacks, files, or public methods | [Configuration and API](docs/api.md)          |
-| Enable cell editing and keyboard navigation           | [Inline editing](docs/inline-edit.md)         |
-| React to saves, errors, and dialog lifecycle          | [Events](docs/events.md)                      |
-| Override styles or enable dark mode                   | [Styling and themes](docs/styling.md)         |
-| Translate labels and messages                         | [Translations](docs/translations.md)          |
-| Upgrade an existing v3 integration                    | [Migration guide](docs/migration-v3-to-v4.md) |
-| Diagnose common integration problems                  | [Troubleshooting](docs/troubleshooting.md)    |
-| Build, test, or submit a change                       | [Contributing](CONTRIBUTING.md)               |
-| Deploy examples or prepare a GitHub release           | [Publishing](docs/publishing.md)              |
+| I want to…                                            | Read                                             |
+| ----------------------------------------------------- | ------------------------------------------------ |
+| Configure fields, callbacks, files, or public methods | [Configuration and API](docs/api.md)             |
+| Enable cell editing and keyboard navigation           | [Inline editing](docs/inline-edit.md)            |
+| React to saves, errors, and dialog lifecycle          | [Events](docs/events.md)                         |
+| Override styles or enable dark mode                   | [Styling and themes](docs/styling.md)            |
+| Support keyboard and assistive technology users       | [Accessibility](docs/accessibility.md)           |
+| Translate labels and messages                         | [Translations](docs/translations.md)             |
+| Upgrade an existing v3 integration                    | [Migration guide](docs/migration-v3-to-v4.md)    |
+| Diagnose common integration problems                  | [Troubleshooting](docs/troubleshooting.md)       |
+| Validate fields and show server errors                | [Persistence and validation](docs/validation.md) |
 
 Readable and minified UMD files are available with source maps. AMD consumers map `jquery` and `datatables.net`; CommonJS usage is described in [Configuration and API](docs/api.md#module-loading).
 

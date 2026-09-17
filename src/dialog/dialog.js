@@ -406,6 +406,7 @@ export const methods = {
     this._submitting = !!submitting;
     if (!this.modal_selector) return;
     var $modal = $(this.modal_selector);
+    $modal.find('form').attr('aria-busy', this._submitting ? 'true' : 'false');
     $modal
       .find('button[type="submit"]')
       .prop('disabled', this._submitting)

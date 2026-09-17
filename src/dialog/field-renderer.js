@@ -46,6 +46,7 @@ export function renderFields(columnDefs, instanceId) {
       var label = document.createElement('label');
       label.className = 'col-form-label col-form-label-sm';
       label.htmlFor = fieldId;
+      label.id = fieldId + '-label';
       label.textContent = title + ':';
       labelCol.appendChild(label);
       formGroup.appendChild(labelCol);
