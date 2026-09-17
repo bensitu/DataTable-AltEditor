@@ -1,3 +1,4 @@
+import { clearFieldErrors } from './field-feedback.js';
 import { deletionContent } from './template.js';
 import {
   createDialogShell,
@@ -170,6 +171,7 @@ export const methods = {
     if (!this._dialogOpen) return;
     this._dialogOpen = false;
     this._dialogToken = {};
+    clearFieldErrors(this);
     this._cleanupPlugins();
     this._removeModalEvents(this.modal_selector);
     this._editSnapshot = null;
@@ -256,6 +258,13 @@ export const methods = {
         );
     };
 
+    $modal.on(
+      'input' + this.s.namespace + ' change' + this.s.namespace,
+      'input, select, textarea',
+      function () {
+        clearFieldErrors(that, this.name);
+      }
+    );
     $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
     $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
   },
@@ -334,6 +343,7 @@ export const methods = {
     var formName = 'altEditor-delete-form-' + this.random_id;
     var that = this;
     var fill = function () {
+      clearFieldErrors(that);
       const body = $('<div/>').append(
         $('<p/>', { class: 'altEditor-delete-message' }).text(
           that.language.deleteMessage

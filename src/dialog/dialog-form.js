@@ -1,3 +1,4 @@
+import { clearFieldErrors } from './field-feedback.js';
 import { $ } from '../core/dependencies.js';
 import { fieldElement } from '../data/field-values.js';
 import { isFieldPath } from '../data/path.js';
@@ -14,6 +15,7 @@ export const methods = {
     buttonClass,
     formName
   ) {
+    clearFieldErrors(this);
     this.columnDefs = columnDefs;
     const fields = renderFields(columnDefs, this.random_id);
     const body = applyTemplate(

@@ -396,3 +396,13 @@
   padding: 0.375rem 0.5rem;
   font: inherit;
 }
+.altEditor-modal .altEditor-field-error {
+  display: block;
+  margin-block-start: 0.25rem;
+  color: var(--alteditor-error, light-dark(#b42318, #fda29b));
+  font-size: 0.875em;
+  white-space: pre-line;
+}
+.altEditor-modal .altEditor-field-invalid {
+  border-color: var(--alteditor-error, light-dark(#b42318, #fda29b));
+}

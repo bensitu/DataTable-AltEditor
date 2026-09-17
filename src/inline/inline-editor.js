@@ -1,3 +1,4 @@
+import { normalizeError } from '../data/errors.js';
 import { document } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { snapshotRow, resolveRow, invoke, cloneRow } from '../data/row-data.js';
@@ -159,11 +160,13 @@ export class InlineEditor {
       if (this.editor.c.inlineEdit.submitOnBlur) this.commit();
       else this.cancel('blur', false);
     });
-    listen('input', () => {
+    const clearError = () => {
       session.control.setCustomValidity('');
       session.control.removeAttribute('aria-invalid');
       session.errorNode.textContent = '';
-    });
+    };
+    listen('input', clearError);
+    listen('change', clearError);
     this.attach(session, cell.node());
     this.event('open', session);
     return true;
@@ -218,10 +221,17 @@ export class InlineEditor {
       this.attach(session, node);
     if (session.displayNode)
       session.displayNode.classList.remove('alteditor-inline-submitting');
-    session.errorNode.textContent =
-      error && error.message
-        ? error.message
-        : String(error || this.editor.language.error.message);
+    const feedback = normalizeError(error, this.editor.language.error);
+    const local = feedback.fields
+      .filter(([name]) => name === String(session.dataSrc))
+      .map(([, message]) => message);
+    const other = feedback.fields
+      .filter(([name]) => name !== String(session.dataSrc))
+      .map(([, message]) => message);
+    session.errorNode.textContent = [feedback.message, ...local, ...other]
+      .filter(Boolean)
+      .join('\n');
+    if (other.length) this.editor._showErrorMessage(other.join('\n'));
     session.control.setAttribute('aria-invalid', 'true');
     if (!session.displayNode)
       this.editor._showErrorMessage(session.errorNode.textContent);

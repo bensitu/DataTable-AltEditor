@@ -1,6 +1,7 @@
 import { $ } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { invoke, resolveRow } from '../data/row-data.js';
+import { showFieldErrors, clearFieldErrors } from '../dialog/field-feedback.js';
 import { withValue } from '../data/path.js';
 
 /** @callback PersistenceCallback
@@ -12,33 +13,7 @@ import { withValue } from '../data/path.js';
  */
 export const methods = {
   _errorCallback: function (response) {
-    var error = response || {};
-    var message =
-      typeof response === 'string' ? response : this.language.error.message;
-
-    if (error instanceof Error && error.message) {
-      message = error.message;
-    } else if (error.responseJSON && error.responseJSON.errors) {
-      var messages = [];
-      Object.keys(error.responseJSON.errors).forEach(function (key) {
-        var value = error.responseJSON.errors[key];
-        if (Array.isArray(value)) {
-          value.forEach(function (item) {
-            if (item !== null && item !== undefined)
-              messages.push(String(item));
-          });
-        } else if (value !== null && value !== undefined) {
-          messages.push(String(value));
-        }
-      });
-      if (messages.length) message = messages.join('\n');
-    } else if (error.responseText) {
-      message = String(error.responseText);
-    } else if (error.status !== null && error.status !== undefined) {
-      message = this.language.error.responseCode + error.status;
-    }
-
-    this._showErrorMessage(message);
+    showFieldErrors(this, response);
     this._setDialogSubmitting(false);
   },
   _normalizeResponseData: function (response) {
@@ -90,6 +65,7 @@ export const methods = {
       fail(new Error(this.language.error.targetUnavailable));
       return;
     }
+    clearFieldErrors(this);
     const form = $(this.modal_selector).find('form');
     const errors = this._validateFormData(form);
     if (errors.length) {

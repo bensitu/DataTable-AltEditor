@@ -1,3 +1,4 @@
+import { clearFieldErrors } from '../dialog/field-feedback.js';
 import { $ } from './dependencies.js';
 import { defaults, normalizeOptions } from './options.js';
 import { normalizeColumns } from './columns.js';
@@ -206,6 +207,7 @@ export function createAltEditor(DataTable) {
         });
         this._buttonActions = [];
         if (this._languageRequest) this._languageRequest.abort();
+        clearFieldErrors(this);
         this._cleanupPlugins();
         const modal = $(this.modal_selector);
         if (this._adapter && modal.length) {
