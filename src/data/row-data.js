@@ -42,12 +42,14 @@ export function invoke(callback, editor, values, extra, success, error) {
   const resolve = accept(success);
   const reject = accept(error);
   try {
-    if (callback)
-      callback.apply(
+    if (callback) {
+      const result = callback.apply(
         editor,
         [editor, values, resolve, reject].concat(extra || [])
       );
-    else resolve(values);
+      const then = result != null ? result.then : null;
+      if (typeof then === 'function') then.call(result, resolve, reject);
+    } else resolve(values);
   } catch (failure) {
     if (settled && editor.debug)
       console.error('Persistence callback failed after completion:', failure);
