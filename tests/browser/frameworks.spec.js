@@ -51,6 +51,20 @@ for (const framework of ['bootstrap4', 'foundation-sites']) {
         'rgb(20, 40, 30)'
       );
     }
+    await page.evaluate(() => {
+      table.altEditor().onAddRow = async () => {
+        throw { fieldErrors: { name: 'Choose another name' } };
+      };
+    });
+    await page.locator('.modal [name="name"]').fill('Reserved');
+    await page.locator('.modal button[type="submit"]').click();
+    await expect(page.locator('.altEditor-field-error')).toHaveText(
+      'Choose another name'
+    );
+    await expect(page.locator('.modal [name="name"]')).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
     await page.locator('.modal [name="name"]').fill('Carol');
     await page.evaluate(() => {
       table.altEditor().onAddRow = (_editor, values, success) => {

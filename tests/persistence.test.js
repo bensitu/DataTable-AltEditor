@@ -171,3 +171,41 @@ test('Promise rejection wins against delayed success and allows inline correctio
   await flush();
   expect(table.row(0).data().name).toBe('Ann');
 });
+
+test('a resolved Promise wins against a later callback and a missing delete target is retained', async () => {
+  let late;
+  const accept = vi.fn(),
+    reject = vi.fn();
+  invoke(
+    (_editor, _row, success) => {
+      late = success;
+      return Promise.resolve('first');
+    },
+    {},
+    {},
+    [],
+    accept,
+    reject
+  );
+  await flush();
+  late('late');
+  expect(accept).toHaveBeenCalledExactlyOnceWith('first');
+  expect(reject).not.toHaveBeenCalled();
+  let complete;
+  const { editor, table } = create({
+    onDeleteRow: () =>
+      new Promise((resolve) => {
+        complete = resolve;
+      }),
+  });
+  const success = vi.fn();
+  table.on('alteditor-success.dt', success);
+  editor.openDeleteDialog(0);
+  await editor._deleteRow();
+  table.row(0).remove().draw();
+  complete();
+  await flush();
+  expect(table.row('#b').data().name).toBe('Bob');
+  expect(success).not.toHaveBeenCalled();
+  expect(editor._submitting).toBe(false);
+});

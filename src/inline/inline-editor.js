@@ -325,6 +325,13 @@ export class InlineEditor {
       return false;
     }
     if (this.session !== session || this.editor._destroyed) return false;
+    if (!resolveRow(this.api, session)) {
+      this.fail(
+        session,
+        new Error(this.editor.language.error.targetUnavailable)
+      );
+      return false;
+    }
     control.disabled = true;
     control.setAttribute('aria-busy', 'true');
     if (session.displayNode)

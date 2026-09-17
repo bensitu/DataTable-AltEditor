@@ -339,3 +339,32 @@ test('inline async validation blocks duplicate submission and permits correction
   expect(save).toHaveBeenCalledTimes(1);
   expect(table.row(0).data().name).toBe('Ann');
 });
+
+test.each(['remove', 'destroy'])(
+  'does not persist an inline validation result after %s',
+  async (action) => {
+    let resolve;
+    const save = vi.fn();
+    const { editor, table } = create({
+      columns: [
+        {
+          data: 'name',
+          title: 'Name',
+          editorValidate: () =>
+            new Promise((accept) => {
+              resolve = accept;
+            }),
+        },
+      ],
+      onInlineEditRow: save,
+    });
+    editor.startInlineEdit({ row: 0, column: 0 });
+    editor.commitInlineEdit();
+    if (action === 'remove') table.row(0).remove().draw();
+    else editor.destroy();
+    resolve(true);
+    await flush();
+    expect(save).not.toHaveBeenCalled();
+    expect(editor.isInlineEditing()).toBe(false);
+  }
+);

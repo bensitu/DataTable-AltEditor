@@ -107,6 +107,12 @@ export const methods = {
         const columns = action === 'delete' ? [] : editor.columnDefs;
         const fields = columns
           .filter((column) => {
+            if (
+              typeof column.editorValidate !== 'function' ||
+              column.readonly ||
+              column.visible === false
+            )
+              return false;
             const control = fieldElement(form, column.name)[0];
             return (
               fieldNames.includes(String(column.name)) &&
