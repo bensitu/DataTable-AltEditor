@@ -19,6 +19,13 @@ if (pkg.name !== 'datatables.net-AltEditor')
 const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 if (lock.version !== version || lock.packages[''].version !== version)
   throw new Error('package-lock.json version must match package.json');
+const source = readFileSync('src/core/alt-editor.js', 'utf8');
+const sourceVersion = /AltEditor\.version\s*=\s*'([^']+)'/.exec(source);
+if (!sourceVersion || sourceVersion[1] !== version)
+  throw new Error('AltEditor.version must match package.json');
+const stylesheet = readFileSync('src/style/dataTables.altEditor.css', 'utf8');
+if (!stylesheet.startsWith(`/*! DataTables AltEditor v${version} |`))
+  throw new Error('Stylesheet version must match package.json');
 const lines = readFileSync('CHANGELOG.md', 'utf8').split(/\r?\n/);
 const start = lines.findIndex((line) => {
   const match = /^## (?:\[([^\]]+)\]|(\S+))(?:\s|$)/.exec(line);

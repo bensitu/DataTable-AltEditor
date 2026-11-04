@@ -6,7 +6,7 @@ Bug fixes, documentation improvements, translations, and small, focused examples
 
 ## Local development
 
-Fork and clone the repository. Base changes on `develop`. Development dependencies require Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`; Node.js 24 is recommended.
+Fork and clone the repository. Base changes on `develop`. Development dependencies require Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`, matching the installed jsdom requirement; Node.js 24 is recommended. This range applies to development tools, while browser compatibility is documented separately.
 
 ```sh
 npm ci --engine-strict

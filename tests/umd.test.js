@@ -38,6 +38,9 @@ for (const mode of ['browser', 'AMD', 'CommonJS']) {
       altEditor: true,
     });
     expect(table.table().node().altEditor).toBeTruthy();
+    expect(win.DataTable.altEditor.version).toBe(
+      JSON.parse(readFileSync('package.json', 'utf8')).version
+    );
     table.destroy();
     win.close();
   });

@@ -5,9 +5,24 @@ import {
   createControl,
   controlValue,
 } from '../src/inline/inline-control.js';
-import { methods as fields } from '../src/dialog/field-renderer.js';
+import {
+  methods as fields,
+  renderFields,
+} from '../src/dialog/field-renderer.js';
 import { methods as plugins } from '../src/dialog/plugins.js';
 import $ from 'jquery';
+
+test('renders unknown input types without matching select, textarea or hidden substrings', () => {
+  for (const type of ['customselect', 'textarea-custom', 'prehidden']) {
+    const field = renderFields(
+      [{ name: 'value', title: 'Value', type }],
+      'types'
+    );
+    const control = field.querySelector('[name="value"]');
+    expect(control.tagName).toBe('INPUT');
+    expect(control.type).toBe('text');
+  }
+});
 
 test('normalizes supported select formats and retains multiple selected values', () => {
   const options = [

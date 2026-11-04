@@ -18,6 +18,12 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 - Example scripts and stylesheets include matching SHA-384 integrity metadata and anonymous cross-origin attributes. Select2 examples use the stable 4.1.0 release.
 - Oversized requests to the file upload example are consumed without retaining excess data and receive a readable HTTP 413 response.
 - Example guide links and the test status badge follow the deployed default branch.
+- Release preparation verifies the JavaScript and stylesheet source versions against package metadata. Module loading checks verify the exposed runtime version.
+- The translation guide lists all 25 default strings, including custom validation feedback.
+
+### Changed
+
+- Source linting rejects dynamic evaluation, unsafe calls to inherited Object methods, and self-comparisons.
 
 ## 4.2.0 - 2026-09-18
 
