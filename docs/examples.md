@@ -12,7 +12,7 @@ Ajax examples configure stable DataTables row identifiers so updates can find th
 
 Simulated save requests do not send row values in query strings. They call `success()` to accept the entered values locally after the static request completes. For a real persistence callback, see the PATCH example in the [API reference](api.md#persistence-callbacks).
 
-CDN resources are convenient for these examples. For production deployments, manage dependencies locally or pin resources with matching Subresource Integrity metadata and a suitable Content Security Policy.
+The examples pin CDN scripts and stylesheets with SHA-384 Subresource Integrity metadata and anonymous cross-origin requests. Recalculate the integrity value from the exact resource bytes whenever a URL or version changes. For production deployments, manage dependencies locally or pin resources with matching Subresource Integrity metadata and a suitable Content Security Policy.
 
 ## Choose by integration need
 
@@ -103,4 +103,4 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 
 Example 09 translates editor messages into Italian. To use another included language, change the translation file URL using the [language list](translations.md). DataTables toolbar text, table messages, and browser-native validation have separate localization settings.
 
-The live site follows the deployed default branch. For changes available only in your checkout, run the local examples and read the matching local source. The online guide links from example pages describe the develop branch.
+The live site follows the deployed default branch. For changes available only in your checkout, run the local examples and read the matching local source. The online guide links from example pages describe the deployed default branch.

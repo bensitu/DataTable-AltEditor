@@ -15,6 +15,9 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 - Nested field writes reject existing scalar intermediate values instead of replacing them.
 - Scalar response error messages remain intact, and invalid inline control configuration is reported without an uncaught exception.
 - Dialog controls use exact field type matching. Uniqueness checks run on control change and submission without scanning table data on every keystroke.
+- Example scripts and stylesheets include matching SHA-384 integrity metadata and anonymous cross-origin attributes. Select2 examples use the stable 4.1.0 release.
+- Oversized requests to the file upload example are consumed without retaining excess data and receive a readable HTTP 413 response.
+- Example guide links and the test status badge follow the deployed default branch.
 
 ## 4.2.0 - 2026-09-18
 

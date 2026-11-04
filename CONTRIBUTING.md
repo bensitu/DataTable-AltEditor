@@ -34,7 +34,7 @@ Bootstrap 4 is excluded from automatic updates. The Bootstrap package rule also 
 
 `npm outdated` reports the registry's `latest` tag even when it falls outside these limits; it does not read Dependabot configuration. Exact versions in `package.json` and `package-lock.json` make local installs reproducible. These development update limits do not change the library's public peer dependency requirements.
 
-CDN URLs in examples are maintained manually and are outside the npm update configuration. When updating them, keep the same supported release lines and verify the affected examples. Dependency updates must also pass installation and relevant checks on the Node.js versions configured in CI.
+CDN URLs in examples are maintained manually and are outside the npm update configuration. When updating them, keep the same supported release lines, recalculate SHA-384 integrity metadata for every changed script or stylesheet URL, and verify the affected examples. Dependency updates must also pass installation and relevant checks on the Node.js versions configured in CI.
 
 ## Making changes
 

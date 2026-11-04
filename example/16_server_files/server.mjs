@@ -23,10 +23,13 @@ async function readForm(request) {
   let size = 0;
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > maxFileSize + 65536)
-      throw new Error('Request exceeds the upload limit');
+    if (size > maxFileSize + 65536) {
+      chunks.length = 0;
+      continue;
+    }
     chunks.push(chunk);
   }
+  if (size > maxFileSize + 65536) return null;
   const body = new Request('http://127.0.0.1', {
     method: 'POST',
     headers: { 'Content-Type': request.headers['content-type'] || '' },
@@ -48,6 +51,10 @@ createServer(async (request, response) => {
       (recordPath && request.method === 'PATCH')
     ) {
       const form = await readForm(request);
+      if (!form) {
+        json(response, 413, { message: 'Request exceeds the upload limit' });
+        return;
+      }
       const file = form.get('attachment');
       if (file instanceof File && file.size > maxFileSize) {
         json(response, 413, { message: 'File exceeds 2 MiB' });
