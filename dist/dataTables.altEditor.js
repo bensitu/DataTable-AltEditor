@@ -1,4 +1,4 @@
-/*! DataTables AltEditor v4.2.0
+/*! DataTables AltEditor v4.2.1
  * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
  * Copyright (c) 2026 Ben Situ and contributors
  * MIT License */
@@ -118,7 +118,10 @@
       }
       if (!message && error.responseJSON && error.responseJSON.errors) {
         const messages = [];
-        Object.values(error.responseJSON.errors).forEach((value) => {
+        const errors = error.responseJSON.errors;
+        const values =
+          typeof errors === 'object' ? Object.values(errors) : [errors];
+        values.forEach((value) => {
           (Array.isArray(value) ? value : [value]).forEach((item) => {
             if (item != null) messages.push(String(item));
           });
@@ -410,7 +413,9 @@
     const keys = segments(path);
     let cursor = target;
     keys.slice(0, -1).forEach((key, index) => {
-      if (!cursor[key] || typeof cursor[key] !== 'object')
+      if (cursor[key] != null && typeof cursor[key] !== 'object')
+        throw new TypeError('Cannot write through a non-object field: ' + path);
+      if (cursor[key] == null)
         cursor[key] = /^\d+$/.test(keys[index + 1]) ? [] : {};
       cursor = cursor[key];
     });
@@ -428,6 +433,8 @@
     let original = source;
     keys.slice(0, -1).forEach((key, index) => {
       original = original == null ? undefined : original[key];
+      if (original != null && typeof original !== 'object')
+        throw new TypeError('Cannot write through a non-object field: ' + path);
       cursor[key] =
         original && typeof original === 'object'
           ? copy(original)
@@ -1233,8 +1240,10 @@
           clearFieldErrors(that, this.name);
         }
       );
-      $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
-      $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
+      $modal.on('input' + this.s.namespace, '[data-unique]', function () {
+        this.setCustomValidity('');
+      });
+      $modal.on('change' + this.s.namespace, '[data-unique]', checkUnique);
     },
     _initLanguage: function (source) {
       const language = resolveLanguage(
@@ -1520,7 +1529,7 @@
         var $input = $(this);
         var id = this.name || this.id || 'field';
         if ($input.attr('data-unique') === 'true') {
-          $input.trigger($input.is('select') ? 'change' : 'input');
+          $input.trigger('change');
         }
         if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
           const message = this.validationMessage || id + ' is invalid';
@@ -1571,7 +1580,7 @@
       var title = String(columnDef.title || '').trim();
       if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
 
-      if (String(columnDef.type).indexOf('hidden') >= 0) {
+      if (columnDef.type === 'hidden') {
         var hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.id = fieldId;
@@ -1607,7 +1616,7 @@
       formGroup.appendChild(inputCol);
 
       var type = String(columnDef.type || 'text');
-      if (type.indexOf('select') >= 0) {
+      if (type === 'select') {
         var select = document.createElement('select');
         select.className =
           'form-control form-control-sm' + (columnDef.select2 ? ' select2' : '');
@@ -1633,7 +1642,7 @@
           select.appendChild(optionElement);
         });
         inputCol.appendChild(select);
-      } else if (type.indexOf('textarea') >= 0) {
+      } else if (type === 'textarea') {
         var textarea = document.createElement('textarea');
         textarea.className = 'form-control form-control-sm';
         textarea.id = fieldId;
@@ -1811,10 +1820,7 @@
         var $element = fieldElement(selector, columnDef.name);
         if (!$element.length) return;
 
-        if (
-          String(columnDef.type || '').indexOf('select') >= 0 &&
-          columnDef.optionsSortByLabel
-        ) {
+        if (columnDef.type === 'select' && columnDef.optionsSortByLabel) {
           var oldValue = $element.val();
           var options = $element.find('option').get();
           options.sort(function (a, b) {
@@ -1930,7 +1936,16 @@
       var type = String(columnDef.type || 'text');
       var normalized = value === null || value === undefined ? '' : value;
 
-      if (type.indexOf('select') >= 0) {
+      if (
+        normalized &&
+        typeof normalized === 'object' &&
+        !(type === 'select' && columnDef.multiple && Array.isArray(normalized))
+      ) {
+        $element.val('').prop('disabled', true);
+        return;
+      }
+
+      if (type === 'select') {
         $element.each(function () {
           setSelectValue(this, normalized);
         });
@@ -1940,7 +1955,7 @@
         return;
       }
 
-      if (type.indexOf('checkbox') >= 0) {
+      if (type === 'checkbox') {
         $element.prop('checked', isChecked(normalized));
         return;
       }
@@ -2457,9 +2472,29 @@
       const index = cell.index();
       if (!index || !cell.node() || !this.body.contains(cell.node()))
         return false;
-      const column = this.editor.completeColumnDefs()[index.column];
-      const options = controlOptions(column);
+      let column;
+      let options;
+      try {
+        column = this.editor.completeColumnDefs()[index.column];
+        options = controlOptions(column);
+      } catch (error) {
+        this.editor._showErrorMessage(error.message);
+        emit(this.editor, 'error', { action: 'open', mode: 'inline', error });
+        return false;
+      }
       if (!options || !this.api.column(index.column).visible()) return false;
+      const value = cell.data();
+      if (
+        value !== null &&
+        typeof value === 'object' &&
+        !(
+          options.type === 'select' &&
+          options.multiple &&
+          Array.isArray(value)
+        ) &&
+        typeof options.inlineEditSetValue !== 'function'
+      )
+        return false;
       if (this.session && this.session.cellNode === cell.node()) return true;
       if (
         cell.node().isContentEditable ||
@@ -3015,7 +3050,7 @@
         },
       }
     );
-    AltEditor.version = '4.2.0';
+    AltEditor.version = '4.2.1';
     AltEditor.defaults = defaults$1;
     AltEditor.classes = { btn: 'btn' };
     return AltEditor;

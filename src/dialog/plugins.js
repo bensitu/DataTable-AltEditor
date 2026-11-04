@@ -20,10 +20,7 @@ export const methods = {
       var $element = fieldElement(selector, columnDef.name);
       if (!$element.length) return;
 
-      if (
-        String(columnDef.type || '').indexOf('select') >= 0 &&
-        columnDef.optionsSortByLabel
-      ) {
+      if (columnDef.type === 'select' && columnDef.optionsSortByLabel) {
         var oldValue = $element.val();
         var options = $element.find('option').get();
         options.sort(function (a, b) {
@@ -139,7 +136,16 @@ export const methods = {
     var type = String(columnDef.type || 'text');
     var normalized = value === null || value === undefined ? '' : value;
 
-    if (type.indexOf('select') >= 0) {
+    if (
+      normalized &&
+      typeof normalized === 'object' &&
+      !(type === 'select' && columnDef.multiple && Array.isArray(normalized))
+    ) {
+      $element.val('').prop('disabled', true);
+      return;
+    }
+
+    if (type === 'select') {
       $element.each(function () {
         setSelectValue(this, normalized);
       });
@@ -149,7 +155,7 @@ export const methods = {
       return;
     }
 
-    if (type.indexOf('checkbox') >= 0) {
+    if (type === 'checkbox') {
       $element.prop('checked', isChecked(normalized));
       return;
     }

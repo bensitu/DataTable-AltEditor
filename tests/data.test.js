@@ -3,6 +3,33 @@ import { readPath, writePath, withValue } from '../src/data/path.js';
 import { mergeOptions, normalizeOptions } from '../src/core/options.js';
 import { cloneRow } from '../src/data/row-data.js';
 import { equalFieldValues } from '../src/data/field-values.js';
+import { normalizeError } from '../src/data/errors.js';
+
+test('preserves existing scalar branches when a nested write is invalid', () => {
+  for (const value of [0, false, '', 'value', 1]) {
+    const row = { profile: value };
+    expect(() => writePath(row, 'profile.name', 'Ann')).toThrow(
+      'Cannot write through a non-object field: profile.name'
+    );
+    expect(() => withValue(row, 'profile.name', 'Ann')).toThrow(TypeError);
+    expect(row.profile).toBe(value);
+  }
+});
+
+test('keeps scalar response errors intact and flattens field message lists', () => {
+  const language = { message: 'Request failed' };
+  for (const errors of [
+    'Invalid request',
+    42,
+    ['First', 'Second'],
+    { name: ['First', 'Second'] },
+  ]) {
+    const result = normalizeError({ responseJSON: { errors } }, language);
+    expect(result.message).toBe(
+      typeof errors === 'object' ? 'First\nSecond' : String(errors)
+    );
+  }
+});
 
 test('copies unrelated metadata safely while preserving protected path validation', () => {
   const row = JSON.parse(

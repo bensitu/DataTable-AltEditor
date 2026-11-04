@@ -36,6 +36,47 @@ afterEach(() => {
 });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+test('preserves structured values outside compatible controls in edit submissions', async () => {
+  const original = {
+    id: 'a',
+    name: 'Alice',
+    meta: { active: true },
+    tags: ['x', 'y'],
+    details: { count: 2 },
+    selected: ['x', 'y'],
+  };
+  const save = vi.fn((_editor, _values, success) => success());
+  const { editor, table } = create({
+    data: [original],
+    columns: [
+      { data: 'name', title: 'Name' },
+      { data: 'meta', title: 'Metadata', type: 'readonly' },
+      { data: 'tags', title: 'Tags' },
+      { data: 'details', title: 'Details', type: 'textarea' },
+      {
+        data: 'selected',
+        title: 'Selected',
+        type: 'select',
+        multiple: true,
+        options: ['x', 'y'],
+      },
+    ],
+    onEditRow: save,
+  });
+  editor.openEditDialog(0);
+  const form = $(editor.modal_selector).find('form');
+  for (const name of ['meta', 'tags', 'details']) {
+    const control = form.find('[name="' + name + '"]')[0];
+    expect(control.disabled).toBe(true);
+    expect(control.value).toBe('');
+  }
+  form.find('[name="name"]').val('Ann');
+  await editor._editRowData();
+  expect(save.mock.calls[0][1]).toEqual({ name: 'Ann', selected: ['x', 'y'] });
+  expect(table.row(0).data()).toEqual({ ...original, name: 'Ann' });
+  expect(original.name).toBe('Alice');
+});
+
 test('does not persist after a submit listener destroys the editor', async () => {
   const save = vi.fn();
   const { editor, table } = create({ onEditRow: save });
@@ -458,7 +499,11 @@ test('uses uniqueMsg and handles encoded files, read failures and aborts', async
   editor.openAddDialog();
   const form = $(editor.modal_selector).find('form');
   form.find('[name="name"]').val('Alice');
+  const column = vi.spyOn(editor.api(), 'column');
+  form.find('[name="name"]').trigger('input');
+  expect(column).not.toHaveBeenCalled();
   expect(editor._validateFormData(form)).toContain('Name already exists');
+  expect(column).toHaveBeenCalledOnce();
   form.find('[name="name"]').val('Carol');
   const file = new File(['hello'], 'hello.txt');
   Object.defineProperty(form.find('[type="file"]')[0], 'files', {

@@ -88,9 +88,29 @@ export class InlineEditor {
     const index = cell.index();
     if (!index || !cell.node() || !this.body.contains(cell.node()))
       return false;
-    const column = this.editor.completeColumnDefs()[index.column];
-    const options = controlOptions(column);
+    let column;
+    let options;
+    try {
+      column = this.editor.completeColumnDefs()[index.column];
+      options = controlOptions(column);
+    } catch (error) {
+      this.editor._showErrorMessage(error.message);
+      emit(this.editor, 'error', { action: 'open', mode: 'inline', error });
+      return false;
+    }
     if (!options || !this.api.column(index.column).visible()) return false;
+    const value = cell.data();
+    if (
+      value !== null &&
+      typeof value === 'object' &&
+      !(
+        options.type === 'select' &&
+        options.multiple &&
+        Array.isArray(value)
+      ) &&
+      typeof options.inlineEditSetValue !== 'function'
+    )
+      return false;
     if (this.session && this.session.cellNode === cell.node()) return true;
     if (
       cell.node().isContentEditable ||

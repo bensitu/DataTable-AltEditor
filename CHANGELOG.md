@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
+## 4.2.1 - Unreleased
+
+### Fixed
+
+- Dialog editing preserves object and array fields that cannot be represented by their controls. Inline editing requires a compatible multiple select or an explicit setter for structured values.
+- Nested field writes reject existing scalar intermediate values instead of replacing them.
+- Scalar response error messages remain intact, and invalid inline control configuration is reported without an uncaught exception.
+- Dialog controls use exact field type matching. Uniqueness checks run on control change and submission without scanning table data on every keystroke.
+
 ## 4.2.0 - 2026-09-18
 
 ### Added

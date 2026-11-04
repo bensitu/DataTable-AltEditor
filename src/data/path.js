@@ -42,7 +42,9 @@ export function writePath(target, path, value) {
   const keys = segments(path);
   let cursor = target;
   keys.slice(0, -1).forEach((key, index) => {
-    if (!cursor[key] || typeof cursor[key] !== 'object')
+    if (cursor[key] != null && typeof cursor[key] !== 'object')
+      throw new TypeError('Cannot write through a non-object field: ' + path);
+    if (cursor[key] == null)
       cursor[key] = /^\d+$/.test(keys[index + 1]) ? [] : {};
     cursor = cursor[key];
   });
@@ -60,6 +62,8 @@ export function withValue(source, path, value) {
   let original = source;
   keys.slice(0, -1).forEach((key, index) => {
     original = original == null ? undefined : original[key];
+    if (original != null && typeof original !== 'object')
+      throw new TypeError('Cannot write through a non-object field: ' + path);
     cursor[key] =
       original && typeof original === 'object'
         ? copy(original)

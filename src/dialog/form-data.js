@@ -80,7 +80,7 @@ export const methods = {
       var $input = $(this);
       var id = this.name || this.id || 'field';
       if ($input.attr('data-unique') === 'true') {
-        $input.trigger($input.is('select') ? 'change' : 'input');
+        $input.trigger('change');
       }
       if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
         const message = this.validationMessage || id + ' is invalid';

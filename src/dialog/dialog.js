@@ -265,8 +265,10 @@ export const methods = {
         clearFieldErrors(that, this.name);
       }
     );
-    $modal.on('input' + this.s.namespace, '[data-unique]', checkUnique);
-    $modal.on('change' + this.s.namespace, 'select[data-unique]', checkUnique);
+    $modal.on('input' + this.s.namespace, '[data-unique]', function () {
+      this.setCustomValidity('');
+    });
+    $modal.on('change' + this.s.namespace, '[data-unique]', checkUnique);
   },
   _initLanguage: function (source) {
     const language = resolveLanguage(

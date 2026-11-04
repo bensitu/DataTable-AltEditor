@@ -22,7 +22,7 @@ export function renderFields(columnDefs, instanceId) {
     var title = String(columnDef.title || '').trim();
     if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
 
-    if (String(columnDef.type).indexOf('hidden') >= 0) {
+    if (columnDef.type === 'hidden') {
       var hidden = document.createElement('input');
       hidden.type = 'hidden';
       hidden.id = fieldId;
@@ -58,7 +58,7 @@ export function renderFields(columnDefs, instanceId) {
     formGroup.appendChild(inputCol);
 
     var type = String(columnDef.type || 'text');
-    if (type.indexOf('select') >= 0) {
+    if (type === 'select') {
       var select = document.createElement('select');
       select.className =
         'form-control form-control-sm' + (columnDef.select2 ? ' select2' : '');
@@ -84,7 +84,7 @@ export function renderFields(columnDefs, instanceId) {
         select.appendChild(optionElement);
       });
       inputCol.appendChild(select);
-    } else if (type.indexOf('textarea') >= 0) {
+    } else if (type === 'textarea') {
       var textarea = document.createElement('textarea');
       textarea.className = 'form-control form-control-sm';
       textarea.id = fieldId;

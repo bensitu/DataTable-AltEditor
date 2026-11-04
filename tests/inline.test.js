@@ -29,6 +29,21 @@ afterEach(() => {
 });
 const input = () => document.querySelector('.alteditor-inline-control');
 
+test('rejects structured scalar values and reports invalid control configuration', () => {
+  const { editor } = create({
+    data: [{ id: 'a', user: { name: { text: 'Alice' } }, age: 30 }],
+  });
+  expect(editor.startInlineEdit({ row: 0, column: 0 })).toBe(false);
+  const columns = editor.completeColumnDefs();
+  columns[1].inlineEditOptions = JSON.parse('{"__proto__":{"enabled":true}}');
+  vi.spyOn(editor, 'completeColumnDefs').mockReturnValue(columns);
+  expect(editor.startInlineEdit({ row: 0, column: 1 })).toBe(false);
+  expect(document.querySelector('.altEditor-message').textContent).toContain(
+    'Unsafe option key'
+  );
+  expect(editor.isInlineEditing()).toBe(false);
+});
+
 test('handles composition, Enter, Escape and keyboard navigation without duplicate submission', () => {
   const { editor, table } = create();
   const cell = table.cell(0, 0).node();

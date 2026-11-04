@@ -12,7 +12,10 @@ export function normalizeError(error, language) {
     }
     if (!message && error.responseJSON && error.responseJSON.errors) {
       const messages = [];
-      Object.values(error.responseJSON.errors).forEach((value) => {
+      const errors = error.responseJSON.errors;
+      const values =
+        typeof errors === 'object' ? Object.values(errors) : [errors];
+      values.forEach((value) => {
         (Array.isArray(value) ? value : [value]).forEach((item) => {
           if (item != null) messages.push(String(item));
         });

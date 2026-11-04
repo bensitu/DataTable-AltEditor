@@ -103,7 +103,11 @@ See [persistence and field validation](validation.md) for Promise examples, stru
 
 Object rows, numeric array sources including 0, and dotted object paths are supported. Writable paths containing `__proto__`, `prototype`, or `constructor` are rejected, while unrelated metadata with those names is preserved when rows are copied. Complex DataTables sources, including bracket, function, and escaped-dot notation, need an explicit setter for inline editing and are excluded from dialogs. Dialogs also exclude radio fields and fields with an empty title, except hidden inputs. Use a titled select for a single choice or `editable: false` to explicitly exclude a column.
 
-Uniqueness compares text and select values as strings, number fields numerically, and multiple selections by overlapping values. Empty values do not count as duplicates; use `required` when a value is mandatory. `optionsSortByLabel` uses the browser's default locale. Supply options in the desired order without this option when applications require a fixed ordering.
+Uniqueness is checked on control change and again on submission, against loaded rows only. Enforce uniqueness on the server to cover unloaded records and concurrent writes. Use `editorValidate` for remote feedback and enforce the constraint in the persistence endpoint. Uniqueness compares text and select values as strings, number fields numerically, and multiple selections by overlapping values. Empty values do not count as duplicates; use `required` when a value is mandatory. `optionsSortByLabel` uses the browser's default locale. Supply options in the desired order without this option when applications require a fixed ordering.
+
+Missing or null intermediate path values are initialized as objects or arrays. Writing through an existing scalar intermediate value fails without replacing that value. Numeric path segments can address arrays or object properties.
+
+Object and array values are omitted from incompatible dialog controls, which are empty and disabled; edit submissions preserve the original field. Multiple selects accept arrays. Inline editing rejects structured values unless a multiple select or an explicit `inlineEditSetValue` handles them. Use scalar nested paths or `editable: false` for structured columns.
 
 Dialog text and number fields retain HTML form string values; convert numeric values in the persistence callback when the data model requires numbers. Checkboxes return booleans and multiple selects return arrays of strings. Inline number controls return numbers.
 
@@ -111,7 +115,7 @@ Stored select values absent from the initial options are included as plain-text 
 
 Native date, time, and datetime-local controls require values such as `2026-09-11`, `14:30`, and `2026-09-11T14:30`. Store native-compatible values and use a DataTables renderer for presentation. Dialog `dateFormat` also applies to time fields; custom source formats require `dateInputFormat` to avoid ambiguous parsing. Inline controls use raw values without Moment conversion.
 
-`maxFileSize` applies before reading files with either `encodeFiles` setting. Omitting it preserves unrestricted file size behavior. For large files, use `encodeFiles: false` and upload the File separately rather than storing a data URL in table data. Applications must enforce file restrictions on the server as well.
+Set `maxFileSize` when accepting files: data URL encoding reads the entire file and retains an enlarged string in row data. `maxFileSize` applies before reading files with either `encodeFiles` setting. Omitting it preserves unrestricted file size behavior. For large files, use `encodeFiles: false` and upload the File separately rather than storing a data URL in table data. Applications must enforce file restrictions on the server as well.
 
 For forms with multiple file fields, all field values and file size limits are checked before encoded file reads start. Correct an invalid file selection and submit again to retry.
 
