@@ -79,6 +79,8 @@ Keep custom controls, text, focus indicators, and error messages legible in both
 
 Dialog inputs share font, line height, and padding across adapters. Select2 multiple selections wrap within the control, and their inline search field inherits the dialog font. Placeholder colors follow the active theme and can be overridden with `--alteditor-placeholder`. Keep Select2 overrides scoped to `.altEditor-modal` so other Select2 instances retain their application styles.
 
+The default Select2 theme has been verified with versions 4.0.7, 4.0.13, and 4.1.0. Use matching Select2 JavaScript and CSS versions. When a dropdown is open, Tab selects the highlighted option in 4.1.0, while 4.0.7 and 4.0.13 leave the selection unchanged.
+
 ## Custom layouts and native dialogs
 
 [Dialog templates](dialogs.md) arrange generated fields within application-owned markup. Scope custom CSS to a class in the template. Shared shell classes (`.altEditor-header`, `.altEditor-title`, `.altEditor-body`, `.altEditor-footer`, and `.altEditor-content`) are available with every adapter. Legacy Bootstrap classes remain on Bootstrap dialogs.

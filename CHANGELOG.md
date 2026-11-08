@@ -13,6 +13,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 - Select2 multiple selects keep the search field aligned with the selected values and give labels enough space beside their remove buttons.
 - Select2 4.0 and 4.1 dropdowns use the editor theme for selected and highlighted options in light and dark mode.
+- Select2 controls use consistent label spacing and clear button sizing, and disabled controls and placeholders follow the editor theme.
 
 ## 4.2.1 - 2026-11-05
 
