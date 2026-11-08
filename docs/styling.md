@@ -77,7 +77,9 @@ For changes beyond the listed properties, use scoped selectors in your applicati
 
 Keep custom controls, text, focus indicators, and error messages legible in both color modes.
 
-Dialog inputs share font, line height, and padding across adapters. Select2 multiple selections wrap within the control, and their inline search field inherits the dialog font. Placeholder colors follow the active theme and can be overridden with `--alteditor-placeholder`. Keep Select2 overrides scoped to `.altEditor-modal` so other Select2 instances retain their application styles.
+Dialog inputs share font, line height, and padding across adapters. AltEditor styles the default Select2 theme inside its dialogs. Multiple selections wrap within the control, and their inline search field inherits the dialog font. Placeholder colors follow the active theme and can be overridden with `--alteditor-placeholder`. A different Select2 theme configured through `select2.theme` supplies its own styles.
+
+Load Select2 CSS first, followed by AltEditor CSS and any application overrides. To override a default style, scope the application selector to the dialog with `:where(.altEditor-modal)` and match the relevant Select2 classes. For example, `:where(.altEditor-modal) .select2-container--default .select2-selection--multiple .select2-selection__choice` can change the gap between a label and its remove button.
 
 The default Select2 theme has been verified with versions 4.0.7, 4.0.13, and 4.1.0. Use matching Select2 JavaScript and CSS versions. When a dropdown is open, Tab selects the highlighted option in 4.1.0, while 4.0.7 and 4.0.13 leave the selection unchanged.
 
