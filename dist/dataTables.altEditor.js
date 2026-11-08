@@ -1,4 +1,4 @@
-/*! DataTables AltEditor v4.2.1
+/*! DataTables AltEditor v4.2.2
  * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
  * Copyright (c) 2026 Ben Situ and contributors
  * MIT License */
@@ -3050,7 +3050,7 @@
         },
       }
     );
-    AltEditor.version = '4.2.1';
+    AltEditor.version = '4.2.2';
     AltEditor.defaults = defaults$1;
     AltEditor.classes = { btn: 'btn' };
     return AltEditor;

@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
+## 4.2.2 - Unreleased
+
+### Fixed
+
+- Select2 multiple selects keep the search field aligned with the selected values and give labels enough space beside their remove buttons.
+
 ## 4.2.1 - 2026-11-05
 
 ### Fixed
