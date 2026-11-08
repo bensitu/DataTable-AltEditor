@@ -7,14 +7,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
-## 4.2.2 - Unreleased
+## 4.2.2 - 2026-11-09
 
 ### Fixed
 
-- Select2 multiple selects keep the search field aligned with the selected values and give labels enough space beside their remove buttons.
-- Select2 4.0 and 4.1 dropdowns use the editor theme for selected and highlighted options in light and dark mode.
-- Select2 controls use consistent label spacing and clear button sizing, and disabled controls and placeholders follow the editor theme.
-- Select2 dialog styles apply to the default theme and allow application overrides at the same selector specificity.
+- Select2 controls now use consistent layout: multiple selects align the search field with selected values and reserve enough label space beside remove buttons, and label spacing and clear-button sizing are consistent.
+- Select2 theming is now consistent with the editor: 4.0/4.1 dropdown selected and highlighted options, disabled controls, and placeholders follow the editor theme in light and dark mode, while default-theme dialog styles remain overridable by applications at the same selector specificity.
 
 ## 4.2.1 - 2026-11-05
 
