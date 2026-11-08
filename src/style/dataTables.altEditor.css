@@ -80,14 +80,22 @@
   .select2-container
   .select2-selection
   .select2-selection__choice,
-.altEditor-modal .select2-results__option[aria-selected='true'] {
+.altEditor-modal
+  .select2-results__option:is(
+    .select2-results__option--selected,
+    [aria-selected='true']:where(:not(.select2-results__option--selectable))
+  ) {
   background-color: var(--alteditor-hover, light-dark(#eef2f6, #334155));
   color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
 }
 .altEditor-modal .select2-selection__choice {
   border-color: var(--alteditor-border, light-dark(#7c899b, #748399));
 }
-.altEditor-modal .select2-results__option--highlighted[aria-selected] {
+.altEditor-modal
+  .select2-results__option--highlighted:is(
+    .select2-results__option--selectable,
+    [aria-selected]
+  ) {
   background: var(--alteditor-action-background, #2458b8);
   color: var(--alteditor-action-text, #fff);
 }
