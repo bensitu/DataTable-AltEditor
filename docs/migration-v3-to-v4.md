@@ -8,7 +8,7 @@ Use DataTables `>=2.1.0 <3`. DataTables 1.x and 3.x are not supported. Examples 
 
 Replace `src/dataTables.altEditor.free.js` script references with `dist/dataTables.altEditor.js` or its minified variant, and include `dist/dataTables.altEditor.css`. The distribution is included in the repository. Run `npm ci` and `npm run build` when rebuilding after source changes, and commit the updated distribution. Source files are ES modules and must not be loaded as the browser distribution. jQuery and DataTables are peer dependencies and are not bundled.
 
-The package name remains `datatables.net-AltEditor`. The main entry now points to `dist/dataTables.altEditor.js`. The generated npm archive includes the distribution, source maps, translations, license, and user documentation. No TypeScript declarations are generated.
+The maintained npm package is `@bensitu/datatable-alteditor`; replace references to the previous package name `datatables.net-AltEditor` when adopting it. The main entry points to `dist/dataTables.altEditor.js`, and the stylesheet entry points to `dist/dataTables.altEditor.min.css`. The npm archive includes readable and minified JavaScript and CSS, source maps, translations, license, and user documentation. No TypeScript declarations are generated.
 
 ## Configuration and methods
 

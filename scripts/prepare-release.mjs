@@ -14,9 +14,11 @@ const semver = new RegExp(
 );
 if (!semver.test(version) || version !== pkg.version)
   throw new Error('Requested semantic version must match package.json');
-if (pkg.name !== 'datatables.net-AltEditor')
+if (pkg.name !== '@bensitu/datatable-alteditor')
   throw new Error('Unexpected package name');
 const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+if (lock.name !== pkg.name || lock.packages[''].name !== pkg.name)
+  throw new Error('package-lock.json name must match package.json');
 if (lock.version !== version || lock.packages[''].version !== version)
   throw new Error('package-lock.json version must match package.json');
 const source = readFileSync('src/core/alt-editor.js', 'utf8');
@@ -44,6 +46,6 @@ writeFileSync('artifacts/release-notes.md', notes + '\n');
 if (process.env.GITHUB_ENV)
   appendFileSync(
     process.env.GITHUB_ENV,
-    `VERSION=${version}\nTAG_NAME=v${version}\nPACKAGE_TARBALL=${pkg.name}-${version}.tgz\n`
+    `VERSION=${version}\nTAG_NAME=v${version}\nPACKAGE_TARBALL=${pkg.name.replace(/^@/, '').replace('/', '-')}-${version}.tgz\n`
   );
 console.log(`Prepared release notes for v${version}`);

@@ -6,7 +6,7 @@ Bug fixes, documentation improvements, translations, and small, focused examples
 
 ## Local development
 
-Fork and clone the repository. Base changes on `develop`. Development dependencies require Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`, matching the installed jsdom requirement; Node.js 24 is recommended. CI tests Node.js 22.22.2, 24, and 26. This range applies to development tools, while browser compatibility is documented separately.
+Fork and clone the repository. Base changes on `develop`. Development dependencies require Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`, matching the installed jsdom requirement and the package's `devEngines.runtime` setting; Node.js 24 is recommended. CI tests Node.js 22.22.2, 24, and 26. This range applies to development tools, while browser compatibility is documented separately.
 
 ```sh
 npm ci --engine-strict
@@ -61,10 +61,10 @@ Documentation-only changes need link, formatting, and content checks rather than
 
 ## Local distribution archives
 
-Run `npm pack --dry-run` to inspect the file list or `npm pack` to build a local `.tgz` archive. The package metadata retains the name `datatables.net-AltEditor` for compatibility; these commands do not publish to a registry. An application can install the generated archive from its filesystem. For a complete source checkout including examples and contribution files, use Git or GitHub's source archive.
+Run `npm pack --dry-run` to inspect the file list or `npm pack` to build a local `.tgz` archive. The package name is `@bensitu/datatable-alteditor`; npm names the archive `bensitu-datatable-alteditor-<version>.tgz`. These commands do not publish to a registry. An application can install the generated archive from its filesystem. For a complete source checkout including examples and contribution files, use Git or GitHub's source archive.
 
 ## Pull requests
 
 Submit a focused pull request against `develop`. Explain the problem, resulting behavior, and relevant verification. Link related issues and include screenshots for visual changes. Use the supplied PR template; remove sections that do not apply. Mention compatibility changes and remaining limitations directly.
 
-CI verifies a clean installation and runs the configured checks. A local commit does not publish a package or deploy the example site. Maintainers use the [publishing guide](docs/publishing.md) for GitHub releases and Pages deployment. The project has no current plans to publish to the npm registry.
+CI verifies a clean installation and runs the configured checks. A local commit does not publish a package or deploy the example site. Maintainers use the [publishing guide](docs/publishing.md) for npm publication, GitHub releases, and Pages deployment.

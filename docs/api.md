@@ -132,6 +132,8 @@ With `serverSide: true`, the editor only has the currently loaded row snapshot. 
 
 ## Module loading
 
+The npm package is `@bensitu/datatable-alteditor`. Its `main` entry loads the readable UMD JavaScript, while `style` points to the minified CSS. Import `@bensitu/datatable-alteditor/dist/dataTables.altEditor.css` or its minified variant explicitly when using a bundler. JavaScript imports do not automatically load CSS. DataTables and jQuery remain peer dependencies. Optional frameworks and controls are installed separately.
+
 Use `dist/dataTables.altEditor.min.js` for minified JavaScript. Both builds include source maps and an MIT license banner. AMD consumers map `jquery` and `datatables.net`. CommonJS consumers can load the package after initializing their browser environment, or call its exported factory with `(window, jQuery)` when no global window exists. The factory returns the AltEditor constructor.
 
 Each loaded module uses one window and jQuery context. Load a separate copy within each iframe; do not reuse one CommonJS module factory across multiple active windows.

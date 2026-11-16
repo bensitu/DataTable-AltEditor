@@ -2,6 +2,48 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
+## npm package
+
+The public package name is `@bensitu/datatable-alteditor`. `publishConfig` sets public access and the npm registry. The author metadata identifies Ben Situ, while contributor metadata and license banners retain the original attribution. npm assigns registry maintainers from the accounts that own or can publish the package.
+
+The package includes these runtime files in addition to documentation, translations, and the license.
+
+| File                                    | Purpose                                                    |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `dist/dataTables.altEditor.js`          | Readable UMD JavaScript and the `main` entry               |
+| `dist/dataTables.altEditor.min.js`      | Minified UMD JavaScript and the `unpkg` / `jsdelivr` entry |
+| `dist/dataTables.altEditor.css`         | Readable stylesheet                                        |
+| `dist/dataTables.altEditor.min.css`     | Minified stylesheet and the `style` entry                  |
+| `dist/dataTables.altEditor.js.map`      | Readable JavaScript source map                             |
+| `dist/dataTables.altEditor.min.js.map`  | Minified JavaScript source map                             |
+| `dist/dataTables.altEditor.min.css.map` | Minified CSS source map                                    |
+
+JavaScript and CSS must both be loaded by applications. DataTables and jQuery are peer dependencies and are not bundled. Optional frameworks and field plugins remain separate. Examples, development dependencies, and repository tooling are excluded from the archive; obtain examples through GitHub or the live site.
+
+From the intended release checkout, verify the package before publication.
+
+```sh
+npm ci --engine-strict
+npm run format:check
+npm run lint
+npm run build
+npm test
+npm pack --dry-run
+npm publish --dry-run --access public
+```
+
+The `prepack` script rebuilds the distribution for normal packing and publication. A scoped package archive is named `bensitu-datatable-alteditor-<version>.tgz`. Inspect the actual archive when distributing it separately. Development Node.js constraints are configured with `devEngines`, independently of browser consumers.
+
+To publish, sign in with an npm account allowed to publish under `@bensitu`, confirm its identity, and publish the checked version.
+
+```sh
+npm login
+npm whoami
+npm publish --access public
+```
+
+Follow npm's authentication prompts when required. Publishing a package version is separate from pushing branches or creating a GitHub release, and an existing published name/version cannot be reused. The GitHub release workflow below only creates a tag and draft release; it does not publish to npm.
+
 ## Contribution templates
 
 Merge `.github/ISSUE_TEMPLATE/` and `.github/PULL_REQUEST_TEMPLATE.md` into the default branch to make the templates available on GitHub. The Issue chooser provides bug reports, feature requests, and documentation or usage questions, while retaining blank issues for other topics. No workflow run or deployment is needed to activate the templates.

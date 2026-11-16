@@ -18,7 +18,7 @@ Start with the [quick start](../README.md#get-started), then choose a guide for 
 | [Translations](translations.md)             | Available languages, JSON loading, overrides, and browser validation messages.                                         |
 | [Migration from v3](migration-v3-to-v4.md)  | Dependency changes, distribution paths, deprecated options, and callback compatibility.                                |
 | [Troubleshooting](troubleshooting.md)       | Common installation, dialog, save, theme, and translation problems.                                                    |
-| [Publishing](publishing.md)                 | GitHub Pages deployment and GitHub release drafts.                                                                     |
+| [Publishing](publishing.md)                 | npm publication, GitHub Pages deployment, and GitHub release drafts.                                                   |
 
 ## Contributing and project policies
 

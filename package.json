@@ -1,10 +1,10 @@
 {
-  "name": "datatables.net-AltEditor",
+  "name": "@bensitu/datatable-alteditor",
   "version": "4.3.0",
-  "description": "Dialog CRUD and cell inline editing for DataTables 2.x",
+  "description": "Dialog and inline editing for DataTables 2.x with independent forms, validation, and async persistence",
   "author": {
-    "name": "KasperOlesen",
-    "url": "https://github.com/KasperOlesen/DataTable-AltEditor"
+    "name": "Ben Situ",
+    "url": "https://github.com/bensitu"
   },
   "homepage": "https://bensitu.github.io/DataTable-AltEditor/",
   "bugs": {
@@ -15,17 +15,20 @@
     "url": "git+https://github.com/bensitu/DataTable-AltEditor.git"
   },
   "keywords": [
-    "DataTables",
-    "Editor",
-    "Free",
+    "datatables",
+    "editor",
     "crud",
-    "inline-editing"
+    "inline-editing",
+    "forms",
+    "validation",
+    "jquery"
   ],
   "license": "MIT",
   "main": "dist/dataTables.altEditor.js",
   "contributors": [
     {
-      "name": "KasperOlesen"
+      "name": "KasperOlesen",
+      "url": "https://github.com/KasperOlesen"
     },
     {
       "name": "luca-vercelli"
@@ -54,8 +57,16 @@
   "unpkg": "dist/dataTables.altEditor.min.js",
   "jsdelivr": "dist/dataTables.altEditor.min.js",
   "style": "dist/dataTables.altEditor.min.css",
-  "engines": {
-    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^22.22.2 || ^24.15.0 || >=26.0.0",
+      "onFail": "error"
+    }
   },
   "overrides": {
     "eslint": {
