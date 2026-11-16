@@ -11,6 +11,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Added
 
+- A manual npm publishing workflow verifies published GitHub Release artifacts and publishes the scoped package through OIDC with provenance.
 - Optional `altEditor.fields` defines dialog fields independently of table columns, including field order, visibility, labels, and properties absent from the table. Existing column-derived forms remain supported.
 - Synchronous `getValue` and `setValue` functions explicitly convert between stored data and dialog control values. Validation uses control values, persistence receives converted values, and conversion failures retain the form for correction.
 - Example 22 demonstrates independent fields and object-array conversion for multiple selections.

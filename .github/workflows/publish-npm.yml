@@ -1,0 +1,174 @@
+name: Publish npm package
+run-name: Publish ${{ inputs.version }} to npm with tag ${{ inputs.npm_tag }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package semantic version to publish, optionally prefixed with v
+        required: true
+        type: string
+      npm_tag:
+        description: npm distribution tag
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - next
+          - beta
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish release artifact
+    runs-on: ubuntu-latest
+    environment: npm
+    env:
+      EXPECTED_PACKAGE_NAME: '@bensitu/datatable-alteditor'
+      NPM_CONFIG_IGNORE_SCRIPTS: 'true'
+      NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+    steps:
+      - name: Validate requested version and npm tag
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+          REQUESTED_NPM_TAG: ${{ inputs.npm_tag }}
+        run: |
+          VERSION="${REQUESTED_VERSION#v}"
+          NPM_TAG="${REQUESTED_NPM_TAG}"
+          NUMERIC='(0|[1-9][0-9]*)'
+          IDENTIFIER="(${NUMERIC}|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
+          SEMVER="^${NUMERIC}\\.${NUMERIC}\\.${NUMERIC}(-${IDENTIFIER}(\\.${IDENTIFIER})*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+          if [[ ! "${VERSION}" =~ ${SEMVER} ]]; then
+            echo "Enter a valid semantic version, optionally prefixed with v." >&2
+            exit 1
+          fi
+          if [[ "${GITHUB_REF_TYPE}" != branch || "${GITHUB_REF_NAME}" != "${DEFAULT_BRANCH}" ]]; then
+            echo "npm publishing must run from ${DEFAULT_BRANCH}." >&2
+            exit 1
+          fi
+          case "${NPM_TAG}" in
+            latest | next | beta) ;;
+            *) echo "Unsupported npm distribution tag." >&2; exit 1 ;;
+          esac
+          PRERELEASE=false
+          if [[ "${VERSION%%+*}" == *-* ]]; then
+            PRERELEASE=true
+          fi
+          if [[ "${PRERELEASE}" == true && "${NPM_TAG}" == latest ]]; then
+            echo "A prerelease version cannot use the latest tag." >&2
+            exit 1
+          fi
+          {
+            echo "VERSION=${VERSION}"
+            echo "TAG_NAME=v${VERSION}"
+            echo "NPM_TAG=${NPM_TAG}"
+            echo "PRERELEASE=${PRERELEASE}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org/
+
+      - name: Use npm with trusted publishing support
+        run: npm install --global 'npm@^11.5.1'
+
+      - name: Download published release artifact
+        shell: bash
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASE_STATE="$(gh release view "${TAG_NAME}" --json isDraft,isPrerelease --jq '[.isDraft, .isPrerelease] | @tsv')"
+          read -r IS_DRAFT IS_PRERELEASE <<< "${RELEASE_STATE}"
+          if [[ "${IS_DRAFT}" != false || "${IS_PRERELEASE}" != "${PRERELEASE}" ]]; then
+            echo "The release must be published with a matching prerelease state." >&2
+            exit 1
+          fi
+          ARTIFACT_DIRECTORY="${RUNNER_TEMP}/release-artifact"
+          mkdir -p "${ARTIFACT_DIRECTORY}"
+          gh release download "${TAG_NAME}" --dir "${ARTIFACT_DIRECTORY}" --pattern '*.tgz' --pattern '*.sha256'
+          shopt -s nullglob
+          PACKAGES=("${ARTIFACT_DIRECTORY}"/*.tgz)
+          CHECKSUMS=("${ARTIFACT_DIRECTORY}"/*.sha256)
+          if [[ "${#PACKAGES[@]}" -ne 1 || "${#CHECKSUMS[@]}" -ne 1 ]]; then
+            echo "The release must contain exactly one package and one checksum." >&2
+            exit 1
+          fi
+          EXPECTED_TARBALL="bensitu-datatable-alteditor-${VERSION}.tgz"
+          if [[ "$(basename "${PACKAGES[0]}")" != "${EXPECTED_TARBALL}" || "$(basename "${CHECKSUMS[0]}")" != "${EXPECTED_TARBALL}.sha256" ]]; then
+            echo "Release artifact filenames must match ${EXPECTED_TARBALL} and its checksum." >&2
+            exit 1
+          fi
+          {
+            echo "PACKAGE_TARBALL=${PACKAGES[0]}"
+            echo "PACKAGE_CHECKSUM=${CHECKSUMS[0]}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Validate release artifact
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { readFileSync } = require('node:fs');
+          const { basename } = require('node:path');
+          const { createHash } = require('node:crypto');
+          const { execFileSync } = require('node:child_process');
+          const archive = process.env.PACKAGE_TARBALL;
+          const checksum = readFileSync(process.env.PACKAGE_CHECKSUM, 'utf8').trim();
+          const match = /^([a-f0-9]{64}) [ *](.+)$/i.exec(checksum);
+          const actual = createHash('sha256').update(readFileSync(archive)).digest('hex');
+          if (!match || match[2] !== basename(archive) || match[1].toLowerCase() !== actual)
+            throw new Error('Package checksum or filename does not match the release artifact');
+          const read = (file) => execFileSync('tar', ['-xOf', archive, 'package/' + file]);
+          const pkg = JSON.parse(read('package.json').toString('utf8'));
+          if (pkg.name !== process.env.EXPECTED_PACKAGE_NAME || pkg.version !== process.env.VERSION)
+            throw new Error('Package name or version does not match the requested release');
+          if (pkg.repository?.url !== 'git+https://github.com/' + process.env.GITHUB_REPOSITORY + '.git')
+            throw new Error('Package repository does not match the publishing repository');
+          if (pkg.main !== 'dist/dataTables.altEditor.js' || pkg.style !== 'dist/dataTables.altEditor.min.css')
+            throw new Error('Package JavaScript or stylesheet entry is incorrect');
+          for (const file of [
+            'LICENSE',
+            'dist/dataTables.altEditor.js',
+            'dist/dataTables.altEditor.min.js',
+            'dist/dataTables.altEditor.css',
+            'dist/dataTables.altEditor.min.css',
+            'dist/dataTables.altEditor.js.map',
+            'dist/dataTables.altEditor.min.js.map',
+            'dist/dataTables.altEditor.min.css.map',
+          ]) {
+            if (!read(file).length) throw new Error('Package file is empty: ' + file);
+          }
+          NODE
+
+      - name: Check npm version availability
+        shell: bash
+        run: |
+          NPM_VIEW_LOG="${RUNNER_TEMP}/npm-view.log"
+          if npm view "${EXPECTED_PACKAGE_NAME}@${VERSION}" version --json > "${NPM_VIEW_LOG}" 2>&1; then
+            echo "${EXPECTED_PACKAGE_NAME}@${VERSION} already exists on npm." >&2
+            exit 1
+          fi
+          if ! grep -q 'E404' "${NPM_VIEW_LOG}"; then
+            cat "${NPM_VIEW_LOG}" >&2
+            echo "Unable to confirm npm version availability." >&2
+            exit 1
+          fi
+
+      - name: Publish release artifact to npm
+        shell: bash
+        run: |
+          npm publish "${PACKAGE_TARBALL}" --access public --provenance --tag "${NPM_TAG}"
+          echo "Published ${EXPECTED_PACKAGE_NAME}@${VERSION} with npm tag ${NPM_TAG}." >> "${GITHUB_STEP_SUMMARY}"
