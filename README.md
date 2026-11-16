@@ -99,7 +99,7 @@ Use `altEditor.dialog.templates.add` and `.edit` for independent form layouts. G
 
 **[Browse all live examples](https://bensitu.github.io/DataTable-AltEditor/)** or open a specific feature below. Start with Example 02 for object-based row dialogs, Example 03 for persistence callbacks, or Example 13 for cell editing. The [example guide](docs/examples.md) maps integration needs to demos, links to each configuration file, and explains how to adapt the simulated operations.
 
-| No. | Feature                          | Live demo                                                                                                     | Code                                        |
+| No. | Feature                          | Demo / setup                                                                                                  | Code                                        |
 | --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | 01  | Array rows                       | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/01_in_memory_arrays/example1.html)       | [Source](example/01_in_memory_arrays/)      |
 | 02  | Object rows                      | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/02_in_memory_objects/example2.html)      | [Source](example/02_in_memory_objects/)     |
@@ -122,22 +122,27 @@ Use `altEditor.dialog.templates.add` and `.edit` for independent form layouts. G
 | 19  | Optional native dialogs          | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/19_native_dialog/example19.html)         | [Source](example/19_native_dialog/)         |
 | 20  | Lifecycle and event callbacks    | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/20_lifecycle_events/example20.html)      | [Source](example/20_lifecycle_events/)      |
 | 21  | Async persistence and validation | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/21_async_validation/example21.html)      | [Source](example/21_async_validation/)      |
+| 22  | Independent form fields          | [Open example](https://bensitu.github.io/DataTable-AltEditor/example/22_form_fields/example22.html)           | [Source](example/22_form_fields/)           |
+| 23  | PHP and MySQL server processing  | [Local setup](example/23_php_mysql/README.md)                                                                 | [Source](example/23_php_mysql/)             |
 
-Examples 03, 05, 06, 07, and 10 use static Ajax responses. Example 16 includes a [local Node.js server](example/16_server_files/README.md) for real persistence and file uploads; GitHub Pages only shows its setup instructions. Refresh restores the static examples' original data. The Appearance selector provides system, light, and dark modes. Examples require internet access for CDN dependencies.
+Examples 03, 05, 06, 07, and 10 use static Ajax responses. Example 16 includes a [local Node.js server](example/16_server_files/README.md) for real persistence and file uploads. Example 23 requires [local PHP and MySQL setup](example/23_php_mysql/README.md) for server-side processing and persistent data. GitHub Pages cannot run these backends. Refresh restores the static examples' original data. The Appearance selector provides system, light, and dark modes. Examples require internet access for CDN dependencies.
+
+The live directory follows deployment from `master`. Examples added on `develop` become available online after those changes are deployed. Use the local example instructions to run the current checkout.
 
 ## Find the documentation
 
-| I want to…                                            | Read                                             |
-| ----------------------------------------------------- | ------------------------------------------------ |
-| Configure fields, callbacks, files, or public methods | [Configuration and API](docs/api.md)             |
-| Enable cell editing and keyboard navigation           | [Inline editing](docs/inline-edit.md)            |
-| React to saves, errors, and dialog lifecycle          | [Events](docs/events.md)                         |
-| Override styles or enable dark mode                   | [Styling and themes](docs/styling.md)            |
-| Support keyboard and assistive technology users       | [Accessibility](docs/accessibility.md)           |
-| Translate labels and messages                         | [Translations](docs/translations.md)             |
-| Upgrade an existing v3 integration                    | [Migration guide](docs/migration-v3-to-v4.md)    |
-| Diagnose common integration problems                  | [Troubleshooting](docs/troubleshooting.md)       |
-| Validate fields and show server errors                | [Persistence and validation](docs/validation.md) |
+| I want to…                                            | Read                                                    |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| Configure fields, callbacks, files, or public methods | [Configuration and API](docs/api.md)                    |
+| Define forms independently of table columns           | [Form fields and value conversion](docs/form-fields.md) |
+| Enable cell editing and keyboard navigation           | [Inline editing](docs/inline-edit.md)                   |
+| React to saves, errors, and dialog lifecycle          | [Events](docs/events.md)                                |
+| Override styles or enable dark mode                   | [Styling and themes](docs/styling.md)                   |
+| Support keyboard and assistive technology users       | [Accessibility](docs/accessibility.md)                  |
+| Translate labels and messages                         | [Translations](docs/translations.md)                    |
+| Upgrade an existing v3 integration                    | [Migration guide](docs/migration-v3-to-v4.md)           |
+| Diagnose common integration problems                  | [Troubleshooting](docs/troubleshooting.md)              |
+| Validate fields and show server errors                | [Persistence and validation](docs/validation.md)        |
 
 Readable and minified UMD files are available with source maps. AMD consumers map `jquery` and `datatables.net`; CommonJS usage is described in [Configuration and API](docs/api.md#module-loading).
 
