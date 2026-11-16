@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
+## 4.3.0 - Unreleased
+
+### Added
+
+- Optional `altEditor.fields` defines dialog fields independently of table columns, including field order, visibility, labels, and properties absent from the table. Existing column-derived forms remain supported.
+- Synchronous `getValue` and `setValue` functions explicitly convert between stored data and dialog control values. Validation uses control values, persistence receives converted values, and conversion failures retain the form for correction.
+- Example 22 demonstrates independent fields and object-array conversion for multiple selections.
+- Example 23 provides a complete PHP/MySQL backend with server-side paging, search, ordering, persistent creation and editing, transactional multiple-row deletion, and accessible server validation feedback. Database setup and local server instructions are included.
+
 ## 4.2.2 - 2026-11-09
 
 ### Fixed
