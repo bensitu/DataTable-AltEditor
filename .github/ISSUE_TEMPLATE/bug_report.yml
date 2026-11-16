@@ -5,7 +5,7 @@ body:
     attributes:
       value: |
         Search existing issues first. Please use synthetic data and omit credentials.
-        For vulnerabilities, follow the [Security Policy](https://github.com/bensitu/DataTable-AltEditor/blob/develop/SECURITY.md) instead of posting details here.
+        For vulnerabilities, follow the [Security Policy](https://github.com/bensitu/DataTable-AltEditor/blob/master/SECURITY.md) instead of posting details here.
   - type: textarea
     id: behavior
     attributes:

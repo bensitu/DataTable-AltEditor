@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
-## 4.3.0 - Unreleased
+## 4.3.0 - 2026-11-17
 
 ### Added
 
@@ -19,6 +19,12 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 ### Fixed
 
 - Field conversion stops after editor destruction. Conversion errors with empty or null messages retain accessible field feedback and use the configured fallback message.
+
+### Changed
+
+- Updated Playwright to 1.65.1, Vitest and its V8 coverage provider to 5.1.0, ESLint to 10.15.0, Prettier to 3.10.1, and Rollup to 4.68.4.
+- Updated Bootstrap 5 development and example assets to 5.3.9, including matching SHA-384 integrity metadata. Existing Bootstrap 4 and DataTables 2 compatibility versions are retained.
+- CI includes Node.js 26 alongside 22.22.2 and 24, validates release metadata, and exercises fields and validation in Firefox alongside the Chromium suite. Browser and coverage checks continue to run on Node.js 24.
 
 ## 4.2.2 - 2026-11-09
 

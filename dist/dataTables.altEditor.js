@@ -3216,7 +3216,7 @@
   }
 
   /**
-   * DataTables AltEditor v4.2.0
+   * DataTables AltEditor
    * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
    * Copyright (c) 2026 Ben Situ and contributors
    * SPDX-License-Identifier: MIT
