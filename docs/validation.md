@@ -40,7 +40,7 @@ Pass this object to `error()` or reject with it:
 }
 ```
 
-`message` is optional. `fieldErrors` maps column data paths to nonempty message strings, including numeric array keys and dotted object paths. Strings, `Error` instances, and objects containing only `message` remain valid global failures. Existing Ajax response error formats remain supported. All feedback renders as text.
+`message` is optional. `fieldErrors` maps field names or column data paths to nonempty message strings, including numeric array keys and dotted object paths. Strings, `Error` instances, and objects containing only `message` remain valid global failures. Existing Ajax response error formats remain supported. All feedback renders as text.
 
 Dialog errors appear beside editable visible controls. Existing `aria-describedby` values are preserved, and invalid controls receive `aria-invalid="true"`. The first available invalid control receives focus. Select2 feedback also describes its visible selection control. An error for a hidden, disabled, readonly, omitted, or unknown field appears in global feedback instead. Template layouts retain the same rules; generated fields use their names rather than CSS selectors derived from server keys.
 
@@ -48,7 +48,7 @@ An `input` or `change` event clears only that field's error and restores its pre
 
 ## Custom validators
 
-Add `editorValidate` to a DataTables column definition. Keep native constraints such as `required`, `pattern`, `min`, `max`, `step`, and `maxLength` for ordinary input validation.
+Add `editorValidate` to an independent form field or a DataTables column definition. Keep native constraints such as `required`, `pattern`, `min`, `max`, `step`, and `maxLength` for ordinary input validation.
 
 ```js
 {
@@ -92,7 +92,7 @@ An asynchronous check uses the same option:
 
 Other return types produce a global configuration error. Validation failures are expected results; reserve throws and rejections for execution failures such as unavailable services.
 
-The context contains `editor`, `field` (the column data source), `values`, `originalRowData`, and `operation` (`add`, `edit`, or `inline-edit`). `originalRowData` is null for add. `values` contains collected dialog values or the complete inline candidate row. Plain objects and arrays are copied for each validator, so changing them does not change submitted data or another validator's view. Treat all context data as read-only, including file objects and other retained non-plain values. The field value uses the same conversion as persistence; see [value conversion](api.md#column-options).
+The context contains `editor`, `field` (the column data source), `values`, `originalRowData`, and `operation` (`add`, `edit`, or `inline-edit`). `originalRowData` is null for add. `values` contains collected dialog values or the complete inline candidate row. Plain objects and arrays are copied for each validator, so changing them does not change submitted data or another validator's view. Treat all context data as read-only, including file objects and other retained non-plain values. Dialog validators receive collected control values before `setValue` conversion. Persistence receives the converted values. See [form field conversion](form-fields.md#read-and-write-conversion).
 
 For dialogs, collection runs first, then native constraints, then custom validators. Each eligible custom validator runs once per submission; asynchronous checks can run concurrently and feedback follows column order. Persistence and pre-submit/submit events run only after all validation passes. Native constraints use the browser's `checkValidity()` and messages; the editor displays feedback rather than relying on the browser's automatic form submission popup.
 

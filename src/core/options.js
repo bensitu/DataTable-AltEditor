@@ -30,6 +30,7 @@ export function mergeOptions() {
  * @property {Object|boolean} [inlineEdit] Cell editing configuration.
  */
 export const defaults = {
+  fields: null,
   closeModalOnSuccess: true,
   encodeFiles: true,
   debug: false,
@@ -75,5 +76,7 @@ export function normalizeOptions(base, init, supplied) {
     );
   if (!isPlainObject(options.dialog.templates))
     throw new TypeError('Dialog templates must be an object');
+  if (options.fields != null && !Array.isArray(options.fields))
+    throw new TypeError('Form fields must be an array');
   return options;
 }

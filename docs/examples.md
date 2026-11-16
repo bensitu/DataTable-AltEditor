@@ -93,6 +93,8 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 
 | 21 | [HTML](../example/21_async_validation/example21.html) · [JavaScript](../example/21_async_validation/example21.js) | Promise persistence, field errors, custom validation, and retry. |
 
+| 22 | [HTML](../example/22_form_fields/example22.html) · [JavaScript](../example/22_form_fields/example22.js) | Independent fields, form-only properties, and object-array conversion. |
+
 ## Adapt an example to your application
 
 1. Copy the relevant HTML dependencies and table configuration. Update relative paths for the AltEditor distribution and any JSON or translation files. Most dialog examples use Bootstrap 5; Example 11 uses Foundation. Load one dialog framework and the optional controls required by your form.

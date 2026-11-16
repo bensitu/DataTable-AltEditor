@@ -2,6 +2,7 @@ import { clearFieldErrors } from '../dialog/field-feedback.js';
 import { $ } from './dependencies.js';
 import { defaults, normalizeOptions } from './options.js';
 import { normalizeColumns } from './columns.js';
+import { normalizeFields } from '../data/form-fields.js';
 import { emit } from './events.js';
 import { readPath, writePath } from '../data/path.js';
 import { resolveRow } from '../data/row-data.js';
@@ -123,6 +124,9 @@ export function createAltEditor(DataTable) {
       },
       completeColumnDefs: function () {
         return normalizeColumns(this.api());
+      },
+      completeFieldDefs: function () {
+        return normalizeFields(this.c.fields, this.api());
       },
       _getValueByPath: readPath,
       _setValueByPath: writePath,

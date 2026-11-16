@@ -3,7 +3,7 @@ import { $, root as window } from '../core/dependencies.js';
 export const methods = {
   _collectFormData: function ($form) {
     var that = this;
-    var columns = this.columnDefs || this.completeColumnDefs();
+    var columns = this.columnDefs || this.completeFieldDefs();
     var values = columns.every(function (column) {
       return typeof column.name === 'number';
     })

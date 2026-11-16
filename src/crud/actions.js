@@ -6,6 +6,7 @@ import { emit } from '../core/events.js';
 import { invoke, resolveRow } from '../data/row-data.js';
 import { showFieldErrors, clearFieldErrors } from '../dialog/field-feedback.js';
 import { withValue } from '../data/path.js';
+import { transformField } from '../data/form-fields.js';
 
 /** @callback PersistenceCallback
  * @param {Object} editor AltEditor instance.
@@ -135,6 +136,32 @@ export const methods = {
         );
         return Promise.resolve(validation).then((error) => {
           if (error) throw error;
+          if (action !== 'delete' && active()) {
+            let converted = values;
+            columns.forEach((field) => {
+              if (!fieldNames.includes(String(field.name))) return;
+              try {
+                converted = withValue(
+                  converted,
+                  field.name,
+                  transformField(
+                    field,
+                    'setValue',
+                    editor._getValueByPath(values, field.name),
+                    editor,
+                    action,
+                    snapshot && snapshot.originalData,
+                    values
+                  )
+                );
+              } catch (error) {
+                throw {
+                  fieldErrors: { [field.name]: error.message || String(error) },
+                };
+              }
+            });
+            return converted;
+          }
           return values;
         });
       })

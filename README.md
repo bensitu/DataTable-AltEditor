@@ -87,6 +87,10 @@ Pass these options together with `data`, `columns`, and `altEditor` when constru
 
 For server persistence, configure `onAddRow`, `onEditRow`, and `onDeleteRow`. Return a Promise with the saved row, or call `success(persistedRow)` or `error(errorValue)` when your request finishes. Stable `rowId` values preserve update targets across reloads. See the [callback contract and PATCH example](docs/api.md#persistence-callbacks); server-side validation and authorization remain application responsibilities.
 
+## Independent form fields
+
+Use `altEditor.fields` to define forms separately from table columns. Explicit `getValue` and `setValue` functions convert between stored data and control values. Existing column-based forms remain supported. See the [field guide](docs/form-fields.md) and [Example 22](example/22_form_fields/example22.html).
+
 ## Customize dialogs
 
 Use `altEditor.dialog.templates.add` and `.edit` for independent form layouts. Generated fields keep their validation and save behavior. Configure `dialog.deleteDetails` to display selected records, and use lifecycle callbacks to initialize custom presentation. See the [dialog guide](docs/dialogs.md) and [complete template example](example/18_dialog_templates/example18.html). Existing configurations need no changes.

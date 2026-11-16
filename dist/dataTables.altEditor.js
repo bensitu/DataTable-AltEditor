@@ -264,6 +264,7 @@
    * @property {Object|boolean} [inlineEdit] Cell editing configuration.
    */
   const defaults$1 = {
+    fields: null,
     closeModalOnSuccess: true,
     encodeFiles: true,
     debug: false,
@@ -309,11 +310,13 @@
       );
     if (!isPlainObject(options.dialog.templates))
       throw new TypeError('Dialog templates must be an object');
+    if (options.fields != null && !Array.isArray(options.fields))
+      throw new TypeError('Form fields must be an array');
     return options;
   }
 
   const keys =
-    'editable visible type readonly disabled required hoverMsg pattern unique uniqueMsg maxLength multiple select2 datepicker datetimepicker editorOnChange editorValidate style dateFormat dateInputFormat optionsSortByLabel inline step min max value options rows cols accept maxFileSize special placeholder inlineEditable inlineEditType inlineEditOptions inlineEditSetValue'.split(
+    'editable visible type readonly disabled required hoverMsg pattern unique uniqueMsg maxLength multiple select2 datepicker datetimepicker editorOnChange editorValidate getValue setValue style dateFormat dateInputFormat optionsSortByLabel inline step min max value options rows cols accept maxFileSize special placeholder inlineEditable inlineEditType inlineEditOptions inlineEditSetValue'.split(
       ' '
     );
 
@@ -343,30 +346,6 @@
       columns.push(column);
     });
     return columns;
-  }
-
-  /** @typedef {Object} EditorEventPayload
-   * @property {Object} editor AltEditor instance.
-   * @property {string} [action] CRUD action.
-   * @property {string} [mode] Editing interface.
-   * @property {*} [values] Candidate values.
-   * @property {*} [error] Persistence or validation error.
-   */
-
-  /** Emit a cancelable DataTables event and return whether it was accepted. */
-  function emit(editor, name, payload) {
-    const event = $.Event('alteditor-' + name + '.dt');
-    event.dt = editor.api();
-    try {
-      $(editor.api().table().node()).trigger(event, [
-        Object.assign({ editor }, payload),
-      ]);
-    } catch (error) {
-      if (name === 'before-open' || name.endsWith('pre-submit'))
-        event.preventDefault();
-      console.error('AltEditor event handler failed:', name, error);
-    }
-    return !event.isDefaultPrevented();
   }
 
   const forbidden = ['__proto__', 'prototype', 'constructor'];
@@ -529,6 +508,98 @@
       });
     });
     return result;
+  }
+
+  function normalizeFields(fields, api) {
+    if (fields == null) return normalizeColumns(api);
+    const names = [];
+    return fields.map((field) => {
+      if (!isPlainObject(field) || !isFieldPath(field.name))
+        throw new TypeError('Each form field requires a writable name');
+      const name = String(field.name);
+      if (
+        names.some(
+          (other) =>
+            other === name ||
+            other.startsWith(name + '.') ||
+            name.startsWith(other + '.')
+        )
+      )
+        throw new TypeError('Form field names must not overlap: ' + name);
+      names.push(name);
+      ['getValue', 'setValue'].forEach((key) => {
+        if (field[key] !== undefined && typeof field[key] !== 'function')
+          throw new TypeError(key + ' must be a function');
+      });
+      const result = Object.assign(
+        {
+          title: name,
+          editable: true,
+          visible: true,
+          type: 'text',
+          rows: 5,
+          cols: 30,
+          options: [],
+        },
+        field
+      );
+      if (result.type === 'readonly') {
+        result.type = 'text';
+        result.readonly = true;
+      }
+      if (result.placeholder === undefined) result.placeholder = result.title;
+      return result;
+    });
+  }
+
+  function transformField(
+    field,
+    method,
+    value,
+    editor,
+    operation,
+    originalRowData,
+    values
+  ) {
+    if (field[method] === undefined) return value;
+    if (typeof field[method] !== 'function')
+      throw new TypeError(method + ' must be a function');
+    const result = field[method](cloneRow(value), {
+      editor,
+      field: field.name,
+      operation,
+      originalRowData: cloneRow(originalRowData),
+      values: cloneRow(values),
+    });
+    if (result != null && typeof result.then === 'function') {
+      Promise.resolve(result).catch(() => {});
+      throw new TypeError(method + ' must return a synchronous value');
+    }
+    return result;
+  }
+
+  /** @typedef {Object} EditorEventPayload
+   * @property {Object} editor AltEditor instance.
+   * @property {string} [action] CRUD action.
+   * @property {string} [mode] Editing interface.
+   * @property {*} [values] Candidate values.
+   * @property {*} [error] Persistence or validation error.
+   */
+
+  /** Emit a cancelable DataTables event and return whether it was accepted. */
+  function emit(editor, name, payload) {
+    const event = $.Event('alteditor-' + name + '.dt');
+    event.dt = editor.api();
+    try {
+      $(editor.api().table().node()).trigger(event, [
+        Object.assign({ editor }, payload),
+      ]);
+    } catch (error) {
+      if (name === 'before-open' || name.endsWith('pre-submit'))
+        event.preventDefault();
+      console.error('AltEditor event handler failed:', name, error);
+    }
+    return !event.isDefaultPrevented();
   }
 
   /** Clone application markup and place generated fields into named slots. */
@@ -1221,7 +1292,29 @@
         var rowIndexes = dt.rows().indexes().toArray();
 
         event.target.setCustomValidity('');
-        var values = dt.column(column.index).data().toArray();
+        var values;
+        try {
+          values =
+            column.index !== undefined && !column.getValue
+              ? dt.column(column.index).data().toArray()
+              : dt
+                  .rows()
+                  .data()
+                  .toArray()
+                  .map((row) =>
+                    transformField(
+                      column,
+                      'getValue',
+                      that._getValueByPath(row, column.name),
+                      that,
+                      'edit',
+                      row
+                    )
+                  );
+        } catch (error) {
+          event.target.setCustomValidity(error.message || String(error));
+          return;
+        }
         var duplicate = values.some(function (value, index) {
           var rowIndex = rowIndexes[index];
           if (editIndex !== null && rowIndex === editIndex) return false;
@@ -1452,7 +1545,7 @@
   const methods$4 = {
     _collectFormData: function ($form) {
       var that = this;
-      var columns = this.columnDefs || this.completeColumnDefs();
+      var columns = this.columnDefs || this.completeFieldDefs();
       var values = columns.every(function (column) {
         return typeof column.name === 'number';
       })
@@ -1768,7 +1861,7 @@
     },
     _openFormDialog: function (action, rowData) {
       try {
-        const columns = this.completeColumnDefs();
+        const columns = this.completeFieldDefs();
         if (
           this.createDialog(
             columns,
@@ -1790,15 +1883,23 @@
       for (const column of columns) {
         if (this._destroyed) return;
         if (!isFieldPath(column.name) || column.editable === false) continue;
-        const value =
+        const stored =
           rowData === undefined
             ? column.value
             : this._getValueByPath(rowData, column.name);
-        if (rowData === undefined && value == null) continue;
         const element = fieldElement(this.modal_selector, column.name).filter(
           ':input[type!="file"]'
         );
         if (!element.length) continue;
+        const value = transformField(
+          column,
+          'getValue',
+          stored,
+          this,
+          rowData === undefined ? 'add' : 'edit',
+          rowData
+        );
+        if (rowData === undefined && value == null) continue;
         this._setFieldValue(element, column, value);
         element.trigger('change');
       }
@@ -2198,6 +2299,32 @@
           );
           return Promise.resolve(validation).then((error) => {
             if (error) throw error;
+            if (action !== 'delete' && active()) {
+              let converted = values;
+              columns.forEach((field) => {
+                if (!fieldNames.includes(String(field.name))) return;
+                try {
+                  converted = withValue(
+                    converted,
+                    field.name,
+                    transformField(
+                      field,
+                      'setValue',
+                      editor._getValueByPath(values, field.name),
+                      editor,
+                      action,
+                      snapshot && snapshot.originalData,
+                      values
+                    )
+                  );
+                } catch (error) {
+                  throw {
+                    fieldErrors: { [field.name]: error.message || String(error) },
+                  };
+                }
+              });
+              return converted;
+            }
             return values;
           });
         })
@@ -2949,6 +3076,9 @@
         },
         completeColumnDefs: function () {
           return normalizeColumns(this.api());
+        },
+        completeFieldDefs: function () {
+          return normalizeFields(this.c.fields, this.api());
         },
         _getValueByPath: readPath,
         _setValueByPath: writePath,

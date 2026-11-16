@@ -12,6 +12,7 @@ import { resolveLanguage } from '../core/language.js';
 import { $, document } from '../core/dependencies.js';
 import { snapshotRow, cloneRow } from '../data/row-data.js';
 import { equalFieldValues } from '../data/field-values.js';
+import { transformField } from '../data/form-fields.js';
 export const methods = {
   _prepareDialog: function () {
     if (
@@ -246,7 +247,29 @@ export const methods = {
       var rowIndexes = dt.rows().indexes().toArray();
 
       event.target.setCustomValidity('');
-      var values = dt.column(column.index).data().toArray();
+      var values;
+      try {
+        values =
+          column.index !== undefined && !column.getValue
+            ? dt.column(column.index).data().toArray()
+            : dt
+                .rows()
+                .data()
+                .toArray()
+                .map((row) =>
+                  transformField(
+                    column,
+                    'getValue',
+                    that._getValueByPath(row, column.name),
+                    that,
+                    'edit',
+                    row
+                  )
+                );
+      } catch (error) {
+        event.target.setCustomValidity(error.message || String(error));
+        return;
+      }
       var duplicate = values.some(function (value, index) {
         var rowIndex = rowIndexes[index];
         if (editIndex !== null && rowIndex === editIndex) return false;

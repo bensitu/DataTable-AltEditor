@@ -10,6 +10,7 @@ Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`,
 
 | Option                | Default                                                                             | Behavior                                                                                                       |
 | --------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `fields`              | `null`                                                                              | Optional independent dialog fields with explicit read/write conversion. See [form fields](form-fields.md).     |
 | `dialog`              | `{ framework: 'auto', templates: { add: null, edit: null }, deleteDetails: false }` | [Dialog templates, presentation, and callbacks](dialogs.md). Configure inside `altEditor`.                     |
 | `closeModalOnSuccess` | `true`                                                                              | Close a successful dialog. When false, show success and disable further submission until another dialog opens. |
 | `encodeFiles`         | `true`                                                                              | Read files as data URLs; false passes the first selected File object.                                          |
@@ -31,7 +32,7 @@ onInlineEditRow(editor, rowData, success, error, originalRowData, meta);
 
 The first argument is always the AltEditor instance; `editor.api()` returns its DataTables API. Existing `editor.s.dt` access remains available for compatibility.
 
-Dialog add/edit callbacks receive enabled form values; disabled controls are omitted. Delete receives an array of the captured rows. Inline editing receives a complete candidate row and a snapshot of the original row. Inline editing uses `onEditRow` if `onInlineEditRow` is absent. If no applicable callback is supplied, the update succeeds locally.
+Dialog add/edit callbacks receive enabled form values after any explicit `setValue` conversions; disabled controls are omitted. Delete receives an array of the captured rows. Inline editing receives a complete candidate row and a snapshot of the original row. Inline editing uses `onEditRow` if `onInlineEditRow` is absent. If no applicable callback is supplied, the update succeeds locally.
 
 Set a timeout in the application transport and call `error()` when it expires. The editor does not impose a persistence deadline or cancel an in-flight server write. Returning a Promise or thenable settles persistence through its resolution or rejection. Resolving `undefined` is equivalent to `success()`. Normal non-thenable return values are ignored.
 
@@ -80,6 +81,8 @@ See [persistence and field validation](validation.md) for Promise examples, stru
 
 ## Column options
 
+Dialog control options also apply to independent `altEditor.fields`. See [form fields and value conversion](form-fields.md) for `name`, `getValue`, and `setValue`. Inline options continue to belong to table columns.
+
 | Options                                                                       | Behavior                                                                                                                                       |
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `editable`, `visible`                                                         | Exclude a field from dialog editing or hide its dialog row.                                                                                    |
@@ -107,9 +110,9 @@ Uniqueness is checked on control change and again on submission, against loaded 
 
 Missing or null intermediate path values are initialized as objects or arrays. Writing through an existing scalar intermediate value fails without replacing that value. Numeric path segments can address arrays or object properties.
 
-Object and array values are omitted from incompatible dialog controls, which are empty and disabled; edit submissions preserve the original field. Multiple selects accept arrays. Inline editing rejects structured values unless a multiple select or an explicit `inlineEditSetValue` handles them. Use scalar nested paths or `editable: false` for structured columns.
+Object and array values are omitted from incompatible dialog controls, which are empty and disabled; edit submissions preserve the original field. Multiple selects accept arrays. Inline editing rejects structured values unless a multiple select or an explicit `inlineEditSetValue` handles them. Use scalar nested paths, explicit dialog value converters, or `editable: false` for structured columns.
 
-Dialog text and number fields retain HTML form string values; convert numeric values in the persistence callback when the data model requires numbers. Checkboxes return booleans and multiple selects return arrays of strings. Inline number controls return numbers.
+Dialog text and number fields retain HTML form string values; use `setValue` or convert numeric values in the persistence callback when the data model requires numbers. Checkboxes return booleans and multiple selects return arrays of strings. Inline number controls return numbers.
 
 Stored select values absent from the initial options are included as plain-text options so opening an editor does not discard them. Single selections preserve literal JSON strings; multiple selections also accept JSON arrays unless the string itself matches an option. `reloadOptions()` intentionally replaces the available choices and only retains values present in the new list, which is useful for dependent fields. Validate required choices after reloading.
 

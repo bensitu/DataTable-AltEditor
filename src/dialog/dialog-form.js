@@ -5,6 +5,7 @@ import { isFieldPath } from '../data/path.js';
 import { applyTemplate } from './template.js';
 import { renderFields } from './field-renderer.js';
 import { renderDialog } from './dialog-view.js';
+import { transformField } from '../data/form-fields.js';
 
 export const methods = {
   createDialog: function (
@@ -40,7 +41,7 @@ export const methods = {
   },
   _openFormDialog: function (action, rowData) {
     try {
-      const columns = this.completeColumnDefs();
+      const columns = this.completeFieldDefs();
       if (
         this.createDialog(
           columns,
@@ -62,15 +63,23 @@ export const methods = {
     for (const column of columns) {
       if (this._destroyed) return;
       if (!isFieldPath(column.name) || column.editable === false) continue;
-      const value =
+      const stored =
         rowData === undefined
           ? column.value
           : this._getValueByPath(rowData, column.name);
-      if (rowData === undefined && value == null) continue;
       const element = fieldElement(this.modal_selector, column.name).filter(
         ':input[type!="file"]'
       );
       if (!element.length) continue;
+      const value = transformField(
+        column,
+        'getValue',
+        stored,
+        this,
+        rowData === undefined ? 'add' : 'edit',
+        rowData
+      );
+      if (rowData === undefined && value == null) continue;
       this._setFieldValue(element, column, value);
       element.trigger('change');
     }
