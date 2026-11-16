@@ -7,6 +7,7 @@ import { invoke, resolveRow } from '../data/row-data.js';
 import { showFieldErrors, clearFieldErrors } from '../dialog/field-feedback.js';
 import { withValue } from '../data/path.js';
 import { transformField } from '../data/form-fields.js';
+import { normalizeError } from '../data/errors.js';
 
 /** @callback PersistenceCallback
  * @param {Object} editor AltEditor instance.
@@ -139,7 +140,7 @@ export const methods = {
           if (action !== 'delete' && active()) {
             let converted = values;
             columns.forEach((field) => {
-              if (!fieldNames.includes(String(field.name))) return;
+              if (!active() || !fieldNames.includes(String(field.name))) return;
               try {
                 converted = withValue(
                   converted,
@@ -156,7 +157,11 @@ export const methods = {
                 );
               } catch (error) {
                 throw {
-                  fieldErrors: { [field.name]: error.message || String(error) },
+                  fieldErrors: {
+                    [field.name]:
+                      normalizeError(error, editor.language.error).message ||
+                      editor.language.error.validation,
+                  },
                 };
               }
             });

@@ -16,6 +16,10 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 - Example 22 demonstrates independent fields and object-array conversion for multiple selections.
 - Example 23 provides a complete PHP/MySQL backend with server-side paging, search, ordering, persistent creation and editing, transactional multiple-row deletion, and accessible server validation feedback. Database setup and local server instructions are included.
 
+### Fixed
+
+- Field conversion stops after editor destruction. Conversion errors with empty or null messages retain accessible field feedback and use the configured fallback message.
+
 ## 4.2.2 - 2026-11-09
 
 ### Fixed

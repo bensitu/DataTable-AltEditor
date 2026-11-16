@@ -13,6 +13,7 @@ import { $, document } from '../core/dependencies.js';
 import { snapshotRow, cloneRow } from '../data/row-data.js';
 import { equalFieldValues } from '../data/field-values.js';
 import { transformField } from '../data/form-fields.js';
+import { normalizeError } from '../data/errors.js';
 export const methods = {
   _prepareDialog: function () {
     if (
@@ -267,7 +268,10 @@ export const methods = {
                   )
                 );
       } catch (error) {
-        event.target.setCustomValidity(error.message || String(error));
+        event.target.setCustomValidity(
+          normalizeError(error, that.language.error).message ||
+            that.language.error.validation
+        );
         return;
       }
       var duplicate = values.some(function (value, index) {

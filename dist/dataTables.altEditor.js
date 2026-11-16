@@ -1312,7 +1312,10 @@
                     )
                   );
         } catch (error) {
-          event.target.setCustomValidity(error.message || String(error));
+          event.target.setCustomValidity(
+            normalizeError(error, that.language.error).message ||
+              that.language.error.validation
+          );
           return;
         }
         var duplicate = values.some(function (value, index) {
@@ -2302,7 +2305,7 @@
             if (action !== 'delete' && active()) {
               let converted = values;
               columns.forEach((field) => {
-                if (!fieldNames.includes(String(field.name))) return;
+                if (!active() || !fieldNames.includes(String(field.name))) return;
                 try {
                   converted = withValue(
                     converted,
@@ -2319,7 +2322,11 @@
                   );
                 } catch (error) {
                   throw {
-                    fieldErrors: { [field.name]: error.message || String(error) },
+                    fieldErrors: {
+                      [field.name]:
+                        normalizeError(error, editor.language.error).message ||
+                        editor.language.error.validation,
+                    },
                   };
                 }
               });

@@ -194,3 +194,46 @@ test('reports an asynchronous read conversion as an opening error', () => {
   ]);
   expect(editor.openEditDialog(0)).toBe(false);
 });
+
+test('stops write conversion and persistence after editor destruction', async () => {
+  const next = vi.fn(Number);
+  const save = vi.fn();
+  const { editor, table } = create(
+    [
+      {
+        name: 'name',
+        setValue: (value, context) => {
+          context.editor.destroy();
+          return value;
+        },
+      },
+      { name: 'profile.score', setValue: next },
+    ],
+    { onEditRow: save }
+  );
+  editor.openEditDialog(0);
+  await editor._editRowData();
+  expect(next).not.toHaveBeenCalled();
+  expect(save).not.toHaveBeenCalled();
+  expect(table.row(0).data().profile.score).toBe(2);
+});
+
+test('retains field feedback when write conversion throws a null value', async () => {
+  const save = vi.fn();
+  const { editor, form } = create(
+    [
+      {
+        name: 'name',
+        setValue: () => {
+          throw null;
+        },
+      },
+    ],
+    { onEditRow: save }
+  );
+  editor.openEditDialog(0);
+  await editor._editRowData();
+  expect(save).not.toHaveBeenCalled();
+  expect(form().find('input').attr('aria-invalid')).toBe('true');
+  expect(form().text()).toContain(editor.language.error.message);
+});
