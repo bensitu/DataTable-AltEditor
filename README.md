@@ -1,10 +1,10 @@
 # DataTables AltEditor
 
-[![npm](https://img.shields.io/npm/v/@bensitu/datatable-alteditor.svg)](https://www.npmjs.com/package/@bensitu/datatable-alteditor)
-[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/@bensitu/datatable-alteditor/badge)](https://www.jsdelivr.com/package/npm/@bensitu/datatable-alteditor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/github/actions/workflow/status/bensitu/DataTable-AltEditor/test.yml?branch=master&label=tests)](https://github.com/bensitu/DataTable-AltEditor/actions/workflows/test.yml)
 [![Live examples](https://img.shields.io/badge/examples-live-2563eb)](https://bensitu.github.io/DataTable-AltEditor/)
+[![npm](https://img.shields.io/npm/v/@bensitu/datatable-alteditor.svg)](https://www.npmjs.com/package/@bensitu/datatable-alteditor)
+[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/@bensitu/datatable-alteditor/badge)](https://www.jsdelivr.com/package/npm/@bensitu/datatable-alteditor)
 
 Add row dialogs and cell editing to DataTables 2.x. AltEditor supports array and object data, nested fields, validation, asynchronous saves, custom dialog templates, translations, and light and dark themes.
 
