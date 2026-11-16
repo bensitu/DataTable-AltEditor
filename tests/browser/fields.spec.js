@@ -63,3 +63,44 @@ test('independent fields preserve structured values through dialog saves', async
   await page.evaluate(() => table.altEditor().openEditDialog(0));
   await expect(modal.getByLabel('Roles:')).toHaveValues(['1', '2']);
 });
+
+test('write conversion errors keep the form editable for correction and retry', async ({
+  page,
+}) => {
+  await page.goto('/tests/browser/table.html');
+  await page.evaluate(() => {
+    table.destroy();
+    table = new DataTable('#table', {
+      data: [{ name: 'Alice' }],
+      columns: [{ data: 'name', title: 'Name' }],
+      altEditor: {
+        fields: [
+          {
+            name: 'name',
+            title: 'Name',
+            setValue(value) {
+              if (value === 'reserved')
+                throw new Error('This name is reserved.');
+              return value.trim();
+            },
+          },
+        ],
+      },
+    });
+    table.altEditor().openEditDialog(0);
+  });
+  const modal = page.locator('.altEditor-modal');
+  const input = modal.getByLabel('Name:');
+  await input.fill('reserved');
+  await modal.locator('button[type="submit"]').click();
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(input).toBeFocused();
+  await expect(
+    modal.getByText('This name is reserved.', { exact: true })
+  ).toBeVisible();
+  expect(await page.evaluate(() => table.row(0).data().name)).toBe('Alice');
+  await input.fill(' Ann ');
+  await modal.locator('button[type="submit"]').click();
+  await expect(modal).toBeHidden();
+  expect(await page.evaluate(() => table.row(0).data().name)).toBe('Ann');
+});
