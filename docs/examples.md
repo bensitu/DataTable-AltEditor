@@ -6,7 +6,7 @@ Browse the [live example directory](https://bensitu.github.io/DataTable-AltEdito
 
 To run locally, install development dependencies with `npm ci`, run `npm run build`, then run `npm run dev` and open the [example directory](http://127.0.0.1:8080/). Serve the pages over HTTP rather than opening HTML files directly. The examples require access to their CDN dependencies.
 
-In-memory examples reset on page reload. Example 16 saves to its local Node.js server and retains records and attachments across page reloads until that server restarts. The other Ajax examples load static JSON and acknowledge writes without a persistent backend; their Refresh buttons restore the original rows. Newly added records receive a generated identifier within their table.
+In-memory examples reset on page reload. Example 16 saves to its local Node.js server and retains records and attachments across page reloads until that server restarts. Example 23 uses a local PHP server and MySQL for persistent data and server-side processing. The other Ajax examples load static JSON and acknowledge writes without a persistent backend; their Refresh buttons restore the original rows. Newly added records receive a generated identifier within their table.
 
 Ajax examples configure stable DataTables row identifiers so updates can find the same record after a reload. The multiple-table example prefixes identifiers to keep DOM IDs distinct. Client-generated identifiers and GET requests to static response files are demonstration techniques. Production applications should assign identifiers on the server, use appropriate write methods, and validate and authorize every operation.
 
@@ -94,6 +94,8 @@ Open the HTML first to see stylesheet and script loading order, then read the ta
 | 21 | [HTML](../example/21_async_validation/example21.html) · [JavaScript](../example/21_async_validation/example21.js) | Promise persistence, field errors, custom validation, and retry. |
 
 | 22 | [HTML](../example/22_form_fields/example22.html) · [JavaScript](../example/22_form_fields/example22.js) | Independent fields, form-only properties, and object-array conversion. |
+
+| 23 | [HTML](../example/23_php_mysql/example23.html) · [JavaScript](../example/23_php_mysql/example23.js) · [Setup](../example/23_php_mysql/README.md) | PHP, MySQL, server-side paging, search, ordering, CRUD, and server field errors. |
 
 ## Adapt an example to your application
 

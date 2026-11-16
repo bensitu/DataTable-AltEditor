@@ -8,7 +8,7 @@ Start with the [quick start](../README.md#get-started), then choose a guide for 
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [Dialog templates](dialogs.md)              | Independent form layouts, deletion summaries, lifecycle callbacks, and framework selection.                            |
 | [Form fields](form-fields.md)               | Independent form configuration and explicit read/write conversion.                                                     |
-| [Examples](examples.md)                     | All 22 examples, source locations, suggested interactions, and simulated persistence limits.                           |
+| [Examples](examples.md)                     | All 23 examples, source locations, suggested interactions, and simulated persistence limits.                           |
 | [Configuration and API](api.md)             | Editor and column options, public methods, persistence callbacks, file handling, module loading, and server-side data. |
 | [Persistence and validation](validation.md) | Promise saves, structured field errors, custom validators, and retry behavior.                                         |
 | [Inline editing](inline-edit.md)            | Supported controls, immutable updates, keyboard navigation, validation, and retry behavior.                            |
