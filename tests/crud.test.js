@@ -139,6 +139,52 @@ test('reports runtime change callback failures and permits correction', async ()
   expect(table.row(0).data().name).toBe('Ann');
 });
 
+test('validates submitted values before reading attachments', async () => {
+  const validate = vi.fn(() => true);
+  const save = vi.fn((_editor, _values, success) => success());
+  const { editor } = create({
+    columns: [
+      { data: 'name', title: 'Name', required: true, editorValidate: validate },
+      {
+        data: 'attachment',
+        title: 'Attachment',
+        type: 'file',
+        defaultContent: '',
+      },
+    ],
+    onAddRow: save,
+  });
+  editor.openAddDialog();
+  const modal = $(editor.modal_selector);
+  const name = modal.find('[name="name"]')[0];
+  const attachment = modal.find('[type="file"]')[0];
+  Object.defineProperty(attachment, 'files', {
+    value: [new File(['note'], 'note.txt')],
+  });
+  let finishRead;
+  const read = vi
+    .spyOn(editor, 'getBase64')
+    .mockImplementation((_file, resolve) => {
+      finishRead = resolve;
+    });
+  await editor._addRowData();
+  expect(modal.find('.altEditor-field-error')).toHaveLength(1);
+  expect(read).not.toHaveBeenCalled();
+  expect(save).not.toHaveBeenCalled();
+
+  name.value = 'Carol';
+  const pending = editor._addRowData();
+  name.value = '';
+  name.disabled = true;
+  finishRead('data:text/plain;base64,bm90ZQ==');
+  await pending;
+  expect(validate.mock.calls[0][0]).toBe('Carol');
+  expect(save.mock.calls[0][1]).toEqual({
+    name: 'Carol',
+    attachment: 'data:text/plain;base64,bm90ZQ==',
+  });
+});
+
 test('keeps an existing required attachment when editing and requires a file when adding', async () => {
   const { editor, table } = create({
     data: [

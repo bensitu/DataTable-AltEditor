@@ -2324,27 +2324,43 @@
       clearFieldErrors(this);
       const form = $(this.modal_selector).find('form');
       if (!active()) return;
-      const fieldNames = form
-        .find('input, select, textarea')
-        .filter(function () {
-          return (
-            !this.disabled &&
-            this.name &&
-            (this.type !== 'radio' || this.checked) &&
-            (this.type !== 'file' || this.files.length)
-          );
-        })
-        .map(function () {
-          return this.name;
-        })
-        .get();
-      this._setDialogSubmitting(true);
+      const columns = action === 'delete' ? [] : editor.columnDefs;
+      const fieldNames = new Set();
+      let validators = [];
       let collection;
       try {
-        collection =
-          action === 'delete'
-            ? Promise.resolve(snapshot.rows.slice())
-            : this._collectFormData(form);
+        this._setDialogSubmitting(true);
+        if (action === 'delete')
+          collection = Promise.resolve(snapshot.rows.slice());
+        else {
+          const nativeErrors = Object.create(null);
+          editor._validateFormData(form, nativeErrors);
+          if (!active()) return;
+          if (Object.keys(nativeErrors).length)
+            throw { fieldErrors: nativeErrors };
+          form.find('input, select, textarea').each(function () {
+            if (
+              !this.disabled &&
+              this.name &&
+              (this.type !== 'radio' || this.checked) &&
+              (this.type !== 'file' || this.files.length)
+            )
+              fieldNames.add(this.name);
+          });
+          const modal = $(editor.modal_selector)[0];
+          validators = columns.filter((field) => {
+            if (
+              typeof field.editorValidate !== 'function' ||
+              field.readonly ||
+              field.visible === false ||
+              field.editable === false ||
+              !fieldNames.has(String(field.name))
+            )
+              return false;
+            return feedbackControl(fieldElement(form, field.name)[0], modal);
+          });
+          collection = this._collectFormData(form);
+        }
       } catch (error) {
         fail(error);
         return;
@@ -2352,32 +2368,11 @@
       return collection
         .then((values) => {
           if (!active()) return;
-          const nativeErrors = Object.create(null);
-          editor._validateFormData(form, nativeErrors);
-          if (Object.keys(nativeErrors).length)
-            throw { fieldErrors: nativeErrors };
-          if (!active()) return;
-          const columns = action === 'delete' ? [] : editor.columnDefs;
-          const fields = columns
-            .filter((column) => {
-              if (
-                typeof column.editorValidate !== 'function' ||
-                column.readonly ||
-                column.visible === false
-              )
-                return false;
-              const control = fieldElement(form, column.name)[0];
-              return (
-                fieldNames.includes(String(column.name)) &&
-                column.editable !== false &&
-                feedbackControl(control, $(editor.modal_selector)[0])
-              );
-            })
-            .map((column) => ({
-              name: column.name,
-              validate: column.editorValidate,
-              value: editor._getValueByPath(values, column.name),
-            }));
+          const fields = validators.map((field) => ({
+            name: field.name,
+            validate: field.editorValidate,
+            value: editor._getValueByPath(values, field.name),
+          }));
           const validation = validateFields(
             fields,
             editor,
@@ -2391,7 +2386,12 @@
             if (action !== 'delete' && active()) {
               let converted = values;
               columns.forEach((field) => {
-                if (!active() || !fieldNames.includes(String(field.name))) return;
+                if (
+                  !active() ||
+                  field.setValue === undefined ||
+                  !fieldNames.has(String(field.name))
+                )
+                  return;
                 try {
                   converted = withValue(
                     converted,
