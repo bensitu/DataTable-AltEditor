@@ -68,6 +68,50 @@ test('validates unique values without replaying change callbacks or clearing app
   expect(save).toHaveBeenCalledOnce();
 });
 
+test('ignores submissions from a closed dialog', async () => {
+  const save = vi.fn();
+  const { editor } = create({ onAddRow: save });
+  editor.openAddDialog();
+  const form = $(editor.modal_selector).find('form');
+  form.find('[name="name"]').val('Carol');
+  editor._handleDialogClosed();
+  form.triggerHandler('submit');
+  await editor._addRowData();
+  await flush();
+  expect(save).not.toHaveBeenCalled();
+});
+
+test.each(['close', 'destroy'])(
+  'aborts pending file reads on dialog %s',
+  async (action) => {
+    const save = vi.fn();
+    const { editor } = create({
+      columns: [
+        { data: 'name', title: 'Name', value: 'Carol' },
+        {
+          data: 'attachment',
+          title: 'Attachment',
+          type: 'file',
+          defaultContent: '',
+        },
+      ],
+      onAddRow: save,
+    });
+    editor.openAddDialog();
+    const input = $(editor.modal_selector).find('[type="file"]')[0];
+    Object.defineProperty(input, 'files', {
+      value: [new File(['pending'], 'pending.txt')],
+    });
+    const abort = vi.spyOn(FileReader.prototype, 'abort');
+    const submitted = editor._addRowData();
+    if (action === 'close') editor._handleDialogClosed();
+    else editor.destroy();
+    await submitted;
+    expect(abort).toHaveBeenCalledOnce();
+    expect(save).not.toHaveBeenCalled();
+  }
+);
+
 test('reports runtime change callback failures and permits correction', async () => {
   const { editor, table } = create({
     columns: [

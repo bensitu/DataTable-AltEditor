@@ -1107,11 +1107,11 @@
         return false;
       }
     },
-    _resolveOpeningRows: function (targets) {
+    _resolveOpeningRows: function (targets, previousContext) {
       const rows = targets.map((target) => this._resolveSnapshotRow(target));
       if (rows.some((row) => !row)) {
         this._opening = false;
-        this._dialogContext = null;
+        this._dialogContext = previousContext || null;
         const error = new Error(this.language.error.targetUnavailable);
         this._showErrorMessage(error.message);
         emit(this, 'error', { action: 'open', mode: 'dialog', error });
@@ -1225,6 +1225,7 @@
       if (!this._dialogOpen) return;
       this._dialogOpen = false;
       this._dialogToken = {};
+      this._abortFileReads();
       clearFieldErrors(this);
       this._cleanupPlugins();
       this._removeModalEvents(this.modal_selector);
@@ -1384,8 +1385,9 @@
       if (rowIndex === undefined || rowData === undefined) return false;
 
       const target = snapshotRow(dt.row(rowIndex));
+      const previousContext = this._dialogContext;
       if (!this._beginDialog('edit', [rowData])) return false;
-      const rows = this._resolveOpeningRows([target]);
+      const rows = this._resolveOpeningRows([target], previousContext);
       if (!rows) return false;
       this._editSnapshot = snapshotRow(rows[0]);
       rowData = rows[0].data();
@@ -1407,9 +1409,10 @@
         .indexes()
         .toArray()
         .map((index) => snapshotRow(this.s.dt.row(index)));
+      const previousContext = this._dialogContext;
       if (!this._beginDialog('delete', selectedRows.data().toArray()))
         return false;
-      const rows = this._resolveOpeningRows(targets);
+      const rows = this._resolveOpeningRows(targets, previousContext);
       if (!rows) return false;
       this._deleteSnapshot = {
         rowIndexes: rows.map((row) => row.index()),
@@ -1466,7 +1469,10 @@
     },
     _removeModalEvents: function (modal) {
       var $modal = modal && modal.jquery ? modal : $(modal);
-      if ($modal.length) $modal.off(this.s.modalNamespace);
+      if ($modal.length) {
+        $modal.off(this.s.modalNamespace);
+        $modal.find('form').off(this.s.modalNamespace);
+      }
     },
     _focusFirstInput: function () {
       if (!this.modal_selector) return;
@@ -1645,21 +1651,40 @@
     getBase64: function (file, onSuccess, onError) {
       var language = this.language.error;
       var reader = new root.FileReader();
+      if (!this._fileReaders) this._fileReaders = new Set();
+      const readers = this._fileReaders;
+      readers.add(reader);
+      const finish = (callback, result) => {
+        readers.delete(reader);
+        reader.onload = reader.onerror = reader.onabort = null;
+        if (callback) callback(result);
+      };
       reader.onload = function () {
-        if (onSuccess) onSuccess(reader.result);
+        finish(onSuccess, reader.result);
       };
       reader.onerror = function () {
         var error = reader.error || new Error(language.fileRead);
-        if (onError) onError(error);
+        finish(onError, error);
       };
       reader.onabort = function () {
-        if (onError) onError(new Error(language.fileAborted));
+        finish(onError, new Error(language.fileAborted));
       };
       try {
         reader.readAsDataURL(file);
       } catch (error) {
-        if (onError) onError(error);
+        finish(onError, error);
       }
+    },
+    _abortFileReads: function () {
+      if (!this._fileReaders) return;
+      Array.from(this._fileReaders).forEach((reader) => {
+        try {
+          reader.abort();
+        } catch (error) {
+          console.warn('AltEditor could not stop file reading', error);
+        }
+      });
+      this._fileReaders.clear();
     },
   };
 
@@ -2238,7 +2263,14 @@
       return this._submitDialog('delete');
     },
     _submitDialog: function (action) {
-      if (this._destroyed || this._submitting || this._completed) return;
+      if (
+        !this._dialogOpen ||
+        this._closing ||
+        this._destroyed ||
+        this._submitting ||
+        this._completed
+      )
+        return;
       const editor = this;
       const snapshot =
         action === 'edit'
@@ -3186,6 +3218,7 @@
           this._destroyed = true;
           if (this._inline) this._inline.destroy();
           this._dialogOpen = false;
+          this._abortFileReads();
           this._dialogShown = false;
           this._opening = false;
           this._closing = false;

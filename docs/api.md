@@ -122,6 +122,8 @@ Set `maxFileSize` when accepting files: data URL encoding reads the entire file 
 
 For forms with multiple file fields, all field values and file size limits are checked before encoded file reads start. Correct an invalid file selection and submit again to retry.
 
+Pending encoded file reads are aborted when the dialog closes or the editor is destroyed. Results from an interrupted operation cannot invoke persistence.
+
 A required file field requires a selection when adding a record or editing a record without an attachment. Editing a record with an existing attachment permits retaining it without uploading a replacement.
 
 ## Server-side data

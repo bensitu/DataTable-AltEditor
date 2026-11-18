@@ -198,6 +198,7 @@ export function createAltEditor(DataTable) {
         this._destroyed = true;
         if (this._inline) this._inline.destroy();
         this._dialogOpen = false;
+        this._abortFileReads();
         this._dialogShown = false;
         this._opening = false;
         this._closing = false;

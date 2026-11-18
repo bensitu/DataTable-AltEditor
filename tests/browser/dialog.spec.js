@@ -1,5 +1,21 @@
 import { expect, test } from '@playwright/test';
 
+test('canceling an add dialog prevents a later hidden form submission', async ({
+  page,
+}) => {
+  await page.goto('/tests/browser/table.html');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  const modal = page.locator('.altEditor-modal');
+  await modal.getByLabel('Name:', { exact: true }).fill('Carol');
+  await modal.locator('.altEditor-close').click();
+  await expect(modal).toBeHidden();
+  await page.evaluate(() => {
+    document.querySelector('.altEditor-modal form').requestSubmit();
+    return new Promise(requestAnimationFrame);
+  });
+  expect(await page.evaluate(() => table.rows().count())).toBe(2);
+});
+
 test('a save during the Bootstrap opening transition closes after showing', async ({
   page,
 }) => {

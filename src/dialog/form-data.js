@@ -94,20 +94,39 @@ export const methods = {
   getBase64: function (file, onSuccess, onError) {
     var language = this.language.error;
     var reader = new window.FileReader();
+    if (!this._fileReaders) this._fileReaders = new Set();
+    const readers = this._fileReaders;
+    readers.add(reader);
+    const finish = (callback, result) => {
+      readers.delete(reader);
+      reader.onload = reader.onerror = reader.onabort = null;
+      if (callback) callback(result);
+    };
     reader.onload = function () {
-      if (onSuccess) onSuccess(reader.result);
+      finish(onSuccess, reader.result);
     };
     reader.onerror = function () {
       var error = reader.error || new Error(language.fileRead);
-      if (onError) onError(error);
+      finish(onError, error);
     };
     reader.onabort = function () {
-      if (onError) onError(new Error(language.fileAborted));
+      finish(onError, new Error(language.fileAborted));
     };
     try {
       reader.readAsDataURL(file);
     } catch (error) {
-      if (onError) onError(error);
+      finish(onError, error);
     }
+  },
+  _abortFileReads: function () {
+    if (!this._fileReaders) return;
+    Array.from(this._fileReaders).forEach((reader) => {
+      try {
+        reader.abort();
+      } catch (error) {
+        console.warn('AltEditor could not stop file reading', error);
+      }
+    });
+    this._fileReaders.clear();
   },
 };

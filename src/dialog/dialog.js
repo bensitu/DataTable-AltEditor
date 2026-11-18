@@ -55,11 +55,11 @@ export const methods = {
       return false;
     }
   },
-  _resolveOpeningRows: function (targets) {
+  _resolveOpeningRows: function (targets, previousContext) {
     const rows = targets.map((target) => this._resolveSnapshotRow(target));
     if (rows.some((row) => !row)) {
       this._opening = false;
-      this._dialogContext = null;
+      this._dialogContext = previousContext || null;
       const error = new Error(this.language.error.targetUnavailable);
       this._showErrorMessage(error.message);
       emit(this, 'error', { action: 'open', mode: 'dialog', error });
@@ -173,6 +173,7 @@ export const methods = {
     if (!this._dialogOpen) return;
     this._dialogOpen = false;
     this._dialogToken = {};
+    this._abortFileReads();
     clearFieldErrors(this);
     this._cleanupPlugins();
     this._removeModalEvents(this.modal_selector);
@@ -332,8 +333,9 @@ export const methods = {
     if (rowIndex === undefined || rowData === undefined) return false;
 
     const target = snapshotRow(dt.row(rowIndex));
+    const previousContext = this._dialogContext;
     if (!this._beginDialog('edit', [rowData])) return false;
-    const rows = this._resolveOpeningRows([target]);
+    const rows = this._resolveOpeningRows([target], previousContext);
     if (!rows) return false;
     this._editSnapshot = snapshotRow(rows[0]);
     rowData = rows[0].data();
@@ -355,9 +357,10 @@ export const methods = {
       .indexes()
       .toArray()
       .map((index) => snapshotRow(this.s.dt.row(index)));
+    const previousContext = this._dialogContext;
     if (!this._beginDialog('delete', selectedRows.data().toArray()))
       return false;
-    const rows = this._resolveOpeningRows(targets);
+    const rows = this._resolveOpeningRows(targets, previousContext);
     if (!rows) return false;
     this._deleteSnapshot = {
       rowIndexes: rows.map((row) => row.index()),
@@ -414,7 +417,10 @@ export const methods = {
   },
   _removeModalEvents: function (modal) {
     var $modal = modal && modal.jquery ? modal : $(modal);
-    if ($modal.length) $modal.off(this.s.modalNamespace);
+    if ($modal.length) {
+      $modal.off(this.s.modalNamespace);
+      $modal.find('form').off(this.s.modalNamespace);
+    }
   },
   _focusFirstInput: function () {
     if (!this.modal_selector) return;

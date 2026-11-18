@@ -11,6 +11,8 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Closed or closing dialogs ignore stale submissions and release their submit handlers. Pending file reads stop when a dialog closes or its editor is destroyed.
+- An unavailable replacement target preserves the active dialog's context and close notifications.
 - Uniqueness validation no longer replays field change callbacks during submission and preserves application-defined validity messages. Converted comparisons stop after finding a duplicate and copy row context only when it is read.
 - Runtime field change callback failures report recoverable dialog errors. Initialization failures continue to reject opening.
 - Required file fields allow existing attachments to be retained when editing while remaining required for new records.

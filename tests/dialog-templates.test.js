@@ -148,6 +148,21 @@ test('supports cancellation and prevents reentrant opening from lifecycle callba
   expect(editor.openAddDialog()).toBe(false);
 });
 
+test('retains the active form context when a replacement target disappears', async () => {
+  const closed = vi.fn();
+  const editor = create({ onClose: closed });
+  editor.openEditDialog('#a');
+  editor.c.dialog.onBeforeOpen = () => table.row('#b').remove().draw();
+  expect(editor.openDeleteDialog('#b')).toBe(false);
+  expect(editor._dialogContext.action).toBe('edit');
+  $(editor.modal_selector).find('[name="name"]').val('Ann');
+  await editor._editRowData();
+  expect(table.row('#a').data().name).toBe('Ann');
+  expect(closed).toHaveBeenCalledOnce();
+  expect(closed.mock.calls[0][0].action).toBe('edit');
+  expect(closed.mock.calls[0][0].rows[0].id).toBe('a');
+});
+
 test.each(['openEditDialog', 'openDeleteDialog'])(
   'keeps the selected identity across a table replacement in %s',
   (method) => {

@@ -44,7 +44,14 @@ export const methods = {
     return this._submitDialog('delete');
   },
   _submitDialog: function (action) {
-    if (this._destroyed || this._submitting || this._completed) return;
+    if (
+      !this._dialogOpen ||
+      this._closing ||
+      this._destroyed ||
+      this._submitting ||
+      this._completed
+    )
+      return;
     const editor = this;
     const snapshot =
       action === 'edit'
