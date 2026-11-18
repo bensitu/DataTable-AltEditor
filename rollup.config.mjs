@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import terser from '@rollup/plugin-terser';
-import CleanCSS from 'clean-css';
+import { minifyStylesheet } from './scripts/minify-stylesheet.mjs';
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const banner = `/*! DataTables AltEditor v${pkg.version}
@@ -25,16 +25,13 @@ export default {
       name: 'distribution',
       generateBundle(options) {
         if (options.file.endsWith('.min.js')) return;
-        const sourcePath = 'src/style/dataTables.altEditor.css';
+        const sourcePath = 'src/style/alt-editor.css';
         this.addWatchFile(sourcePath);
         const source = readFileSync(sourcePath, 'utf8');
-        const result = new CleanCSS({
-          level: { 1: { optimizeBackground: false } },
-          rebase: false,
-          sourceMap: true,
-          sourceMapInlineSources: true,
-        }).minify({ ['../' + sourcePath]: { styles: source } });
-        if (result.errors.length) this.error(result.errors.join('\n'));
+        const result = minifyStylesheet(
+          { ['../' + sourcePath]: { styles: source } },
+          true
+        );
         for (const warning of result.warnings) this.warn(warning);
         const fileName = 'dataTables.altEditor.min.css';
         const map = result.sourceMap.toJSON();
