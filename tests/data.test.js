@@ -5,8 +5,17 @@ import { cloneRow } from '../src/data/row-data.js';
 import { equalFieldValues } from '../src/data/field-values.js';
 import { normalizeError } from '../src/data/errors.js';
 
-test('preserves existing scalar branches when a nested write is invalid', () => {
-  for (const value of [0, false, '', 'value', 1]) {
+test('preserves scalar and opaque branches when a nested write is invalid', () => {
+  for (const value of [
+    0,
+    false,
+    '',
+    'value',
+    1,
+    new Date(),
+    new Map(),
+    /value/,
+  ]) {
     const row = { profile: value };
     expect(() => writePath(row, 'profile.name', 'Ann')).toThrow(
       'Cannot write through a non-object field: profile.name'

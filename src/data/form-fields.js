@@ -3,10 +3,9 @@ import { isPlainObject } from '../core/options.js';
 import { isFieldPath } from './path.js';
 import { cloneRow } from './row-data.js';
 
-export function normalizeFields(fields, api) {
-  if (fields == null) return normalizeColumns(api);
+function validateFieldNames(fields) {
   const names = [];
-  return fields.map((field) => {
+  fields.forEach((field) => {
     if (!isPlainObject(field) || !isFieldPath(field.name))
       throw new TypeError('Each form field requires a writable name');
     const name = String(field.name);
@@ -20,6 +19,26 @@ export function normalizeFields(fields, api) {
     )
       throw new TypeError('Form field names must not overlap: ' + name);
     names.push(name);
+  });
+}
+
+export function normalizeFields(fields, api) {
+  if (fields == null) {
+    const columns = normalizeColumns(api);
+    validateFieldNames(
+      columns.filter(
+        (field) =>
+          isFieldPath(field.name) &&
+          field.type !== 'radio' &&
+          (field.type === 'hidden' ||
+            (field.editable !== false && String(field.title || '').trim()))
+      )
+    );
+    return columns;
+  }
+  validateFieldNames(fields);
+  return fields.map((field) => {
+    const name = String(field.name);
     ['getValue', 'setValue'].forEach((key) => {
       if (field[key] !== undefined && typeof field[key] !== 'function')
         throw new TypeError(key + ' must be a function');

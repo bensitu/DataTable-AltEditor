@@ -1,4 +1,7 @@
+import { isPlainObject } from '../core/options.js';
+
 const forbidden = ['__proto__', 'prototype', 'constructor'];
+const isContainer = (value) => Array.isArray(value) || isPlainObject(value);
 
 export function segments(path) {
   if (typeof path !== 'string' && typeof path !== 'number')
@@ -40,9 +43,11 @@ export function copyProperties(source) {
 
 export function writePath(target, path, value) {
   const keys = segments(path);
+  if (!isContainer(target))
+    throw new TypeError('Cannot write through a non-object field: ' + path);
   let cursor = target;
   keys.slice(0, -1).forEach((key, index) => {
-    if (cursor[key] != null && typeof cursor[key] !== 'object')
+    if (cursor[key] != null && !isContainer(cursor[key]))
       throw new TypeError('Cannot write through a non-object field: ' + path);
     if (cursor[key] == null)
       cursor[key] = /^\d+$/.test(keys[index + 1]) ? [] : {};
@@ -55,6 +60,8 @@ export function writePath(target, path, value) {
 /** Copy the edited branches so persistence never changes the original row. */
 export function withValue(source, path, value) {
   const keys = segments(path);
+  if (source != null && !isContainer(source))
+    throw new TypeError('Cannot write through a non-object field: ' + path);
   const copy = (item) =>
     Array.isArray(item) ? item.slice() : copyProperties(item);
   const result = copy(source);
@@ -62,7 +69,7 @@ export function withValue(source, path, value) {
   let original = source;
   keys.slice(0, -1).forEach((key, index) => {
     original = original == null ? undefined : original[key];
-    if (original != null && typeof original !== 'object')
+    if (original != null && !isContainer(original))
       throw new TypeError('Cannot write through a non-object field: ' + path);
     cursor[key] =
       original && typeof original === 'object'

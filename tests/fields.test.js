@@ -201,6 +201,27 @@ test('retains column-based configuration and applies explicit conversions', asyn
   expect(table.row(0).data().profile).toEqual({ score: 5, active: true });
 });
 
+test('rejects overlapping column-derived form paths while allowing display-only duplicates', () => {
+  for (const names of [
+    ['name', 'name'],
+    ['profile', 'profile.score'],
+  ]) {
+    const { editor } = create(undefined, {
+      columns: names.map((data) => ({ data, title: data })),
+    });
+    expect(editor.openEditDialog(0)).toBe(false);
+    expect($(editor.modal_selector).find('form')).toHaveLength(0);
+  }
+  const { editor, form } = create(undefined, {
+    columns: [
+      { data: 'name', title: 'Name' },
+      { data: 'name', title: 'Display name', editable: false },
+    ],
+  });
+  editor.openEditDialog(0);
+  expect(form().find('input')).toHaveLength(1);
+});
+
 test.each(
   [
     [{ name: 'name' }, { name: 'name' }],
