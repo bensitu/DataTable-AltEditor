@@ -1,7 +1,7 @@
 import { $, root as window } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { normalizeError } from '../data/errors.js';
-import { fieldElement } from './field-elements.js';
+import { indexFieldControls } from './field-elements.js';
 import { isChecked } from '../data/field-values.js';
 import {
   createSelectOption,
@@ -10,20 +10,19 @@ import {
 
 export const methods = {
   _initializePlugins: function () {
-    if (!this.columnDefs || !Array.isArray(this.columnDefs)) return;
+    const fieldDefinitions = this._dialogFieldDefinitions;
+    if (!Array.isArray(fieldDefinitions)) return;
     var that = this;
     var selector = this.modal_selector;
+    const controlsByName = indexFieldControls(selector);
 
-    this.columnDefs.forEach(function (columnDef) {
-      if (
-        typeof columnDef.name !== 'string' &&
-        typeof columnDef.name !== 'number'
-      )
+    fieldDefinitions.forEach(function (field) {
+      if (typeof field.name !== 'string' && typeof field.name !== 'number')
         return;
-      var $element = fieldElement(selector, columnDef.name);
+      var $element = $(controlsByName.get(String(field.name)));
       if (!$element.length) return;
 
-      if (columnDef.type === 'select' && columnDef.optionsSortByLabel) {
+      if (field.type === 'select' && field.optionsSortByLabel) {
         var oldValue = $element.val();
         var options = $element.find('option').get();
         options.sort(function (a, b) {
@@ -33,11 +32,11 @@ export const methods = {
         if (oldValue !== undefined && oldValue !== null) $element.val(oldValue);
       }
 
-      if (columnDef.select2) {
+      if (field.select2) {
         if (typeof $.fn.select2 === 'function') {
           var config =
-            typeof columnDef.select2 === 'object'
-              ? $.extend({}, columnDef.select2)
+            typeof field.select2 === 'object'
+              ? $.extend({}, field.select2)
               : {};
           config.dropdownParent = $(that.modal_selector);
           $element.select2(config);
@@ -47,7 +46,7 @@ export const methods = {
             const label = this.labels && this.labels[0];
             const name =
               this.getAttribute('aria-label') ||
-              String(columnDef.title || columnDef.name);
+              String(field.title || field.name);
             if (label && label.id) {
               const described = selection.attr('aria-labelledby');
               selection.attr(
@@ -64,16 +63,13 @@ export const methods = {
             });
           });
         }
+      } else if (field.datepicker && typeof $.fn.datepicker === 'function') {
+        $element.datepicker(field.datepicker);
       } else if (
-        columnDef.datepicker &&
-        typeof $.fn.datepicker === 'function'
-      ) {
-        $element.datepicker(columnDef.datepicker);
-      } else if (
-        columnDef.datetimepicker &&
+        field.datetimepicker &&
         typeof $.fn.datetimepicker === 'function'
       ) {
-        const config = $.extend({}, columnDef.datetimepicker);
+        const config = $.extend({}, field.datetimepicker);
         config.className =
           (config.className ? config.className + ' ' : '') +
           'altEditor-datetimepicker';
@@ -81,13 +77,13 @@ export const methods = {
         $element.attr('data-alteditor-datetimepicker', 'true');
       }
 
-      if (typeof columnDef.editorOnChange === 'function') {
-        $element.attr('alt-editor-id', String(columnDef.name));
+      if (typeof field.editorOnChange === 'function') {
+        $element.attr('alt-editor-id', String(field.name));
         $element
           .off('change' + that.s.modalNamespace)
           .on('change' + that.s.modalNamespace, function (event) {
             try {
-              columnDef.editorOnChange(event, that);
+              field.editorOnChange(event, that);
             } catch (error) {
               if (that._opening) throw error;
               if (that._destroyed) return;
@@ -97,7 +93,7 @@ export const methods = {
               emit(that, 'error', {
                 action: that._action,
                 mode: 'dialog',
-                field: columnDef.name,
+                field: field.name,
                 error,
               });
             }
@@ -148,15 +144,15 @@ export const methods = {
         });
     $(selector).find('input, select, textarea').off(this.s.modalNamespace);
   },
-  _setFieldValue: function ($element, columnDef, value, notifySelect2 = true) {
+  _setFieldValue: function ($element, field, value, notifySelect2 = true) {
     if (!$element || !$element.length) return;
-    var type = String(columnDef.type || 'text');
+    var type = String(field.type || 'text');
     var normalized = value === null || value === undefined ? '' : value;
 
     if (
       normalized &&
       typeof normalized === 'object' &&
-      !(type === 'select' && columnDef.multiple && Array.isArray(normalized))
+      !(type === 'select' && field.multiple && Array.isArray(normalized))
     ) {
       $element.val('').prop('disabled', true);
       return;
@@ -168,7 +164,7 @@ export const methods = {
       });
       if (
         notifySelect2 &&
-        columnDef.select2 &&
+        field.select2 &&
         $element.hasClass('select2-hidden-accessible')
       ) {
         $element.trigger('change');
@@ -183,16 +179,16 @@ export const methods = {
 
     if (
       ['date', 'datetime-local', 'time'].indexOf(type) >= 0 &&
-      columnDef.dateFormat &&
+      field.dateFormat &&
       typeof window.moment === 'function'
     ) {
       var date = window.moment(
         String(normalized),
-        columnDef.dateInputFormat || window.moment.ISO_8601,
+        field.dateInputFormat || window.moment.ISO_8601,
         true
       );
       if (date && date.isValid()) {
-        $element.val(date.format(columnDef.dateFormat));
+        $element.val(date.format(field.dateFormat));
         return;
       }
     }

@@ -1,4 +1,4 @@
-import { clearFieldErrors } from '../dialog/field-feedback.js';
+import { clearFieldErrors, feedbackMethods } from '../dialog/field-feedback.js';
 import { $ } from './dependencies.js';
 import { defaults, normalizeOptions } from './options.js';
 import { normalizeColumns } from './columns.js';
@@ -12,7 +12,9 @@ import { methods as dialogForms } from '../dialog/dialog-form.js';
 import { methods as fields } from '../dialog/field-renderer.js';
 import { methods as plugins } from '../dialog/plugins.js';
 import { methods as submission } from '../dialog/submission.js';
+import { methods as uniqueValidation } from '../dialog/unique-validation.js';
 import { InlineEditor } from '../inline/inline-editor.js';
+import { bindToolbar, restoreToolbar, selectionListener } from './toolbar.js';
 let instance = 0;
 export function createAltEditor(DataTable) {
   /** Row-oriented dialog and cell editor for a DataTables instance.
@@ -33,9 +35,10 @@ export function createAltEditor(DataTable) {
       options
     );
     const id = instance++;
+    this._instanceId = 'altEditor' + id;
     this.s = {
       dt: api,
-      namespace: '.altEditor' + id,
+      namespace: '.' + this._instanceId,
       modalNamespace: '.altEditorModal' + id,
     };
     this._destroyed = false;
@@ -59,6 +62,7 @@ export function createAltEditor(DataTable) {
       table.altEditor = this;
       this.selectionListener();
       this._setup();
+      bindToolbar(this);
       this._inline = new InlineEditor(this);
       if (!language.altEditor && language.altEditorUrl)
         this._languageRequest = $.ajax({
@@ -99,26 +103,10 @@ export function createAltEditor(DataTable) {
     formData,
     plugins,
     submission,
+    uniqueValidation,
+    feedbackMethods,
     {
-      selectionListener: function () {
-        var dt = this.s.dt;
-        var toggleEditButton = () => {
-          if (typeof dt.buttons !== 'function') return;
-          var buttons = dt.buttons('edit:name');
-          if (
-            !buttons ||
-            (typeof buttons.count === 'function' && buttons.count() === 0)
-          )
-            return;
-          if (this._selectedRows().count() === 1) buttons.enable();
-          else buttons.disable();
-        };
-
-        dt.off('select' + this.s.namespace + ' deselect' + this.s.namespace);
-        dt.on('select' + this.s.namespace, toggleEditButton);
-        dt.on('deselect' + this.s.namespace, toggleEditButton);
-        toggleEditButton();
-      },
+      selectionListener,
       /** @returns {DataTable.Api} The associated table API. */
       api: function () {
         return this.s.dt;
@@ -210,12 +198,7 @@ export function createAltEditor(DataTable) {
         this._dialogContext = null;
         this._editSnapshot = null;
         this._deleteSnapshot = null;
-        this._buttonActions.forEach((entry) => {
-          const button = this.api().button(entry.name + ':name');
-          if (button.count() && button.action() === entry.action)
-            button.action(entry.original || function () {});
-        });
-        this._buttonActions = [];
+        restoreToolbar(this);
         if (this._languageRequest) this._languageRequest.abort();
         clearFieldErrors(this);
         this._cleanupPlugins();
@@ -234,6 +217,26 @@ export function createAltEditor(DataTable) {
       },
     }
   );
+  Object.defineProperties(AltEditor.prototype, {
+    random_id: {
+      get() {
+        return this._instanceId;
+      },
+      set(value) {
+        this._instanceId = value;
+      },
+      configurable: true,
+    },
+    columnDefs: {
+      get() {
+        return this._dialogFieldDefinitions;
+      },
+      set(value) {
+        this._dialogFieldDefinitions = value;
+      },
+      configurable: true,
+    },
+  });
   AltEditor.version = '4.3.1';
   AltEditor.defaults = defaults;
   AltEditor.classes = { btn: 'btn' };

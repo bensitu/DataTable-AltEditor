@@ -12,9 +12,6 @@ import { resolveLanguage } from '../core/language.js';
 import { requireSynchronousResult } from '../core/synchronous-result.js';
 import { $, document } from '../core/dependencies.js';
 import { snapshotRow, cloneRow } from '../data/row-data.js';
-import { equalFieldValues } from '../data/field-values.js';
-import { transformField } from '../data/form-fields.js';
-import { normalizeError } from '../data/errors.js';
 export const methods = {
   _prepareDialog: function () {
     if (
@@ -196,120 +193,45 @@ export const methods = {
     }
   },
   _setup: function () {
-    var that = this;
-    var dt = this.s.dt;
+    const editor = this;
     if (this._destroyed) return;
 
-    this.random_id = this.s.namespace.slice(1);
-    var modalId = 'altEditor-modal-' + this.random_id;
+    const modalId = 'altEditor-modal-' + this._instanceId;
     this.modal_selector = '#' + modalId;
 
     const useNative = this.c.dialog.framework === 'native';
-    var modal = createDialogShell(modalId, useNative, this.language.modalClose);
+    const modal = createDialogShell(
+      modalId,
+      useNative,
+      this.language.modalClose
+    );
     document.body.appendChild(modal);
 
-    var $modal = $(this.modal_selector);
+    const $modal = $(modal);
     bindDialogEvents(this, $modal);
-
-    if (typeof dt.button === 'function') {
-      ['add', 'edit', 'delete', 'refresh'].forEach(function (name) {
-        const button = dt.button(name + ':name');
-        if (!button || !button.count()) return;
-        const original = button.action();
-        const action = function () {
-          if (name === 'refresh') that.refresh();
-          else
-            that[
-              name === 'add'
-                ? 'openAddDialog'
-                : name === 'edit'
-                  ? 'openEditDialog'
-                  : 'openDeleteDialog'
-            ]();
-        };
-        that._buttonActions.push({ name, original, action });
-        button.action(action);
-      });
-    }
 
     $modal.on(
       'input' + this.s.namespace + ' change' + this.s.namespace,
       'input, select, textarea',
       function () {
-        clearFieldErrors(that, this.name);
+        clearFieldErrors(editor, this.name);
       }
     );
     $modal.on('input' + this.s.namespace, '[data-unique]', function () {
-      that._clearUniqueError(this);
+      editor._clearUniqueError(this);
     });
     $modal.on('change' + this.s.namespace, '[data-unique]', function () {
-      that._validateUniqueField(this);
+      editor._validateUniqueField(this);
     });
-  },
-  _clearUniqueError: function (element) {
-    if (!this._uniqueMessages) return;
-    const message = this._uniqueMessages.get(element);
-    if (message && element.validationMessage === message)
-      element.setCustomValidity('');
-    this._uniqueMessages.delete(element);
-  },
-  _validateUniqueField: function (element) {
-    if ($(element).attr('data-unique') !== 'true') return;
-    this._clearUniqueError(element);
-    if (element.validity && element.validity.customError) return;
-    const field = (this.columnDefs || []).find(
-      (item) => String(item.name) === element.name
-    );
-    if (!field) return;
-    const api = this.api();
-    const row =
-      this._dialogContext && this._dialogContext.action === 'edit'
-        ? this._resolveSnapshotRow(this._editSnapshot)
-        : null;
-    const editIndex = row ? row.index() : null;
-    const indexes = api.rows().indexes().toArray();
-    const direct = field.index !== undefined && !field.getValue;
-    const values = direct
-      ? api.column(field.index).data().toArray()
-      : api.rows().data().toArray();
-    let message;
-    try {
-      const duplicate = values.some((value, index) => {
-        if (indexes[index] === editIndex) return false;
-        const stored = direct
-          ? value
-          : transformField(
-              field,
-              'getValue',
-              this._getValueByPath(value, field.name),
-              this,
-              'edit',
-              value
-            );
-        return equalFieldValues($(element).val(), stored, field.type);
-      });
-      if (duplicate) message = field.uniqueMsg || this.language.error.unique;
-    } catch (error) {
-      message =
-        normalizeError(error, this.language.error).message ||
-        this.language.error.validation;
-    }
-    if (message) {
-      if (!this._uniqueMessages) this._uniqueMessages = new WeakMap();
-      this._uniqueMessages.set(element, message);
-      element.setCustomValidity(message);
-    }
   },
   _initLanguage: function (source) {
     const language = resolveLanguage(
       source === undefined ? this.language : source
     );
     this.language = language;
-    $(this.modal_selector)
-      .find('.altEditor-close')
-      .attr('aria-label', this.language.modalClose);
+    const modal = $(this.modal_selector);
+    modal.find('.altEditor-close').attr('aria-label', this.language.modalClose);
     if (this._dialogOpen) {
-      const modal = $(this.modal_selector);
       modal.find('.altEditor-title').text(this.language[this._action].title);
       modal
         .find('.altEditor-footer [type="submit"]')
@@ -367,14 +289,12 @@ export const methods = {
     const rows = this._resolveOpeningRows(targets, previousContext);
     if (!rows) return false;
     this._deleteSnapshot = {
-      rowIndexes: rows.map((row) => row.index()),
       rows: rows.map((row) => row.data()),
-      rowNodes: rows.map((row) => row.node()),
       targets: rows.map((row) => snapshotRow(row)),
     };
 
     var selector = this.modal_selector;
-    var formName = 'altEditor-delete-form-' + this.random_id;
+    var formName = 'altEditor-delete-form-' + this._instanceId;
     var that = this;
     var fill = function () {
       clearFieldErrors(that);
@@ -464,47 +384,5 @@ export const methods = {
         .find('button[type="submit"]')
         .prop('disabled', true);
     }
-  },
-  _showSuccessMessage: function () {
-    var $body = $(this.modal_selector).find('.altEditor-body');
-    $body.find('.altEditor-feedback').remove();
-    var $alert = $('<div/>', {
-      class: $(this.modal_selector).is('dialog')
-        ? 'altEditor-feedback'
-        : 'altEditor-feedback alert alert-success',
-      role: 'alert',
-    });
-    $('<strong/>').text(this.language.success).appendTo($alert);
-    $body.append($alert);
-  },
-  _showErrorMessage: function (message) {
-    if (!this.modal_selector || !$(this.modal_selector).length) {
-      if (message) console.error(message);
-      return;
-    }
-    var $body = $(this.modal_selector).find('.altEditor-body');
-    if (!this._dialogOpen) {
-      if (!this._message)
-        this._message = $('<div/>', {
-          class: 'altEditor-message',
-        }).insertBefore(this.api().table().node());
-      $body = this._message;
-    }
-    $body.find('.altEditor-feedback').remove();
-    var $alert = $('<div/>', {
-      class: $(this.modal_selector).is('dialog')
-        ? 'altEditor-feedback'
-        : 'altEditor-feedback alert alert-danger',
-      role: 'alert',
-    });
-    $('<strong/>').text(this.language.error.label).appendTo($alert);
-    if (message) {
-      $('<br/>').appendTo($alert);
-      $('<span/>')
-        .css('white-space', 'pre-line')
-        .text(String(message))
-        .appendTo($alert);
-    }
-    $body.append($alert);
   },
 };

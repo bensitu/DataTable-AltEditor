@@ -1,17 +1,19 @@
 import { $, root as window } from '../core/dependencies.js';
+import { fieldControls } from './field-elements.js';
 
 export const methods = {
-  _collectFormData: function ($form) {
+  _collectFormData: function ($form, controls = fieldControls($form)) {
     var that = this;
-    var columns = this.columnDefs || this.completeFieldDefs();
-    var values = columns.every(function (column) {
-      return typeof column.name === 'number';
+    var fieldDefinitions =
+      this._dialogFieldDefinitions || this.completeFieldDefs();
+    var values = fieldDefinitions.every(function (field) {
+      return typeof field.name === 'number';
     })
       ? []
       : {};
     var fileTasks = [];
 
-    $form.find('select, textarea, input').each(function () {
+    controls.each(function () {
       if (this.disabled) return;
       var $input = $(this);
       var id = this.name || this.id;
@@ -22,13 +24,13 @@ export const methods = {
         var files = $input.prop('files');
         var file = files && files[0];
         if (!file) return;
-        const column = columns.find((item) => String(item.name) === id);
+        const field = fieldDefinitions.find((item) => String(item.name) === id);
         if (
-          column &&
-          column.maxFileSize !== undefined &&
-          (!Number.isFinite(column.maxFileSize) ||
-            column.maxFileSize < 0 ||
-            file.size > column.maxFileSize)
+          field &&
+          field.maxFileSize !== undefined &&
+          (!Number.isFinite(field.maxFileSize) ||
+            field.maxFileSize < 0 ||
+            file.size > field.maxFileSize)
         )
           throw new Error(that.language.error.fileSize);
         if (that.encodeFiles) {
@@ -76,7 +78,7 @@ export const methods = {
   _validateFormData: function ($form, fieldErrors) {
     var that = this;
     var errors = [];
-    $form.find('select, textarea, input').each(function () {
+    fieldControls($form).each(function () {
       if (this.disabled) return;
       var $input = $(this);
       var id = this.name || this.id || 'field';

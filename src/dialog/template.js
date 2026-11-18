@@ -20,7 +20,7 @@ export function applyTemplate(source, fields, context) {
   layout.querySelectorAll('[id]').forEach((element, index) => {
     if (identifiers.has(element.id))
       throw new Error('Duplicate dialog template identifier: ' + element.id);
-    const id = context.editor.random_id + '-template-' + index;
+    const id = context.editor._instanceId + '-template-' + index;
     identifiers.set(element.id, id);
     element.id = id;
   });

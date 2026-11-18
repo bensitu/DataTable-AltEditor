@@ -1,6 +1,6 @@
 import { clearFieldErrors } from './field-feedback.js';
 import { $ } from '../core/dependencies.js';
-import { fieldElement } from './field-elements.js';
+import { fieldElement, indexFieldControls } from './field-elements.js';
 import { isFieldPath } from '../data/path.js';
 import { applyTemplate } from './template.js';
 import { renderFields } from './field-renderer.js';
@@ -9,18 +9,19 @@ import { transformField } from '../data/form-fields.js';
 
 export const methods = {
   createDialog: function (
-    columnDefs,
+    fieldDefinitions,
     modalTitle,
     buttonCaption,
     closeCaption,
-    buttonClass,
-    formName
+    buttonId,
+    formName,
+    action = buttonId === 'addRowBtn' ? 'add' : 'edit'
   ) {
     clearFieldErrors(this);
-    this.columnDefs = columnDefs;
-    const fields = renderFields(columnDefs, this.random_id);
+    this._dialogFieldDefinitions = fieldDefinitions;
+    const fields = renderFields(fieldDefinitions, this._instanceId);
     const body = applyTemplate(
-      this.c.dialog.templates[buttonClass === 'addRowBtn' ? 'add' : 'edit'],
+      this.c.dialog.templates[action],
       fields,
       this._dialogContext
     );
@@ -31,8 +32,8 @@ export const methods = {
         body,
         closeCaption,
         buttonCaption,
-        buttonId: buttonClass,
-        formName: formName + '-' + this.random_id,
+        buttonId,
+        formName: formName + '-' + this._instanceId,
       });
     if (this.internalOpenDialog(this.modal_selector, fill) === false)
       return false;
@@ -41,46 +42,54 @@ export const methods = {
   },
   _openFormDialog: function (action, rowData) {
     try {
-      const columns = this.completeFieldDefs();
+      const fieldDefinitions = this.completeFieldDefs();
       if (
         this.createDialog(
-          columns,
+          fieldDefinitions,
           this.language[action].title,
           this.language[action].button,
           this.language.modalClose,
           action + 'RowBtn',
-          'altEditor-' + action + '-form'
+          'altEditor-' + action + '-form',
+          action
         ) === false
       )
         return false;
-      this._populateDialogFields(columns, rowData);
+      this._populateDialogFields(fieldDefinitions, rowData);
       this._finishDialogOpening(action);
     } catch (error) {
       return this._abortDialogOpening(error);
     }
   },
-  _populateDialogFields: function (columns, rowData) {
-    for (const column of columns) {
+  _populateDialogFields: function (fieldDefinitions, rowData) {
+    const modal = $(this.modal_selector)[0];
+    const controlsByName = indexFieldControls(modal);
+    for (const field of fieldDefinitions) {
       if (this._destroyed) return;
-      if (!isFieldPath(column.name) || column.editable === false) continue;
+      if (!isFieldPath(field.name) || field.editable === false) continue;
+      const name = String(field.name);
+      const indexed = controlsByName.get(name);
+      const controls =
+        indexed &&
+        indexed.some(
+          (element) =>
+            !modal.contains(element) || (element.name || element.id) !== name
+        )
+          ? fieldElement(modal, name)
+          : $(indexed);
       const stored =
         rowData === undefined
-          ? column.value
-          : this._getValueByPath(rowData, column.name);
-      if (column.type === 'file') {
+          ? field.value
+          : this._getValueByPath(rowData, field.name);
+      if (field.type === 'file') {
         if (rowData !== undefined && stored != null && stored !== '')
-          fieldElement(this.modal_selector, column.name).prop(
-            'required',
-            false
-          );
+          controls.prop('required', false);
         continue;
       }
-      const element = fieldElement(this.modal_selector, column.name).filter(
-        ':input[type!="file"]'
-      );
+      const element = controls.filter(':input[type!="file"]');
       if (!element.length) continue;
       const value = transformField(
-        column,
+        field,
         'getValue',
         stored,
         this,
@@ -88,7 +97,7 @@ export const methods = {
         rowData
       );
       if (rowData === undefined && value == null) continue;
-      this._setFieldValue(element, column, value, false);
+      this._setFieldValue(element, field, value, false);
       element.trigger('change');
     }
   },

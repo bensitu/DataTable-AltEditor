@@ -3,6 +3,7 @@ import { normalizeError } from '../data/errors.js';
 import { document } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { requireSynchronousResult } from '../core/synchronous-result.js';
+import { bindControlEvents } from './control-events.js';
 import { snapshotRow, resolveRow, cloneRow } from '../data/row-data.js';
 import { acceptPersistedRow, invokePersistence } from '../data/persistence.js';
 import { withValue } from '../data/path.js';
@@ -148,59 +149,23 @@ export class InlineEditor {
       options,
       state: 'editing',
       composing: false,
-      listeners: [],
     });
     session.control = createControl(options, session.oldValue);
     session.errorNode = document.createElement('span');
     session.errorNode.className = 'alteditor-inline-error';
-    session.errorNode.id = 'alteditor-error-' + this.editor.random_id;
+    session.errorNode.id = 'alteditor-error-' + this.editor._instanceId;
     session.errorNode.setAttribute('role', 'alert');
     session.control.setAttribute('aria-describedby', session.errorNode.id);
     this.session = session;
-    const listen = (name, handler) => {
-      session.control.addEventListener(name, handler);
-      session.listeners.push([name, handler]);
-    };
-    listen('compositionstart', () => {
-      session.composing = true;
-    });
-    listen('compositionend', () => {
-      session.composing = false;
-    });
-    listen('keydown', (event) => {
-      if (session.composing || event.isComposing || event.keyCode === 229)
-        return;
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        this.cancel('escape');
-      } else if (event.key === 'Enter') {
-        event.preventDefault();
-        this.commit();
-      } else if (
-        event.key === 'Tab' &&
-        this.editor.c.inlineEdit.tabNavigation
-      ) {
-        event.preventDefault();
-        this.commit(event.shiftKey ? -1 : 1);
+    session.releaseEvents = bindControlEvents(
+      session,
+      this.editor.c.inlineEdit,
+      {
+        commit: (direction) => this.commit(direction),
+        cancel: (reason, focus) => this.cancel(reason, focus),
+        isCurrent: () => this.session === session,
       }
-    });
-    listen('blur', () => {
-      if (
-        this.session !== session ||
-        session.state !== 'editing' ||
-        session.detaching
-      )
-        return;
-      if (this.editor.c.inlineEdit.submitOnBlur) this.commit();
-      else this.cancel('blur', false);
-    });
-    const clearError = () => {
-      session.control.setCustomValidity('');
-      session.control.removeAttribute('aria-invalid');
-      session.errorNode.textContent = '';
-    };
-    listen('input', clearError);
-    listen('change', clearError);
+    );
     this.attach(session, cell.node());
     this.event('open', session);
     return true;
@@ -455,9 +420,7 @@ export class InlineEditor {
     }
   }
   release(session) {
-    session.listeners.forEach((pair) =>
-      session.control.removeEventListener(pair[0], pair[1])
-    );
+    session.releaseEvents();
     this.detach(session);
   }
   close(session, reason, focus) {

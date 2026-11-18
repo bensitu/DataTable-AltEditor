@@ -39,7 +39,7 @@ test('initializes optional controls, scopes popups and releases their handlers',
       ...methods,
       modal_selector: '#editor',
       s: { modalNamespace: '.example' },
-      columnDefs: [
+      _dialogFieldDefinitions: [
         {
           name: 'user.role',
           title: 'Role',

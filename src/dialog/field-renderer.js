@@ -4,7 +4,7 @@ import { normalizeSelectOptions } from '../data/field-values.js';
 import { isFieldPath } from '../data/path.js';
 
 /** Build detached field controls without opening a dialog or initializing plugins. */
-export function renderFields(columnDefs, instanceId) {
+export function renderFields(fieldDefinitions, instanceId) {
   var fragment = document.createDocumentFragment();
   var container = document.createElement('div');
   container.className = 'altEditor-fields';
@@ -18,30 +18,30 @@ export function renderFields(columnDefs, instanceId) {
 
   var inlineCount = 0;
 
-  columnDefs.forEach(function (columnDef, index) {
+  fieldDefinitions.forEach(function (field, index) {
     var fieldId = instanceId + '-field-' + index;
-    var title = String(columnDef.title || '').trim();
-    if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
+    var title = String(field.title || '').trim();
+    if (!isFieldPath(field.name) || field.type === 'radio') return;
 
-    if (columnDef.type === 'hidden') {
+    if (field.type === 'hidden') {
       var hidden = document.createElement('input');
       hidden.type = 'hidden';
       hidden.id = fieldId;
-      setElementAttributes(hidden, columnDef, ['name', 'disabled']);
-      if (columnDef.value !== undefined && columnDef.value !== null)
-        hidden.value = columnDef.value;
+      setElementAttributes(hidden, field, ['name', 'disabled']);
+      if (field.value !== undefined && field.value !== null)
+        hidden.value = field.value;
       col.appendChild(hidden);
       return;
     }
 
-    if (!title || columnDef.editable === false) return;
+    if (!title || field.editable === false) return;
 
     var formGroup = document.createElement('div');
     formGroup.className =
-      'altEditor-field' + (columnDef.visible === false ? ' nonDisplay' : '');
+      'altEditor-field' + (field.visible === false ? ' nonDisplay' : '');
     formGroup.id = fieldId + '-row';
 
-    if (!columnDef.inline || inlineCount === 0) {
+    if (!field.inline || inlineCount === 0) {
       var labelCol = document.createElement('div');
       labelCol.className = 'altEditor-label';
       var label = document.createElement('label');
@@ -55,34 +55,34 @@ export function renderFields(columnDefs, instanceId) {
 
     var inputCol = document.createElement('div');
     inputCol.className =
-      'altEditor-input' + (columnDef.inline ? ' altEditor-input-compact' : '');
+      'altEditor-input' + (field.inline ? ' altEditor-input-compact' : '');
     formGroup.appendChild(inputCol);
 
-    var type = String(columnDef.type || 'text');
+    var type = String(field.type || 'text');
     if (type === 'select') {
       var select = document.createElement('select');
       select.className =
-        'form-control form-control-sm' + (columnDef.select2 ? ' select2' : '');
+        'form-control form-control-sm' + (field.select2 ? ' select2' : '');
       select.id = fieldId;
-      setElementAttributes(select, columnDef, [
+      setElementAttributes(select, field, [
         'name',
         'style',
         'disabled',
         'required',
         'multiple',
       ]);
-      select.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-      if (columnDef.placeholder != null)
-        select.setAttribute('data-placeholder', String(columnDef.placeholder));
+      select.setAttribute('data-unique', field.unique ? 'true' : 'false');
+      if (field.placeholder != null)
+        select.setAttribute('data-placeholder', String(field.placeholder));
 
-      var normalized = normalizeSelectOptions(columnDef.options);
+      var normalized = normalizeSelectOptions(field.options);
       normalized.forEach(function (option) {
         const optionElement = createSelectOption(
           select,
           option.value,
           option.label
         );
-        if (optionElement.value === String(columnDef.value))
+        if (optionElement.value === String(field.value))
           optionElement.selected = true;
         select.appendChild(optionElement);
       });
@@ -91,7 +91,7 @@ export function renderFields(columnDefs, instanceId) {
       var textarea = document.createElement('textarea');
       textarea.className = 'form-control form-control-sm';
       textarea.id = fieldId;
-      setElementAttributes(textarea, columnDef, [
+      setElementAttributes(textarea, field, [
         'name',
         'style',
         'rows',
@@ -102,24 +102,24 @@ export function renderFields(columnDefs, instanceId) {
         'required',
       ]);
       textarea.placeholder = String(
-        columnDef.placeholder == null ? title : columnDef.placeholder
+        field.placeholder == null ? title : field.placeholder
       );
-      textarea.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-      if (columnDef.value !== undefined && columnDef.value !== null)
-        textarea.value = columnDef.value;
+      textarea.setAttribute('data-unique', field.unique ? 'true' : 'false');
+      if (field.value !== undefined && field.value !== null)
+        textarea.value = field.value;
       inputCol.appendChild(textarea);
     } else {
       var input = document.createElement('input');
       input.className =
         'form-control form-control-sm' +
-        (columnDef.readonly ? ' readonlyText' : '');
+        (field.readonly ? ' readonlyText' : '');
       input.id = fieldId;
-      input.title = String(columnDef.hoverMsg || '');
+      input.title = String(field.hoverMsg || '');
       input.placeholder = String(
-        columnDef.placeholder == null ? title : columnDef.placeholder
+        field.placeholder == null ? title : field.placeholder
       );
-      input.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-      setElementAttributes(input, columnDef, [
+      input.setAttribute('data-unique', field.unique ? 'true' : 'false');
+      setElementAttributes(input, field, [
         'type',
         'pattern',
         'accept',
@@ -133,12 +133,12 @@ export function renderFields(columnDefs, instanceId) {
         'required',
         'style',
       ]);
-      if (columnDef.value !== undefined && columnDef.value !== null)
-        input.value = columnDef.value;
+      if (field.value !== undefined && field.value !== null)
+        input.value = field.value;
       inputCol.appendChild(input);
     }
 
-    if (columnDef.inline && inlineCount > 0) {
+    if (field.inline && inlineCount > 0) {
       inputCol
         .querySelector('input, select, textarea')
         .setAttribute('aria-label', title);
@@ -150,11 +150,11 @@ export function renderFields(columnDefs, instanceId) {
   return fragment;
 }
 
-function setElementAttributes(element, columnDef, attributes) {
-  if (columnDef.special !== undefined)
-    element.setAttribute('data-special', String(columnDef.special));
+function setElementAttributes(element, field, attributes) {
+  if (field.special !== undefined)
+    element.setAttribute('data-special', String(field.special));
   attributes.forEach(function (attribute) {
-    var value = columnDef[attribute];
+    var value = field[attribute];
     if (value === undefined || value === null || value === false) return;
     if (['disabled', 'readonly', 'required', 'multiple'].includes(attribute)) {
       if (value) element.setAttribute(attribute, '');

@@ -26,7 +26,8 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
-- Dialog and inline editing share option construction and persistence response handling. Dialog submissions index form controls and copy each edited row branch once.
+- Dialog and inline editing share option construction and persistence response handling. Dialogs index form controls during initialization and submission, and copy each edited row branch once.
+- Separated toolbar bindings, dialog feedback, field uniqueness checks, and inline control events from their controllers.
 - Consolidated shared editor and example styles. The deployed examples serve minified stylesheets.
 - Updated the examples and development setup to jQuery 3.8.0 and the date picker example to jquery-datetimepicker 2.5.21.
 - The file example demonstrates required attachments and retaining the original file when editing.

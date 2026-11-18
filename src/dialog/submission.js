@@ -15,6 +15,7 @@ import {
 import { withValue, withValues } from '../data/path.js';
 import { transformField } from '../data/form-fields.js';
 import { normalizeError } from '../data/errors.js';
+import { fieldControls } from './field-elements.js';
 
 /** @callback PersistenceCallback
  * @param {Object} editor AltEditor instance.
@@ -75,7 +76,8 @@ export const methods = {
     clearFieldErrors(this);
     const form = $(this.modal_selector).find('form');
     if (!active()) return;
-    const columns = action === 'delete' ? [] : editor.columnDefs;
+    const fieldDefinitions =
+      action === 'delete' ? [] : editor._dialogFieldDefinitions;
     const fieldNames = new Set();
     let validators = [];
     let collection;
@@ -90,7 +92,8 @@ export const methods = {
         if (Object.keys(nativeErrors).length)
           throw { fieldErrors: nativeErrors };
         const controlsByName = new Map();
-        form.find('input, select, textarea').each(function () {
+        const controls = fieldControls(form);
+        controls.each(function () {
           const name = this.name || this.id;
           if (name && !controlsByName.has(name)) controlsByName.set(name, this);
           if (
@@ -102,7 +105,7 @@ export const methods = {
             fieldNames.add(this.name);
         });
         const modal = $(editor.modal_selector)[0];
-        validators = columns.filter((field) => {
+        validators = fieldDefinitions.filter((field) => {
           if (
             typeof field.editorValidate !== 'function' ||
             field.readonly ||
@@ -113,7 +116,7 @@ export const methods = {
             return false;
           return feedbackControl(controlsByName.get(String(field.name)), modal);
         });
-        collection = this._collectFormData(form);
+        collection = this._collectFormData(form, controls);
       }
     } catch (error) {
       fail(error);
@@ -139,7 +142,7 @@ export const methods = {
           if (error) throw error;
           if (action !== 'delete' && active()) {
             let converted = values;
-            columns.forEach((field) => {
+            fieldDefinitions.forEach((field) => {
               if (
                 !active() ||
                 field.setValue === undefined ||

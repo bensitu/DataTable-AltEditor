@@ -63,7 +63,7 @@ export function showFieldErrors(editor, error) {
     const node = document.createElement('span');
     node.className = 'altEditor-field-error';
     editor._fieldErrorId = (editor._fieldErrorId || 0) + 1;
-    node.id = editor.random_id + '-error-' + editor._fieldErrorId;
+    node.id = editor._instanceId + '-error-' + editor._fieldErrorId;
     node.setAttribute('role', 'alert');
     node.textContent = message;
     const search = $(element)
@@ -95,3 +95,56 @@ export function showFieldErrors(editor, error) {
   if (messages.length) editor._showErrorMessage(messages.join('\n'));
   if (first && first.isConnected) first.focus();
 }
+
+function renderNotice(modal, container, variant, title, message) {
+  container.find('.altEditor-feedback').remove();
+  const notice = $('<div/>', {
+    class: modal.is('dialog')
+      ? 'altEditor-feedback'
+      : 'altEditor-feedback alert alert-' + variant,
+    role: 'alert',
+  });
+  $('<strong/>').text(title).appendTo(notice);
+  if (message) {
+    $('<br/>').appendTo(notice);
+    $('<span/>')
+      .css('white-space', 'pre-line')
+      .text(String(message))
+      .appendTo(notice);
+  }
+  container.append(notice);
+}
+
+export const feedbackMethods = {
+  _showSuccessMessage() {
+    const modal = $(this.modal_selector);
+    renderNotice(
+      modal,
+      modal.find('.altEditor-body'),
+      'success',
+      this.language.success
+    );
+  },
+  _showErrorMessage(message) {
+    const modal = $(this.modal_selector);
+    if (!modal.length) {
+      if (message) console.error(message);
+      return;
+    }
+    let container = modal.find('.altEditor-body');
+    if (!this._dialogOpen) {
+      if (!this._message)
+        this._message = $('<div/>', {
+          class: 'altEditor-message',
+        }).insertBefore(this.api().table().node());
+      container = this._message;
+    }
+    renderNotice(
+      modal,
+      container,
+      'danger',
+      this.language.error.label,
+      message
+    );
+  },
+};

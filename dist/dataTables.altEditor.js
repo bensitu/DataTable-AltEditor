@@ -18,13 +18,27 @@
     $ = jquery;
   }
 
+  function fieldControls(container) {
+    return $(container).find('input, select, textarea');
+  }
+
+  function indexFieldControls(container) {
+    const controls = new Map();
+    fieldControls(container).each(function () {
+      const name = this.name || this.id;
+      if (!name) return;
+      const matching = controls.get(name);
+      if (matching) matching.push(this);
+      else controls.set(name, [this]);
+    });
+    return controls;
+  }
+
   function fieldElement(container, name) {
     const fieldName = String(name);
-    return $(container)
-      .find('input, select, textarea')
-      .filter(function () {
-        return (this.name || this.id) === fieldName;
-      });
+    return fieldControls(container).filter(function () {
+      return (this.name || this.id) === fieldName;
+    });
   }
 
   /** Normalize persistence and validation failures without interpreting messages as HTML. */
@@ -122,7 +136,7 @@
       const node = document.createElement('span');
       node.className = 'altEditor-field-error';
       editor._fieldErrorId = (editor._fieldErrorId || 0) + 1;
-      node.id = editor.random_id + '-error-' + editor._fieldErrorId;
+      node.id = editor._instanceId + '-error-' + editor._fieldErrorId;
       node.setAttribute('role', 'alert');
       node.textContent = message;
       const search = $(element)
@@ -154,6 +168,59 @@
     if (messages.length) editor._showErrorMessage(messages.join('\n'));
     if (first && first.isConnected) first.focus();
   }
+
+  function renderNotice(modal, container, variant, title, message) {
+    container.find('.altEditor-feedback').remove();
+    const notice = $('<div/>', {
+      class: modal.is('dialog')
+        ? 'altEditor-feedback'
+        : 'altEditor-feedback alert alert-' + variant,
+      role: 'alert',
+    });
+    $('<strong/>').text(title).appendTo(notice);
+    if (message) {
+      $('<br/>').appendTo(notice);
+      $('<span/>')
+        .css('white-space', 'pre-line')
+        .text(String(message))
+        .appendTo(notice);
+    }
+    container.append(notice);
+  }
+
+  const feedbackMethods = {
+    _showSuccessMessage() {
+      const modal = $(this.modal_selector);
+      renderNotice(
+        modal,
+        modal.find('.altEditor-body'),
+        'success',
+        this.language.success
+      );
+    },
+    _showErrorMessage(message) {
+      const modal = $(this.modal_selector);
+      if (!modal.length) {
+        if (message) console.error(message);
+        return;
+      }
+      let container = modal.find('.altEditor-body');
+      if (!this._dialogOpen) {
+        if (!this._message)
+          this._message = $('<div/>', {
+            class: 'altEditor-message',
+          }).insertBefore(this.api().table().node());
+        container = this._message;
+      }
+      renderNotice(
+        modal,
+        container,
+        'danger',
+        this.language.error.label,
+        message
+      );
+    },
+  };
 
   function isPlainObject(value) {
     if (!value || Object.prototype.toString.call(value) !== '[object Object]')
@@ -585,7 +652,7 @@
     layout.querySelectorAll('[id]').forEach((element, index) => {
       if (identifiers.has(element.id))
         throw new Error('Duplicate dialog template identifier: ' + element.id);
-      const id = context.editor.random_id + '-template-' + index;
+      const id = context.editor._instanceId + '-template-' + index;
       identifiers.set(element.id, id);
       element.id = id;
     });
@@ -1021,60 +1088,7 @@
     return language;
   }
 
-  function equalFieldValues(left, right, type) {
-    const values = (value) => (Array.isArray(value) ? value : [value]);
-    return values(left).some((a) =>
-      values(right).some((b) => {
-        if (a === '' || a == null || b === '' || b == null) return false;
-        if (type === 'number')
-          return (
-            Number.isFinite(Number(a)) &&
-            Number.isFinite(Number(b)) &&
-            Number(a) === Number(b)
-          );
-        return String(a) === String(b);
-      })
-    );
-  }
-
-  function normalizeSelectOptions(options) {
-    if (Array.isArray(options)) {
-      return options.map(function (option) {
-        if (option && typeof option === 'object') {
-          var value =
-            option.id !== undefined
-              ? option.id
-              : option.value !== undefined
-                ? option.value
-                : '';
-          var label =
-            option.text !== undefined
-              ? option.text
-              : option.label !== undefined
-                ? option.label
-                : value;
-          return { value: value, label: label };
-        }
-        return { value: option, label: option };
-      });
-    }
-    if (options && typeof options === 'object') {
-      return Object.keys(options).map(function (key) {
-        return { value: key, label: options[key] };
-      });
-    }
-    return [];
-  }
-
-  function isChecked(value) {
-    return (
-      value === true ||
-      value === 1 ||
-      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
-    );
-  }
-
-  const methods$5 = {
+  const methods$6 = {
     _prepareDialog: function () {
       if (
         this._destroyed ||
@@ -1255,120 +1269,45 @@
       }
     },
     _setup: function () {
-      var that = this;
-      var dt = this.s.dt;
+      const editor = this;
       if (this._destroyed) return;
 
-      this.random_id = this.s.namespace.slice(1);
-      var modalId = 'altEditor-modal-' + this.random_id;
+      const modalId = 'altEditor-modal-' + this._instanceId;
       this.modal_selector = '#' + modalId;
 
       const useNative = this.c.dialog.framework === 'native';
-      var modal = createDialogShell(modalId, useNative, this.language.modalClose);
+      const modal = createDialogShell(
+        modalId,
+        useNative,
+        this.language.modalClose
+      );
       document.body.appendChild(modal);
 
-      var $modal = $(this.modal_selector);
+      const $modal = $(modal);
       bindDialogEvents(this, $modal);
-
-      if (typeof dt.button === 'function') {
-        ['add', 'edit', 'delete', 'refresh'].forEach(function (name) {
-          const button = dt.button(name + ':name');
-          if (!button || !button.count()) return;
-          const original = button.action();
-          const action = function () {
-            if (name === 'refresh') that.refresh();
-            else
-              that[
-                name === 'add'
-                  ? 'openAddDialog'
-                  : name === 'edit'
-                    ? 'openEditDialog'
-                    : 'openDeleteDialog'
-              ]();
-          };
-          that._buttonActions.push({ name, original, action });
-          button.action(action);
-        });
-      }
 
       $modal.on(
         'input' + this.s.namespace + ' change' + this.s.namespace,
         'input, select, textarea',
         function () {
-          clearFieldErrors(that, this.name);
+          clearFieldErrors(editor, this.name);
         }
       );
       $modal.on('input' + this.s.namespace, '[data-unique]', function () {
-        that._clearUniqueError(this);
+        editor._clearUniqueError(this);
       });
       $modal.on('change' + this.s.namespace, '[data-unique]', function () {
-        that._validateUniqueField(this);
+        editor._validateUniqueField(this);
       });
-    },
-    _clearUniqueError: function (element) {
-      if (!this._uniqueMessages) return;
-      const message = this._uniqueMessages.get(element);
-      if (message && element.validationMessage === message)
-        element.setCustomValidity('');
-      this._uniqueMessages.delete(element);
-    },
-    _validateUniqueField: function (element) {
-      if ($(element).attr('data-unique') !== 'true') return;
-      this._clearUniqueError(element);
-      if (element.validity && element.validity.customError) return;
-      const field = (this.columnDefs || []).find(
-        (item) => String(item.name) === element.name
-      );
-      if (!field) return;
-      const api = this.api();
-      const row =
-        this._dialogContext && this._dialogContext.action === 'edit'
-          ? this._resolveSnapshotRow(this._editSnapshot)
-          : null;
-      const editIndex = row ? row.index() : null;
-      const indexes = api.rows().indexes().toArray();
-      const direct = field.index !== undefined && !field.getValue;
-      const values = direct
-        ? api.column(field.index).data().toArray()
-        : api.rows().data().toArray();
-      let message;
-      try {
-        const duplicate = values.some((value, index) => {
-          if (indexes[index] === editIndex) return false;
-          const stored = direct
-            ? value
-            : transformField(
-                field,
-                'getValue',
-                this._getValueByPath(value, field.name),
-                this,
-                'edit',
-                value
-              );
-          return equalFieldValues($(element).val(), stored, field.type);
-        });
-        if (duplicate) message = field.uniqueMsg || this.language.error.unique;
-      } catch (error) {
-        message =
-          normalizeError(error, this.language.error).message ||
-          this.language.error.validation;
-      }
-      if (message) {
-        if (!this._uniqueMessages) this._uniqueMessages = new WeakMap();
-        this._uniqueMessages.set(element, message);
-        element.setCustomValidity(message);
-      }
     },
     _initLanguage: function (source) {
       const language = resolveLanguage(
         source === undefined ? this.language : source
       );
       this.language = language;
-      $(this.modal_selector)
-        .find('.altEditor-close')
-        .attr('aria-label', this.language.modalClose);
+      const modal = $(this.modal_selector);
+      modal.find('.altEditor-close').attr('aria-label', this.language.modalClose);
       if (this._dialogOpen) {
-        const modal = $(this.modal_selector);
         modal.find('.altEditor-title').text(this.language[this._action].title);
         modal
           .find('.altEditor-footer [type="submit"]')
@@ -1426,14 +1365,12 @@
       const rows = this._resolveOpeningRows(targets, previousContext);
       if (!rows) return false;
       this._deleteSnapshot = {
-        rowIndexes: rows.map((row) => row.index()),
         rows: rows.map((row) => row.data()),
-        rowNodes: rows.map((row) => row.node()),
         targets: rows.map((row) => snapshotRow(row)),
       };
 
       var selector = this.modal_selector;
-      var formName = 'altEditor-delete-form-' + this.random_id;
+      var formName = 'altEditor-delete-form-' + this._instanceId;
       var that = this;
       var fill = function () {
         clearFieldErrors(that);
@@ -1524,62 +1461,21 @@
           .prop('disabled', true);
       }
     },
-    _showSuccessMessage: function () {
-      var $body = $(this.modal_selector).find('.altEditor-body');
-      $body.find('.altEditor-feedback').remove();
-      var $alert = $('<div/>', {
-        class: $(this.modal_selector).is('dialog')
-          ? 'altEditor-feedback'
-          : 'altEditor-feedback alert alert-success',
-        role: 'alert',
-      });
-      $('<strong/>').text(this.language.success).appendTo($alert);
-      $body.append($alert);
-    },
-    _showErrorMessage: function (message) {
-      if (!this.modal_selector || !$(this.modal_selector).length) {
-        if (message) console.error(message);
-        return;
-      }
-      var $body = $(this.modal_selector).find('.altEditor-body');
-      if (!this._dialogOpen) {
-        if (!this._message)
-          this._message = $('<div/>', {
-            class: 'altEditor-message',
-          }).insertBefore(this.api().table().node());
-        $body = this._message;
-      }
-      $body.find('.altEditor-feedback').remove();
-      var $alert = $('<div/>', {
-        class: $(this.modal_selector).is('dialog')
-          ? 'altEditor-feedback'
-          : 'altEditor-feedback alert alert-danger',
-        role: 'alert',
-      });
-      $('<strong/>').text(this.language.error.label).appendTo($alert);
-      if (message) {
-        $('<br/>').appendTo($alert);
-        $('<span/>')
-          .css('white-space', 'pre-line')
-          .text(String(message))
-          .appendTo($alert);
-      }
-      $body.append($alert);
-    },
   };
 
-  const methods$4 = {
-    _collectFormData: function ($form) {
+  const methods$5 = {
+    _collectFormData: function ($form, controls = fieldControls($form)) {
       var that = this;
-      var columns = this.columnDefs || this.completeFieldDefs();
-      var values = columns.every(function (column) {
-        return typeof column.name === 'number';
+      var fieldDefinitions =
+        this._dialogFieldDefinitions || this.completeFieldDefs();
+      var values = fieldDefinitions.every(function (field) {
+        return typeof field.name === 'number';
       })
         ? []
         : {};
       var fileTasks = [];
 
-      $form.find('select, textarea, input').each(function () {
+      controls.each(function () {
         if (this.disabled) return;
         var $input = $(this);
         var id = this.name || this.id;
@@ -1590,13 +1486,13 @@
           var files = $input.prop('files');
           var file = files && files[0];
           if (!file) return;
-          const column = columns.find((item) => String(item.name) === id);
+          const field = fieldDefinitions.find((item) => String(item.name) === id);
           if (
-            column &&
-            column.maxFileSize !== undefined &&
-            (!Number.isFinite(column.maxFileSize) ||
-              column.maxFileSize < 0 ||
-              file.size > column.maxFileSize)
+            field &&
+            field.maxFileSize !== undefined &&
+            (!Number.isFinite(field.maxFileSize) ||
+              field.maxFileSize < 0 ||
+              file.size > field.maxFileSize)
           )
             throw new Error(that.language.error.fileSize);
           if (that.encodeFiles) {
@@ -1644,7 +1540,7 @@
     _validateFormData: function ($form, fieldErrors) {
       var that = this;
       var errors = [];
-      $form.find('select, textarea, input').each(function () {
+      fieldControls($form).each(function () {
         if (this.disabled) return;
         var $input = $(this);
         var id = this.name || this.id || 'field';
@@ -1728,8 +1624,61 @@
     $(control).val(control.multiple ? values : values.length ? values[0] : '');
   }
 
+  function equalFieldValues(left, right, type) {
+    const values = (value) => (Array.isArray(value) ? value : [value]);
+    return values(left).some((a) =>
+      values(right).some((b) => {
+        if (a === '' || a == null || b === '' || b == null) return false;
+        if (type === 'number')
+          return (
+            Number.isFinite(Number(a)) &&
+            Number.isFinite(Number(b)) &&
+            Number(a) === Number(b)
+          );
+        return String(a) === String(b);
+      })
+    );
+  }
+
+  function normalizeSelectOptions(options) {
+    if (Array.isArray(options)) {
+      return options.map(function (option) {
+        if (option && typeof option === 'object') {
+          var value =
+            option.id !== undefined
+              ? option.id
+              : option.value !== undefined
+                ? option.value
+                : '';
+          var label =
+            option.text !== undefined
+              ? option.text
+              : option.label !== undefined
+                ? option.label
+                : value;
+          return { value: value, label: label };
+        }
+        return { value: option, label: option };
+      });
+    }
+    if (options && typeof options === 'object') {
+      return Object.keys(options).map(function (key) {
+        return { value: key, label: options[key] };
+      });
+    }
+    return [];
+  }
+
+  function isChecked(value) {
+    return (
+      value === true ||
+      value === 1 ||
+      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
+    );
+  }
+
   /** Build detached field controls without opening a dialog or initializing plugins. */
-  function renderFields(columnDefs, instanceId) {
+  function renderFields(fieldDefinitions, instanceId) {
     var fragment = document.createDocumentFragment();
     var container = document.createElement('div');
     container.className = 'altEditor-fields';
@@ -1743,30 +1692,30 @@
 
     var inlineCount = 0;
 
-    columnDefs.forEach(function (columnDef, index) {
+    fieldDefinitions.forEach(function (field, index) {
       var fieldId = instanceId + '-field-' + index;
-      var title = String(columnDef.title || '').trim();
-      if (!isFieldPath(columnDef.name) || columnDef.type === 'radio') return;
+      var title = String(field.title || '').trim();
+      if (!isFieldPath(field.name) || field.type === 'radio') return;
 
-      if (columnDef.type === 'hidden') {
+      if (field.type === 'hidden') {
         var hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.id = fieldId;
-        setElementAttributes(hidden, columnDef, ['name', 'disabled']);
-        if (columnDef.value !== undefined && columnDef.value !== null)
-          hidden.value = columnDef.value;
+        setElementAttributes(hidden, field, ['name', 'disabled']);
+        if (field.value !== undefined && field.value !== null)
+          hidden.value = field.value;
         col.appendChild(hidden);
         return;
       }
 
-      if (!title || columnDef.editable === false) return;
+      if (!title || field.editable === false) return;
 
       var formGroup = document.createElement('div');
       formGroup.className =
-        'altEditor-field' + (columnDef.visible === false ? ' nonDisplay' : '');
+        'altEditor-field' + (field.visible === false ? ' nonDisplay' : '');
       formGroup.id = fieldId + '-row';
 
-      if (!columnDef.inline || inlineCount === 0) {
+      if (!field.inline || inlineCount === 0) {
         var labelCol = document.createElement('div');
         labelCol.className = 'altEditor-label';
         var label = document.createElement('label');
@@ -1780,34 +1729,34 @@
 
       var inputCol = document.createElement('div');
       inputCol.className =
-        'altEditor-input' + (columnDef.inline ? ' altEditor-input-compact' : '');
+        'altEditor-input' + (field.inline ? ' altEditor-input-compact' : '');
       formGroup.appendChild(inputCol);
 
-      var type = String(columnDef.type || 'text');
+      var type = String(field.type || 'text');
       if (type === 'select') {
         var select = document.createElement('select');
         select.className =
-          'form-control form-control-sm' + (columnDef.select2 ? ' select2' : '');
+          'form-control form-control-sm' + (field.select2 ? ' select2' : '');
         select.id = fieldId;
-        setElementAttributes(select, columnDef, [
+        setElementAttributes(select, field, [
           'name',
           'style',
           'disabled',
           'required',
           'multiple',
         ]);
-        select.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-        if (columnDef.placeholder != null)
-          select.setAttribute('data-placeholder', String(columnDef.placeholder));
+        select.setAttribute('data-unique', field.unique ? 'true' : 'false');
+        if (field.placeholder != null)
+          select.setAttribute('data-placeholder', String(field.placeholder));
 
-        var normalized = normalizeSelectOptions(columnDef.options);
+        var normalized = normalizeSelectOptions(field.options);
         normalized.forEach(function (option) {
           const optionElement = createSelectOption(
             select,
             option.value,
             option.label
           );
-          if (optionElement.value === String(columnDef.value))
+          if (optionElement.value === String(field.value))
             optionElement.selected = true;
           select.appendChild(optionElement);
         });
@@ -1816,7 +1765,7 @@
         var textarea = document.createElement('textarea');
         textarea.className = 'form-control form-control-sm';
         textarea.id = fieldId;
-        setElementAttributes(textarea, columnDef, [
+        setElementAttributes(textarea, field, [
           'name',
           'style',
           'rows',
@@ -1827,24 +1776,24 @@
           'required',
         ]);
         textarea.placeholder = String(
-          columnDef.placeholder == null ? title : columnDef.placeholder
+          field.placeholder == null ? title : field.placeholder
         );
-        textarea.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-        if (columnDef.value !== undefined && columnDef.value !== null)
-          textarea.value = columnDef.value;
+        textarea.setAttribute('data-unique', field.unique ? 'true' : 'false');
+        if (field.value !== undefined && field.value !== null)
+          textarea.value = field.value;
         inputCol.appendChild(textarea);
       } else {
         var input = document.createElement('input');
         input.className =
           'form-control form-control-sm' +
-          (columnDef.readonly ? ' readonlyText' : '');
+          (field.readonly ? ' readonlyText' : '');
         input.id = fieldId;
-        input.title = String(columnDef.hoverMsg || '');
+        input.title = String(field.hoverMsg || '');
         input.placeholder = String(
-          columnDef.placeholder == null ? title : columnDef.placeholder
+          field.placeholder == null ? title : field.placeholder
         );
-        input.setAttribute('data-unique', columnDef.unique ? 'true' : 'false');
-        setElementAttributes(input, columnDef, [
+        input.setAttribute('data-unique', field.unique ? 'true' : 'false');
+        setElementAttributes(input, field, [
           'type',
           'pattern',
           'accept',
@@ -1858,12 +1807,12 @@
           'required',
           'style',
         ]);
-        if (columnDef.value !== undefined && columnDef.value !== null)
-          input.value = columnDef.value;
+        if (field.value !== undefined && field.value !== null)
+          input.value = field.value;
         inputCol.appendChild(input);
       }
 
-      if (columnDef.inline && inlineCount > 0) {
+      if (field.inline && inlineCount > 0) {
         inputCol
           .querySelector('input, select, textarea')
           .setAttribute('aria-label', title);
@@ -1875,11 +1824,11 @@
     return fragment;
   }
 
-  function setElementAttributes(element, columnDef, attributes) {
-    if (columnDef.special !== undefined)
-      element.setAttribute('data-special', String(columnDef.special));
+  function setElementAttributes(element, field, attributes) {
+    if (field.special !== undefined)
+      element.setAttribute('data-special', String(field.special));
     attributes.forEach(function (attribute) {
-      var value = columnDef[attribute];
+      var value = field[attribute];
       if (value === undefined || value === null || value === false) return;
       if (['disabled', 'readonly', 'required', 'multiple'].includes(attribute)) {
         if (value) element.setAttribute(attribute, '');
@@ -1899,25 +1848,26 @@
     });
   }
 
-  const methods$3 = {
+  const methods$4 = {
     _normalizeOptions: normalizeSelectOptions,
     _setElementAttributes: setElementAttributes,
   };
 
-  const methods$2 = {
+  const methods$3 = {
     createDialog: function (
-      columnDefs,
+      fieldDefinitions,
       modalTitle,
       buttonCaption,
       closeCaption,
-      buttonClass,
-      formName
+      buttonId,
+      formName,
+      action = buttonId === 'addRowBtn' ? 'add' : 'edit'
     ) {
       clearFieldErrors(this);
-      this.columnDefs = columnDefs;
-      const fields = renderFields(columnDefs, this.random_id);
+      this._dialogFieldDefinitions = fieldDefinitions;
+      const fields = renderFields(fieldDefinitions, this._instanceId);
       const body = applyTemplate(
-        this.c.dialog.templates[buttonClass === 'addRowBtn' ? 'add' : 'edit'],
+        this.c.dialog.templates[action],
         fields,
         this._dialogContext
       );
@@ -1928,8 +1878,8 @@
           body,
           closeCaption,
           buttonCaption,
-          buttonId: buttonClass,
-          formName: formName + '-' + this.random_id,
+          buttonId,
+          formName: formName + '-' + this._instanceId,
         });
       if (this.internalOpenDialog(this.modal_selector, fill) === false)
         return false;
@@ -1938,46 +1888,54 @@
     },
     _openFormDialog: function (action, rowData) {
       try {
-        const columns = this.completeFieldDefs();
+        const fieldDefinitions = this.completeFieldDefs();
         if (
           this.createDialog(
-            columns,
+            fieldDefinitions,
             this.language[action].title,
             this.language[action].button,
             this.language.modalClose,
             action + 'RowBtn',
-            'altEditor-' + action + '-form'
+            'altEditor-' + action + '-form',
+            action
           ) === false
         )
           return false;
-        this._populateDialogFields(columns, rowData);
+        this._populateDialogFields(fieldDefinitions, rowData);
         this._finishDialogOpening(action);
       } catch (error) {
         return this._abortDialogOpening(error);
       }
     },
-    _populateDialogFields: function (columns, rowData) {
-      for (const column of columns) {
+    _populateDialogFields: function (fieldDefinitions, rowData) {
+      const modal = $(this.modal_selector)[0];
+      const controlsByName = indexFieldControls(modal);
+      for (const field of fieldDefinitions) {
         if (this._destroyed) return;
-        if (!isFieldPath(column.name) || column.editable === false) continue;
+        if (!isFieldPath(field.name) || field.editable === false) continue;
+        const name = String(field.name);
+        const indexed = controlsByName.get(name);
+        const controls =
+          indexed &&
+          indexed.some(
+            (element) =>
+              !modal.contains(element) || (element.name || element.id) !== name
+          )
+            ? fieldElement(modal, name)
+            : $(indexed);
         const stored =
           rowData === undefined
-            ? column.value
-            : this._getValueByPath(rowData, column.name);
-        if (column.type === 'file') {
+            ? field.value
+            : this._getValueByPath(rowData, field.name);
+        if (field.type === 'file') {
           if (rowData !== undefined && stored != null && stored !== '')
-            fieldElement(this.modal_selector, column.name).prop(
-              'required',
-              false
-            );
+            controls.prop('required', false);
           continue;
         }
-        const element = fieldElement(this.modal_selector, column.name).filter(
-          ':input[type!="file"]'
-        );
+        const element = controls.filter(':input[type!="file"]');
         if (!element.length) continue;
         const value = transformField(
-          column,
+          field,
           'getValue',
           stored,
           this,
@@ -1985,28 +1943,27 @@
           rowData
         );
         if (rowData === undefined && value == null) continue;
-        this._setFieldValue(element, column, value, false);
+        this._setFieldValue(element, field, value, false);
         element.trigger('change');
       }
     },
   };
 
-  const methods$1 = {
+  const methods$2 = {
     _initializePlugins: function () {
-      if (!this.columnDefs || !Array.isArray(this.columnDefs)) return;
+      const fieldDefinitions = this._dialogFieldDefinitions;
+      if (!Array.isArray(fieldDefinitions)) return;
       var that = this;
       var selector = this.modal_selector;
+      const controlsByName = indexFieldControls(selector);
 
-      this.columnDefs.forEach(function (columnDef) {
-        if (
-          typeof columnDef.name !== 'string' &&
-          typeof columnDef.name !== 'number'
-        )
+      fieldDefinitions.forEach(function (field) {
+        if (typeof field.name !== 'string' && typeof field.name !== 'number')
           return;
-        var $element = fieldElement(selector, columnDef.name);
+        var $element = $(controlsByName.get(String(field.name)));
         if (!$element.length) return;
 
-        if (columnDef.type === 'select' && columnDef.optionsSortByLabel) {
+        if (field.type === 'select' && field.optionsSortByLabel) {
           var oldValue = $element.val();
           var options = $element.find('option').get();
           options.sort(function (a, b) {
@@ -2016,11 +1973,11 @@
           if (oldValue !== undefined && oldValue !== null) $element.val(oldValue);
         }
 
-        if (columnDef.select2) {
+        if (field.select2) {
           if (typeof $.fn.select2 === 'function') {
             var config =
-              typeof columnDef.select2 === 'object'
-                ? $.extend({}, columnDef.select2)
+              typeof field.select2 === 'object'
+                ? $.extend({}, field.select2)
                 : {};
             config.dropdownParent = $(that.modal_selector);
             $element.select2(config);
@@ -2030,7 +1987,7 @@
               const label = this.labels && this.labels[0];
               const name =
                 this.getAttribute('aria-label') ||
-                String(columnDef.title || columnDef.name);
+                String(field.title || field.name);
               if (label && label.id) {
                 const described = selection.attr('aria-labelledby');
                 selection.attr(
@@ -2047,16 +2004,13 @@
               });
             });
           }
+        } else if (field.datepicker && typeof $.fn.datepicker === 'function') {
+          $element.datepicker(field.datepicker);
         } else if (
-          columnDef.datepicker &&
-          typeof $.fn.datepicker === 'function'
-        ) {
-          $element.datepicker(columnDef.datepicker);
-        } else if (
-          columnDef.datetimepicker &&
+          field.datetimepicker &&
           typeof $.fn.datetimepicker === 'function'
         ) {
-          const config = $.extend({}, columnDef.datetimepicker);
+          const config = $.extend({}, field.datetimepicker);
           config.className =
             (config.className ? config.className + ' ' : '') +
             'altEditor-datetimepicker';
@@ -2064,13 +2018,13 @@
           $element.attr('data-alteditor-datetimepicker', 'true');
         }
 
-        if (typeof columnDef.editorOnChange === 'function') {
-          $element.attr('alt-editor-id', String(columnDef.name));
+        if (typeof field.editorOnChange === 'function') {
+          $element.attr('alt-editor-id', String(field.name));
           $element
             .off('change' + that.s.modalNamespace)
             .on('change' + that.s.modalNamespace, function (event) {
               try {
-                columnDef.editorOnChange(event, that);
+                field.editorOnChange(event, that);
               } catch (error) {
                 if (that._opening) throw error;
                 if (that._destroyed) return;
@@ -2080,7 +2034,7 @@
                 emit(that, 'error', {
                   action: that._action,
                   mode: 'dialog',
-                  field: columnDef.name,
+                  field: field.name,
                   error,
                 });
               }
@@ -2131,15 +2085,15 @@
           });
       $(selector).find('input, select, textarea').off(this.s.modalNamespace);
     },
-    _setFieldValue: function ($element, columnDef, value, notifySelect2 = true) {
+    _setFieldValue: function ($element, field, value, notifySelect2 = true) {
       if (!$element || !$element.length) return;
-      var type = String(columnDef.type || 'text');
+      var type = String(field.type || 'text');
       var normalized = value === null || value === undefined ? '' : value;
 
       if (
         normalized &&
         typeof normalized === 'object' &&
-        !(type === 'select' && columnDef.multiple && Array.isArray(normalized))
+        !(type === 'select' && field.multiple && Array.isArray(normalized))
       ) {
         $element.val('').prop('disabled', true);
         return;
@@ -2151,7 +2105,7 @@
         });
         if (
           notifySelect2 &&
-          columnDef.select2 &&
+          field.select2 &&
           $element.hasClass('select2-hidden-accessible')
         ) {
           $element.trigger('change');
@@ -2166,16 +2120,16 @@
 
       if (
         ['date', 'datetime-local', 'time'].indexOf(type) >= 0 &&
-        columnDef.dateFormat &&
+        field.dateFormat &&
         typeof root.moment === 'function'
       ) {
         var date = root.moment(
           String(normalized),
-          columnDef.dateInputFormat || root.moment.ISO_8601,
+          field.dateInputFormat || root.moment.ISO_8601,
           true
         );
         if (date && date.isValid()) {
-          $element.val(date.format(columnDef.dateFormat));
+          $element.val(date.format(field.dateFormat));
           return;
         }
       }
@@ -2341,7 +2295,7 @@
    * @param {Function} error Reject with an error.
    * @param {Object|Array} [originalRowData] Original row for editing.
    */
-  const methods = {
+  const methods$1 = {
     _errorCallback: function (response) {
       showFieldErrors(this, response);
       this._setDialogSubmitting(false);
@@ -2393,7 +2347,8 @@
       clearFieldErrors(this);
       const form = $(this.modal_selector).find('form');
       if (!active()) return;
-      const columns = action === 'delete' ? [] : editor.columnDefs;
+      const fieldDefinitions =
+        action === 'delete' ? [] : editor._dialogFieldDefinitions;
       const fieldNames = new Set();
       let validators = [];
       let collection;
@@ -2408,7 +2363,8 @@
           if (Object.keys(nativeErrors).length)
             throw { fieldErrors: nativeErrors };
           const controlsByName = new Map();
-          form.find('input, select, textarea').each(function () {
+          const controls = fieldControls(form);
+          controls.each(function () {
             const name = this.name || this.id;
             if (name && !controlsByName.has(name)) controlsByName.set(name, this);
             if (
@@ -2420,7 +2376,7 @@
               fieldNames.add(this.name);
           });
           const modal = $(editor.modal_selector)[0];
-          validators = columns.filter((field) => {
+          validators = fieldDefinitions.filter((field) => {
             if (
               typeof field.editorValidate !== 'function' ||
               field.readonly ||
@@ -2431,7 +2387,7 @@
               return false;
             return feedbackControl(controlsByName.get(String(field.name)), modal);
           });
-          collection = this._collectFormData(form);
+          collection = this._collectFormData(form, controls);
         }
       } catch (error) {
         fail(error);
@@ -2457,7 +2413,7 @@
             if (error) throw error;
             if (action !== 'delete' && active()) {
               let converted = values;
-              columns.forEach((field) => {
+              fieldDefinitions.forEach((field) => {
                 if (
                   !active() ||
                   field.setValue === undefined ||
@@ -2574,6 +2530,116 @@
         .catch(fail);
     },
   };
+
+  const methods = {
+    _clearUniqueError: function (element) {
+      if (!this._uniqueMessages) return;
+      const message = this._uniqueMessages.get(element);
+      if (message && element.validationMessage === message)
+        element.setCustomValidity('');
+      this._uniqueMessages.delete(element);
+    },
+    _validateUniqueField: function (element) {
+      if (element.getAttribute('data-unique') !== 'true') return;
+      this._clearUniqueError(element);
+      if (element.validity && element.validity.customError) return;
+      const field = (this._dialogFieldDefinitions || []).find(
+        (item) => String(item.name) === element.name
+      );
+      if (!field) return;
+      const api = this.api();
+      const row =
+        this._dialogContext && this._dialogContext.action === 'edit'
+          ? this._resolveSnapshotRow(this._editSnapshot)
+          : null;
+      const editIndex = row ? row.index() : null;
+      const indexes = api.rows().indexes().toArray();
+      const readColumn = field.index !== undefined && !field.getValue;
+      const storedValues = readColumn
+        ? api.column(field.index).data().toArray()
+        : api.rows().data().toArray();
+      let message;
+      try {
+        const currentValue = $(element).val();
+        const duplicate = storedValues.some((value, index) => {
+          if (indexes[index] === editIndex) return false;
+          const comparable = readColumn
+            ? value
+            : transformField(
+                field,
+                'getValue',
+                this._getValueByPath(value, field.name),
+                this,
+                'edit',
+                value
+              );
+          return equalFieldValues(currentValue, comparable, field.type);
+        });
+        if (duplicate) message = field.uniqueMsg || this.language.error.unique;
+      } catch (error) {
+        message =
+          normalizeError(error, this.language.error).message ||
+          this.language.error.validation;
+      }
+      if (message) {
+        if (!this._uniqueMessages) this._uniqueMessages = new WeakMap();
+        this._uniqueMessages.set(element, message);
+        element.setCustomValidity(message);
+      }
+    },
+  };
+
+  function bindControlEvents(
+    session,
+    settings,
+    { commit, cancel, isCurrent }
+  ) {
+    const { control, errorNode } = session;
+    const clearError = () => {
+      control.setCustomValidity('');
+      control.removeAttribute('aria-invalid');
+      errorNode.textContent = '';
+    };
+    const listeners = {
+      compositionstart() {
+        session.composing = true;
+      },
+      compositionend() {
+        session.composing = false;
+      },
+      keydown(event) {
+        if (session.composing || event.isComposing || event.keyCode === 229)
+          return;
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          cancel('escape');
+        } else if (event.key === 'Enter') {
+          event.preventDefault();
+          commit();
+        } else if (event.key === 'Tab' && settings.tabNavigation) {
+          event.preventDefault();
+          commit(event.shiftKey ? -1 : 1);
+        }
+      },
+      blur() {
+        if (!isCurrent() || session.state !== 'editing' || session.detaching)
+          return;
+        if (settings.submitOnBlur) commit();
+        else cancel('blur', false);
+      },
+      input: clearError,
+      change: clearError,
+    };
+    const entries = Object.entries(listeners);
+    entries.forEach(([name, listener]) =>
+      control.addEventListener(name, listener)
+    );
+    return () => {
+      entries.forEach(([name, listener]) =>
+        control.removeEventListener(name, listener)
+      );
+    };
+  }
 
   const types = [
     'text',
@@ -2821,59 +2887,23 @@
         options,
         state: 'editing',
         composing: false,
-        listeners: [],
       });
       session.control = createControl(options, session.oldValue);
       session.errorNode = document.createElement('span');
       session.errorNode.className = 'alteditor-inline-error';
-      session.errorNode.id = 'alteditor-error-' + this.editor.random_id;
+      session.errorNode.id = 'alteditor-error-' + this.editor._instanceId;
       session.errorNode.setAttribute('role', 'alert');
       session.control.setAttribute('aria-describedby', session.errorNode.id);
       this.session = session;
-      const listen = (name, handler) => {
-        session.control.addEventListener(name, handler);
-        session.listeners.push([name, handler]);
-      };
-      listen('compositionstart', () => {
-        session.composing = true;
-      });
-      listen('compositionend', () => {
-        session.composing = false;
-      });
-      listen('keydown', (event) => {
-        if (session.composing || event.isComposing || event.keyCode === 229)
-          return;
-        if (event.key === 'Escape') {
-          event.preventDefault();
-          this.cancel('escape');
-        } else if (event.key === 'Enter') {
-          event.preventDefault();
-          this.commit();
-        } else if (
-          event.key === 'Tab' &&
-          this.editor.c.inlineEdit.tabNavigation
-        ) {
-          event.preventDefault();
-          this.commit(event.shiftKey ? -1 : 1);
+      session.releaseEvents = bindControlEvents(
+        session,
+        this.editor.c.inlineEdit,
+        {
+          commit: (direction) => this.commit(direction),
+          cancel: (reason, focus) => this.cancel(reason, focus),
+          isCurrent: () => this.session === session,
         }
-      });
-      listen('blur', () => {
-        if (
-          this.session !== session ||
-          session.state !== 'editing' ||
-          session.detaching
-        )
-          return;
-        if (this.editor.c.inlineEdit.submitOnBlur) this.commit();
-        else this.cancel('blur', false);
-      });
-      const clearError = () => {
-        session.control.setCustomValidity('');
-        session.control.removeAttribute('aria-invalid');
-        session.errorNode.textContent = '';
-      };
-      listen('input', clearError);
-      listen('change', clearError);
+      );
       this.attach(session, cell.node());
       this.event('open', session);
       return true;
@@ -3128,9 +3158,7 @@
       }
     }
     release(session) {
-      session.listeners.forEach((pair) =>
-        session.control.removeEventListener(pair[0], pair[1])
-      );
+      session.releaseEvents();
       this.detach(session);
     }
     close(session, reason, focus) {
@@ -3159,6 +3187,55 @@
     }
   }
 
+  const editorActions = {
+    add: 'openAddDialog',
+    edit: 'openEditDialog',
+    delete: 'openDeleteDialog',
+    refresh: 'refresh',
+  };
+
+  function bindToolbar(editor) {
+    const api = editor.api();
+    if (typeof api.button !== 'function') return;
+    Object.keys(editorActions).forEach((name) => {
+      const button = api.button(name + ':name');
+      if (!button || !button.count()) return;
+      const original = button.action();
+      const action = () => {
+        editor[editorActions[name]]();
+      };
+      editor._buttonActions.push({ name, original, action });
+      button.action(action);
+    });
+  }
+
+  function restoreToolbar(editor) {
+    const api = editor.api();
+    editor._buttonActions.forEach(({ name, original, action }) => {
+      const button = api.button(name + ':name');
+      if (button.count() && button.action() === action)
+        button.action(original || function () {});
+    });
+    editor._buttonActions = [];
+  }
+
+  function selectionListener() {
+    const api = this.api();
+    const namespace = this.s.namespace;
+    const updateEditButton = () => {
+      if (typeof api.buttons !== 'function') return;
+      const buttons = api.buttons('edit:name');
+      if (!buttons || (typeof buttons.count === 'function' && !buttons.count()))
+        return;
+      if (this._selectedRows().count() === 1) buttons.enable();
+      else buttons.disable();
+    };
+    const events = 'select' + namespace + ' deselect' + namespace;
+    api.off(events);
+    api.on(events, updateEditButton);
+    updateEditButton();
+  }
+
   let instance = 0;
   function createAltEditor(DataTable) {
     /** Row-oriented dialog and cell editor for a DataTables instance.
@@ -3179,9 +3256,10 @@
         options
       );
       const id = instance++;
+      this._instanceId = 'altEditor' + id;
       this.s = {
         dt: api,
-        namespace: '.altEditor' + id,
+        namespace: '.' + this._instanceId,
         modalNamespace: '.altEditorModal' + id,
       };
       this._destroyed = false;
@@ -3205,6 +3283,7 @@
         table.altEditor = this;
         this.selectionListener();
         this._setup();
+        bindToolbar(this);
         this._inline = new InlineEditor(this);
         if (!language.altEditor && language.altEditorUrl)
           this._languageRequest = $.ajax({
@@ -3239,32 +3318,16 @@
     }
     Object.assign(
       AltEditor.prototype,
-      methods$5,
-      methods$2,
+      methods$6,
       methods$3,
       methods$4,
+      methods$5,
+      methods$2,
       methods$1,
       methods,
+      feedbackMethods,
       {
-        selectionListener: function () {
-          var dt = this.s.dt;
-          var toggleEditButton = () => {
-            if (typeof dt.buttons !== 'function') return;
-            var buttons = dt.buttons('edit:name');
-            if (
-              !buttons ||
-              (typeof buttons.count === 'function' && buttons.count() === 0)
-            )
-              return;
-            if (this._selectedRows().count() === 1) buttons.enable();
-            else buttons.disable();
-          };
-
-          dt.off('select' + this.s.namespace + ' deselect' + this.s.namespace);
-          dt.on('select' + this.s.namespace, toggleEditButton);
-          dt.on('deselect' + this.s.namespace, toggleEditButton);
-          toggleEditButton();
-        },
+        selectionListener,
         /** @returns {DataTable.Api} The associated table API. */
         api: function () {
           return this.s.dt;
@@ -3356,12 +3419,7 @@
           this._dialogContext = null;
           this._editSnapshot = null;
           this._deleteSnapshot = null;
-          this._buttonActions.forEach((entry) => {
-            const button = this.api().button(entry.name + ':name');
-            if (button.count() && button.action() === entry.action)
-              button.action(entry.original || function () {});
-          });
-          this._buttonActions = [];
+          restoreToolbar(this);
           if (this._languageRequest) this._languageRequest.abort();
           clearFieldErrors(this);
           this._cleanupPlugins();
@@ -3380,6 +3438,26 @@
         },
       }
     );
+    Object.defineProperties(AltEditor.prototype, {
+      random_id: {
+        get() {
+          return this._instanceId;
+        },
+        set(value) {
+          this._instanceId = value;
+        },
+        configurable: true,
+      },
+      columnDefs: {
+        get() {
+          return this._dialogFieldDefinitions;
+        },
+        set(value) {
+          this._dialogFieldDefinitions = value;
+        },
+        configurable: true,
+      },
+    });
     AltEditor.version = '4.3.1';
     AltEditor.defaults = defaults$1;
     AltEditor.classes = { btn: 'btn' };
