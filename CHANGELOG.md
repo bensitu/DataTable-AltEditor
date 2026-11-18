@@ -22,6 +22,8 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- Updated the examples and development setup to jQuery 3.8.0 and the date picker example to jquery-datetimepicker 2.5.21.
+- The file example demonstrates required attachments and retaining the original file when editing.
 - The development server listens on the loopback interface by default. Removed the obsolete minimatch override so ESLint uses its declared dependency range.
 - Clarified configuration array references, trusted translation sources, and persisted row handling in edit callbacks.
 

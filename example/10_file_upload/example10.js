@@ -45,6 +45,7 @@ $(document).ready(function () {
       defaultContent: '',
       title: 'File (data URL)',
       type: 'file',
+      required: true,
       maxFileSize: 2 * 1024 * 1024,
       render: function (data, type) {
         if (type !== 'display') return data ? 'File attached' : '';

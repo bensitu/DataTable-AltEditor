@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Project overview](../README.md)
 
-Browse the [live example directory](https://bensitu.github.io/DataTable-AltEditor/) without installing anything. Source files are available in [example/](../example/).
+Browse the [live example directory](https://bensitu.github.io/DataTable-AltEditor/) without installing anything. Source files are available in [example/](../example/). The example pages load the JavaScript and CSS from the distribution built with their checkout, so a local build demonstrates the local version.
 
 To run locally, install development dependencies with `npm ci`, run `npm run build`, then run `npm run dev` and open the [example directory](http://127.0.0.1:8080/). Serve the pages over HTTP rather than opening HTML files directly. The examples require access to their CDN dependencies.
 
@@ -20,7 +20,7 @@ The examples pin CDN scripts and stylesheets with SHA-384 Subresource Integrity 
 - **Load and save remote data:** start with Example 03, then replace the simulated callbacks with the [persistence callback contract](api.md#persistence-callbacks). Example 05 adds independent tables.
 - **Customize a row form:** use Example 04 for field options, 06 for Select2 and date pickers, 07 for dependent selects, and 08 for validation.
 - **Adapt the interface:** use Example 09 for translation loading, 11 for Foundation, and 12 for custom action buttons and mobile row actions.
-- **Attach files:** use Example 10 for browser-side data URLs and attachment retention.
+- **Attach files:** use Example 10 for browser-side data URLs, required file validation, and attachment retention.
 - **Edit directly in cells:** use Example 13. Its native controls do not need Bootstrap, Foundation, Select2, or date picker plugins.
 
 - **Combine custom controls with inline editing:** use Example 14 for direct controls, local data updates, and explicit column exclusions.
@@ -50,7 +50,7 @@ For toolbar-based examples, select a row before choosing Edit or Delete. Add ope
 | [07: Dependent fields](https://bensitu.github.io/DataTable-AltEditor/example/07_dependent_select/example7.html)                  | Choose Italy or France and then a town from the loaded options. Germany hides and clears the town field. Failed option requests prevent saving until the country is changed and the options load successfully.              |
 | [08: Validation](https://bensitu.github.io/DataTable-AltEditor/example/08_validation/example8.html)                              | Try an empty required name, a duplicate name or number, and a duplicate selection. Options 7 and 8 are initially unused. Salaries use grouped dollar notation such as `$1,000` or `$1,200,000`.                             |
 | [09: Translations](https://bensitu.github.io/DataTable-AltEditor/example/09_translations/example9.html)                          | Open the add, edit, and delete dialogs to see Italian labels loaded from the translation file. The second table demonstrates partial language overrides with English fallbacks.                                             |
-| [10: Files](https://bensitu.github.io/DataTable-AltEditor/example/10_file_upload/example10.html)                                 | Attach a small file, save, and download its contents from the table. A later edit without a new file retains the attachment. Files are read as data URLs in browser memory; no file upload service is provided.             |
+| [10: Files](https://bensitu.github.io/DataTable-AltEditor/example/10_file_upload/example10.html)                                 | Add a record with a required file. Reopen it and save without choosing another file, then download the original attachment. Files are stored as data URLs in browser memory.                                                |
 | [11: Foundation](https://bensitu.github.io/DataTable-AltEditor/example/11_foundation/example11.html)                             | Add, edit, and delete rows through Foundation Reveal dialogs.                                                                                                                                                               |
 | [12: Custom actions](https://bensitu.github.io/DataTable-AltEditor/example/12_custom_action_buttons/example12.html)              | Use Add record, click a row to edit, or choose its Delete action. On small screens, expand the row to access hidden columns and actions.                                                                                    |
 | [13: Cell editing](https://bensitu.github.io/DataTable-AltEditor/example/13_inline_edit/example13.html)                          | Double-click to edit; Enter saves, Escape cancels, and Tab moves. Try Fail the next save to retry. The second table demonstrates numeric array sources.                                                                     |
