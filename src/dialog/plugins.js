@@ -147,7 +147,7 @@ export const methods = {
         });
     $(selector).find('input, select, textarea').off(this.s.modalNamespace);
   },
-  _setFieldValue: function ($element, columnDef, value) {
+  _setFieldValue: function ($element, columnDef, value, notifySelect2 = true) {
     if (!$element || !$element.length) return;
     var type = String(columnDef.type || 'text');
     var normalized = value === null || value === undefined ? '' : value;
@@ -165,7 +165,11 @@ export const methods = {
       $element.each(function () {
         setSelectValue(this, normalized);
       });
-      if (columnDef.select2 && $element.hasClass('select2-hidden-accessible')) {
+      if (
+        notifySelect2 &&
+        columnDef.select2 &&
+        $element.hasClass('select2-hidden-accessible')
+      ) {
         $element.trigger('change');
       }
       return;

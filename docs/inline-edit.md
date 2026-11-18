@@ -63,7 +63,7 @@ For function or complex object sources, provide a setter:
 }
 ```
 
-The setter receives a copy of the row's array and plain-object branches and must return a usable row object or array. Do not mutate opaque object values such as File objects. Without a setter, function and complex sources are not editable. Unsupported cells do not open a dialog automatically.
+The setter receives a copy of the row's array and plain-object branches and must return a usable row object or array synchronously. Use the persistence callback for asynchronous work. Do not mutate opaque object values such as File objects. Without a setter, function and complex sources are not editable. Unsupported cells do not open a dialog automatically.
 
 ## Keyboard and focus
 

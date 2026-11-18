@@ -9,6 +9,7 @@ import { bindDialogEvents } from './adapters/events.js';
 import { selectAdapter } from './adapters/index.js';
 import { emit } from '../core/events.js';
 import { resolveLanguage } from '../core/language.js';
+import { requireSynchronousResult } from '../core/synchronous-result.js';
 import { $, document } from '../core/dependencies.js';
 import { snapshotRow, cloneRow } from '../data/row-data.js';
 import { equalFieldValues } from '../data/field-values.js';
@@ -75,9 +76,12 @@ export const methods = {
     const callback = this.c.dialog[callbackName];
     const result =
       typeof callback === 'function' ? callback(detail) : undefined;
-    if (result && typeof result.then === 'function')
-      throw new TypeError('Dialog lifecycle callbacks must be synchronous');
-    return result !== false && accepted;
+    return (
+      requireSynchronousResult(
+        result,
+        'Dialog lifecycle callbacks must be synchronous'
+      ) !== false && accepted
+    );
   },
   _bindDialog: function (action) {
     if (this._destroyed) {

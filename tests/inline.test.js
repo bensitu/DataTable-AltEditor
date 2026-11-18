@@ -345,6 +345,20 @@ test('isolates tables and cleans editing or pending persistence on destroy', () 
   expect(second.editor.isInlineEditing()).toBe(false);
 });
 
+test('does not replace an inline control if its cancel listener destroys the editor', () => {
+  const { editor, table } = create();
+  const close = vi.fn();
+  table.on('alteditor-inline-close.dt', close);
+  table.on('alteditor-inline-cancel.dt', () => editor.destroy());
+  editor.startInlineEdit({ row: 0, column: 0 });
+
+  expect(editor.startInlineEdit({ row: 1, column: 0 })).toBe(false);
+  expect(editor.isInlineEditing()).toBe(false);
+  expect(input()).toBeNull();
+  expect(close).toHaveBeenCalledOnce();
+  expect(close.mock.calls[0][1].reason).toBe('destroy');
+});
+
 test('reads checkbox and select values and rejects an invalid explicit setter', () => {
   const { editor, table } = create({
     data: [{ enabled: false, role: 'reader' }],
@@ -367,16 +381,23 @@ test('reads checkbox and select values and rejects an invalid explicit setter', 
   input().value = 'editor';
   editor.commitInlineEdit();
   expect(table.row(0).data().role).toBe('editor');
+  const setter = vi
+    .fn()
+    .mockReturnValueOnce(undefined)
+    .mockResolvedValue({ age: 35 });
   const invalid = create({
     columns: [
       {
         data: (row) => row.age,
         title: 'Age',
-        inlineEditSetValue: () => undefined,
+        inlineEditSetValue: setter,
       },
     ],
   });
   invalid.editor.startInlineEdit({ row: 0, column: 0 });
   expect(invalid.editor.commitInlineEdit()).toBe(false);
   expect(invalid.editor.isInlineEditing()).toBe(true);
+  expect(invalid.editor.commitInlineEdit()).toBe(false);
+  expect(invalid.editor.isInlineEditing()).toBe(true);
+  expect(invalid.table.row(0).data().age).toBe(30);
 });

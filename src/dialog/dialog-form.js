@@ -88,7 +88,7 @@ export const methods = {
         rowData
       );
       if (rowData === undefined && value == null) continue;
-      this._setFieldValue(element, column, value);
+      this._setFieldValue(element, column, value, false);
       element.trigger('change');
     }
   },

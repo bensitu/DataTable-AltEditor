@@ -348,6 +348,14 @@
     return columns;
   }
 
+  function requireSynchronousResult(result, message) {
+    if (result != null && typeof result.then === 'function') {
+      Promise.resolve(result).catch(() => {});
+      throw new TypeError(message);
+    }
+    return result;
+  }
+
   const forbidden = ['__proto__', 'prototype', 'constructor'];
   const isContainer = (value) => Array.isArray(value) || isPlainObject(value);
 
@@ -604,11 +612,10 @@
       },
       values: cloneRow(values),
     });
-    if (result != null && typeof result.then === 'function') {
-      Promise.resolve(result).catch(() => {});
-      throw new TypeError(method + ' must return a synchronous value');
-    }
-    return result;
+    return requireSynchronousResult(
+      result,
+      method + ' must return a synchronous value'
+    );
   }
 
   /** @typedef {Object} EditorEventPayload
@@ -1152,9 +1159,12 @@
       const callback = this.c.dialog[callbackName];
       const result =
         typeof callback === 'function' ? callback(detail) : undefined;
-      if (result && typeof result.then === 'function')
-        throw new TypeError('Dialog lifecycle callbacks must be synchronous');
-      return result !== false && accepted;
+      return (
+        requireSynchronousResult(
+          result,
+          'Dialog lifecycle callbacks must be synchronous'
+        ) !== false && accepted
+      );
     },
     _bindDialog: function (action) {
       if (this._destroyed) {
@@ -1968,7 +1978,7 @@
           rowData
         );
         if (rowData === undefined && value == null) continue;
-        this._setFieldValue(element, column, value);
+        this._setFieldValue(element, column, value, false);
         element.trigger('change');
       }
     },
@@ -2114,7 +2124,7 @@
           });
       $(selector).find('input, select, textarea').off(this.s.modalNamespace);
     },
-    _setFieldValue: function ($element, columnDef, value) {
+    _setFieldValue: function ($element, columnDef, value, notifySelect2 = true) {
       if (!$element || !$element.length) return;
       var type = String(columnDef.type || 'text');
       var normalized = value === null || value === undefined ? '' : value;
@@ -2132,7 +2142,11 @@
         $element.each(function () {
           setSelectValue(this, normalized);
         });
-        if (columnDef.select2 && $element.hasClass('select2-hidden-accessible')) {
+        if (
+          notifySelect2 &&
+          columnDef.select2 &&
+          $element.hasClass('select2-hidden-accessible')
+        ) {
           $element.trigger('change');
         }
         return;
@@ -2680,7 +2694,8 @@
         this.editor._destroyed ||
         !this.editor.c.inlineEdit.enabled ||
         this.editor._dialogOpen ||
-        (this.session && this.session.state === 'submitting')
+        this.editor._opening ||
+        (this.session && this.session.state !== 'editing')
       )
         return false;
       let cell;
@@ -2728,7 +2743,16 @@
           )
       )
         return false;
-      if (this.session) this.cancel('replace', false);
+      if (this.session) {
+        this.cancel('replace', false);
+        if (
+          this.session ||
+          this.editor._destroyed ||
+          this.editor._dialogOpen ||
+          this.editor._opening
+        )
+          return false;
+      }
       if (this.editor._message) this.editor._message.empty();
       const row = this.api.row(index.row);
       const session = Object.assign(snapshotRow(row), {
@@ -2894,6 +2918,9 @@
         this.fail(session, new Error(control.validationMessage));
         return false;
       }
+      if (this.session !== session || this.editor._destroyed) return false;
+      // Prevent synchronous setters from starting a second submission.
+      session.state = 'submitting';
       try {
         if (!resolveRow(this.api, session))
           throw new Error(this.editor.language.error.targetUnavailable);
@@ -2905,14 +2932,17 @@
                 this.payload(session)
               )
             : withValue(session.originalRow, session.dataSrc, session.newValue);
+        requireSynchronousResult(
+          session.candidate,
+          this.editor.language.error.invalidSetter
+        );
         if (!session.candidate || typeof session.candidate !== 'object')
           throw new Error(this.editor.language.error.invalidSetter);
       } catch (error) {
         this.fail(session, error);
         return false;
       }
-      // Mark submission before events or focus changes can cause a second submission.
-      session.state = 'submitting';
+      if (this.session !== session || this.editor._destroyed) return false;
       control.disabled = true;
       control.setAttribute('aria-busy', 'true');
       const active = () => this.session === session && !this.editor._destroyed;
@@ -2943,14 +2973,15 @@
 
     persist(session, direction) {
       const control = session.control;
-      if (!this.event('pre-submit', session)) {
+      const accepted = this.event('pre-submit', session);
+      if (this.session !== session || this.editor._destroyed) return false;
+      if (!accepted) {
         session.state = 'editing';
         control.disabled = false;
         control.removeAttribute('aria-busy');
         control.focus();
         return false;
       }
-      if (this.session !== session || this.editor._destroyed) return false;
       if (!resolveRow(this.api, session)) {
         this.fail(
           session,
@@ -3046,16 +3077,19 @@
       this.detach(session);
     }
     close(session, reason, focus) {
-      this.release(session);
+      if (this.session !== session) return;
       this.session = null;
-      if (focus) this.focusCell(session.cellNode);
+      this.release(session);
+      if (focus && !this.editor._destroyed) this.focusCell(session.cellNode);
       this.event('close', session, { reason });
     }
     cancel(reason, focus) {
       const session = this.session;
       if (!session || session.state !== 'editing') return false;
-      this.event('cancel', session, { reason: reason || 'cancel' });
-      this.close(session, reason || 'cancel', focus !== false);
+      const closeReason = reason || 'cancel';
+      session.state = 'closing';
+      this.event('cancel', session, { reason: closeReason });
+      this.close(session, closeReason, focus !== false);
       return true;
     }
     destroy() {

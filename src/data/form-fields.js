@@ -1,5 +1,6 @@
 import { normalizeColumns } from '../core/columns.js';
 import { isPlainObject } from '../core/options.js';
+import { requireSynchronousResult } from '../core/synchronous-result.js';
 import { isFieldPath } from './path.js';
 import { cloneRow } from './row-data.js';
 
@@ -92,9 +93,8 @@ export function transformField(
     },
     values: cloneRow(values),
   });
-  if (result != null && typeof result.then === 'function') {
-    Promise.resolve(result).catch(() => {});
-    throw new TypeError(method + ' must return a synchronous value');
-  }
-  return result;
+  return requireSynchronousResult(
+    result,
+    method + ' must return a synchronous value'
+  );
 }

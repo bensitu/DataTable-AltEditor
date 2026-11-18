@@ -163,6 +163,21 @@ test('retains the active form context when a replacement target disappears', asy
   expect(closed.mock.calls[0][0].rows[0].id).toBe('a');
 });
 
+test('reports rejected asynchronous lifecycle callbacks without opening a dialog', async () => {
+  const editor = create({
+    onBeforeOpen: async () => {
+      throw new Error('Unable to open');
+    },
+  });
+  const error = vi.fn();
+  table.on('alteditor-error.dt', error);
+  expect(editor.openAddDialog()).toBe(false);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(error).toHaveBeenCalledOnce();
+  expect(error.mock.calls[0][1].error.message).toContain('must be synchronous');
+  expect(editor._dialogOpen).toBeFalsy();
+});
+
 test.each(['openEditDialog', 'openDeleteDialog'])(
   'keeps the selected identity across a table replacement in %s',
   (method) => {

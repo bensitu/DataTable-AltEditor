@@ -139,6 +139,33 @@ test('reports runtime change callback failures and permits correction', async ()
   expect(table.row(0).data().name).toBe('Ann');
 });
 
+test('notifies change handlers once when populating a Select2 control', () => {
+  const original = $.fn.select2;
+  $.fn.select2 = function (options) {
+    return this.toggleClass('select2-hidden-accessible', options !== 'destroy');
+  };
+  try {
+    const change = vi.fn();
+    const { editor } = create({
+      columns: [
+        {
+          data: 'name',
+          title: 'Name',
+          type: 'select',
+          options: ['Alice', 'Bob'],
+          select2: true,
+          editorOnChange: change,
+        },
+      ],
+    });
+    editor.openEditDialog(0);
+    expect(change).toHaveBeenCalledOnce();
+    expect($(editor.modal_selector).find('[name="name"]').val()).toBe('Alice');
+  } finally {
+    $.fn.select2 = original;
+  }
+});
+
 test('validates submitted values before reading attachments', async () => {
   const validate = vi.fn(() => true);
   const save = vi.fn((_editor, _values, success) => success());
