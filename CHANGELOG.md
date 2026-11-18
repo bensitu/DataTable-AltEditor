@@ -11,6 +11,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Added color, focus, and Select2 spacing fallbacks for older browsers without changing the DataTables 2.1 minimum.
 - Explicit construction with an empty DataTables API reports a clear error. Temporary inline cell focus attributes are removed when focus leaves the cell.
 - The file upload example closes a failed response after headers are sent instead of attempting a second response.
 - Column-derived forms reject duplicate and overlapping writable paths while allowing display-only duplicate columns. Nested writes reject opaque objects instead of replacing their types or adding properties to them.

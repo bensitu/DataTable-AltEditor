@@ -37,7 +37,7 @@ Use Promise-returning CRUD callbacks, structured `fieldErrors`, and `editorValid
 - For row dialogs: Bootstrap 5, Bootstrap 4, or Foundation Reveal 6. Bootstrap 3 compatibility is best effort. Optional native dialogs are available through `dialog.framework: 'native'`; see [dialog configuration](docs/dialogs.md#framework-selection-and-browser-compatibility).
 - For toolbar actions: DataTables Buttons and Select. Programmatic methods accept explicit row selectors without these extensions.
 - Inline editing uses native controls and does not require a dialog framework.
-- Use a current browser supported by DataTables 2.x. Internet Explorer is unsupported. ES2015 source syntax does not imply support for older CSS engines; see [styling requirements](docs/styling.md).
+- For basic row editing with Bootstrap, use Chrome or Chromium Edge 88+, Firefox 85+, Safari 14.1+, or Safari on iOS 14.5+. Native dialogs and optional controls have their own requirements. See [browser compatibility](docs/styling.md#browser-compatibility).
 
 ## Get started
 

@@ -18,9 +18,9 @@ AltEditor follows the system color preference by default. To choose a mode expli
 <html lang="en" data-alteditor-theme="dark"></html>
 ```
 
-Themes use native `color-scheme` and CSS `light-dark()`, supported by current Chrome, Edge, Firefox, and Safari. Native input controls follow the selected color mode. AltEditor also styles its Select2 controls and its jquery-datetimepicker popups. Other optional plugins may require their own theme stylesheets.
+Themes use native `color-scheme` and CSS `light-dark()` when available. A static palette follows the system preference and the same theme attributes when `light-dark()` is unavailable. Native input appearance can vary by browser. AltEditor also styles its Select2 controls and its jquery-datetimepicker popups. Other optional plugins may require their own theme stylesheets.
 
-The ES2015 JavaScript syntax target and jQuery dependency range do not imply support for older browser styling engines. The default stylesheet requires modern CSS, including `light-dark()`, `:is()`, `:where()`, and dynamic viewport units; legacy browser themes require application-provided CSS.
+The default Select2 theme reserves extra room for clear buttons in browsers without `:has()`. Applications can still override the styles at the same specificity.
 
 Setting a theme does not change application-wide colors. Applications should theme their own tables, page backgrounds, and other components separately.
 
@@ -91,19 +91,10 @@ Explicit native mode uses `.altEditor-native`, `.altEditor-control`, and `.altEd
 
 Template field slots receive `--alteditor-spacing` between adjacent fields by default. Application layout rules can override this low-specificity spacing. Native dialogs constrain long forms to the viewport and scroll the body while retaining visible header and footer actions.
 
-## Applications with older color support
+## Browser compatibility
 
-If a browser supports the required layout selectors but not `light-dark()`, supply explicit color variables in an application stylesheet. Set every color your application uses, including control, placeholder, border, hover, accent, and error colors; switch the variables with your application theme. This does not provide support for older layout engines.
+With Bootstrap and DataTables `>=2.1.0 <3`, the baseline for basic row creation, editing, deletion, validation, keyboard use, and attachments is Chrome or Chromium Edge 88+, Firefox 85+, Safari 14.1+, or Safari on iOS 14.5+. The stylesheet uses `:is()`, `:where()`, and Flexbox gap. Colors, spacing, and native controls can vary slightly by browser. Internet Explorer is unsupported.
 
-```css
-html {
-  --alteditor-surface: #fff;
-  --alteditor-text: #243247;
-  --alteditor-control-background: #fff;
-  --alteditor-placeholder: #64748b;
-  --alteditor-border: #cbd5e1;
-  --alteditor-hover: #e2e8f0;
-  --alteditor-accent: #2458b8;
-  --alteditor-error: #b91c1c;
-}
-```
+Compatibility checks used Chromium 88, a Firefox 85 beta, and Playwright WebKit 14.1 with DataTables 2.1.0 and 2.3.8. Validate the actual Safari or WebView environment for applications that depend on it.
+
+Use the Bootstrap adapter on browsers without `HTMLDialogElement.showModal()`. Native mode, other dialog frameworks, optional plugins, and example backends may have additional requirements. See [dialog configuration](dialogs.md#framework-selection-and-browser-compatibility).

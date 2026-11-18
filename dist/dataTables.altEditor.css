@@ -27,16 +27,62 @@
 )[data-alteditor-theme='dark'] {
   color-scheme: dark;
 }
+@supports (color: light-dark(#fff, #000)) {
+  :where(.altEditor-modal, .alteditor-inline-cell, .altEditor-datetimepicker) {
+    --alteditor-default-surface: light-dark(#fff, #182231);
+    --alteditor-default-text: light-dark(#243247, #e2e8f0);
+    --alteditor-default-control-background: light-dark(#fff, #111b29);
+    --alteditor-default-placeholder: light-dark(#64748b, #94a3b8);
+    --alteditor-default-border: light-dark(#7c899b, #748399);
+    --alteditor-default-hover: light-dark(#eef2f6, #334155);
+    --alteditor-default-accent: light-dark(#2563eb, #93c5fd);
+    --alteditor-default-error: light-dark(#b42318, #fda29b);
+  }
+}
+@supports not (color: light-dark(#fff, #000)) {
+  :where(:root, [data-bs-theme='light'], [data-alteditor-theme='light']) {
+    --alteditor-default-surface: #fff;
+    --alteditor-default-text: #243247;
+    --alteditor-default-control-background: #fff;
+    --alteditor-default-placeholder: #64748b;
+    --alteditor-default-border: #7c899b;
+    --alteditor-default-hover: #eef2f6;
+    --alteditor-default-accent: #2563eb;
+    --alteditor-default-error: #b42318;
+  }
+  @media (prefers-color-scheme: dark) {
+    :where(:root:not([data-bs-theme='light'], [data-alteditor-theme='light'])) {
+      --alteditor-default-surface: #182231;
+      --alteditor-default-text: #e2e8f0;
+      --alteditor-default-control-background: #111b29;
+      --alteditor-default-placeholder: #94a3b8;
+      --alteditor-default-border: #748399;
+      --alteditor-default-hover: #334155;
+      --alteditor-default-accent: #93c5fd;
+      --alteditor-default-error: #fda29b;
+    }
+  }
+  :where([data-bs-theme='dark'], [data-alteditor-theme='dark']) {
+    --alteditor-default-surface: #182231;
+    --alteditor-default-text: #e2e8f0;
+    --alteditor-default-control-background: #111b29;
+    --alteditor-default-placeholder: #94a3b8;
+    --alteditor-default-border: #748399;
+    --alteditor-default-hover: #334155;
+    --alteditor-default-accent: #93c5fd;
+    --alteditor-default-error: #fda29b;
+  }
+}
 .altEditor-modal,
 .altEditor-modal .altEditor-content {
-  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
+  color: var(--alteditor-text, var(--alteditor-default-text));
 }
 .altEditor-modal .altEditor-content,
 .reveal-overlay > .altEditor-modal.reveal {
-  background-color: var(--alteditor-surface, light-dark(#fff, #182231));
+  background-color: var(--alteditor-surface, var(--alteditor-default-surface));
 }
 .reveal-overlay > .altEditor-modal.reveal {
-  border-color: var(--alteditor-border, light-dark(#7c899b, #748399));
+  border-color: var(--alteditor-border, var(--alteditor-default-border));
 }
 .reveal-overlay > .altEditor-modal .altEditor-header {
   padding-bottom: var(--alteditor-spacing, 1rem);
@@ -46,7 +92,7 @@
 }
 .altEditor-modal .altEditor-header,
 .altEditor-modal .altEditor-footer {
-  border-color: var(--alteditor-border, light-dark(#7c899b, #748399));
+  border-color: var(--alteditor-border, var(--alteditor-default-border));
 }
 .altEditor-modal .altEditor-label label,
 :where(.altEditor-modal)
@@ -70,10 +116,10 @@
 .alteditor-inline-control {
   background-color: var(
     --alteditor-control-background,
-    light-dark(#fff, #111b29)
+    var(--alteditor-default-control-background)
   );
-  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
-  border: 1px solid var(--alteditor-border, light-dark(#7c899b, #748399));
+  color: var(--alteditor-text, var(--alteditor-default-text));
+  border: 1px solid var(--alteditor-border, var(--alteditor-default-border));
   border-radius: var(--alteditor-radius, 0.375rem);
 }
 .altEditor-modal
@@ -97,14 +143,14 @@
   .select2-results__option[aria-selected='true']:where(
     :not(.select2-results__option--selectable)
   ) {
-  background-color: var(--alteditor-hover, light-dark(#eef2f6, #334155));
-  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
+  background-color: var(--alteditor-hover, var(--alteditor-default-hover));
+  color: var(--alteditor-text, var(--alteditor-default-text));
 }
 :where(.altEditor-modal)
   .select2-container--default
   .select2-selection--multiple
   .select2-selection__choice {
-  border-color: var(--alteditor-border, light-dark(#7c899b, #748399));
+  border-color: var(--alteditor-border, var(--alteditor-default-border));
 }
 :where(.altEditor-modal)
   .select2-container--default
@@ -120,8 +166,8 @@
   .select2-container--default.select2-container--focus
   .select2-selection,
 .alteditor-inline-control:focus {
-  border-color: var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
-  outline: 2px solid var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
+  border-color: var(--alteditor-accent, var(--alteditor-default-accent));
+  outline: 2px solid var(--alteditor-accent, var(--alteditor-default-accent));
   outline-offset: 1px;
   box-shadow: none;
 }
@@ -134,16 +180,16 @@
 .altEditor-datetimepicker .xdsoft_label,
 .altEditor-datetimepicker .xdsoft_select,
 .altEditor-datetimepicker .xdsoft_time_box {
-  background: var(--alteditor-surface, light-dark(#fff, #182231));
-  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
-  border-color: var(--alteditor-border, light-dark(#7c899b, #748399));
+  background: var(--alteditor-surface, var(--alteditor-default-surface));
+  color: var(--alteditor-text, var(--alteditor-default-text));
+  border-color: var(--alteditor-border, var(--alteditor-default-border));
 }
 .altEditor-datetimepicker .xdsoft_calendar th,
 .altEditor-datetimepicker .xdsoft_calendar td,
 .altEditor-datetimepicker .xdsoft_time_variant .xdsoft_time {
-  background: var(--alteditor-hover, light-dark(#eef2f6, #334155));
-  color: var(--alteditor-text, light-dark(#243247, #e2e8f0));
-  border-color: var(--alteditor-border, light-dark(#7c899b, #748399));
+  background: var(--alteditor-hover, var(--alteditor-default-hover));
+  color: var(--alteditor-text, var(--alteditor-default-text));
+  border-color: var(--alteditor-border, var(--alteditor-default-border));
 }
 .altEditor-datetimepicker .xdsoft_calendar td.xdsoft_current,
 .altEditor-datetimepicker .xdsoft_time_variant .xdsoft_time.xdsoft_current {
@@ -186,11 +232,17 @@
   cursor: pointer;
 }
 .altEditor-modal .altEditor-close:hover {
-  background: var(--alteditor-hover, light-dark(#eef2f6, #334155));
+  background: var(--alteditor-hover, var(--alteditor-default-hover));
 }
 .altEditor-modal .altEditor-close:focus-visible {
-  outline: 2px solid var(--alteditor-accent, light-dark(#2563eb, #93c5fd));
+  outline: 2px solid var(--alteditor-accent, var(--alteditor-default-accent));
   outline-offset: 2px;
+}
+@supports not selector(:focus-visible) {
+  .altEditor-modal .altEditor-close:focus {
+    outline: 2px solid var(--alteditor-accent, var(--alteditor-default-accent));
+    outline-offset: 2px;
+  }
 }
 .altEditor-modal .altEditor-close:disabled {
   opacity: 0.5;
@@ -243,7 +295,7 @@
   .select2-container--default
   .select2-selection
   .select2-selection__placeholder {
-  color: var(--alteditor-placeholder, light-dark(#64748b, #94a3b8));
+  color: var(--alteditor-placeholder, var(--alteditor-default-placeholder));
   opacity: 1;
 }
 .altEditor-modal .altEditor-input input[type='checkbox'],
@@ -416,6 +468,19 @@
   .select2-selection--multiple:has(.select2-selection__clear) {
   padding-inline-end: calc(0.5rem + 24px);
 }
+@supports not selector(:has(*)) {
+  :where(.altEditor-modal)
+    .select2-container--default:where(:not(.select2-container--disabled))
+    .select2-selection--single
+    .select2-selection__rendered {
+    padding-inline-end: calc(1.5rem + 24px);
+  }
+  :where(.altEditor-modal)
+    .select2-container--default:where(:not(.select2-container--disabled))
+    .select2-selection--multiple {
+    padding-inline-end: calc(0.5rem + 24px);
+  }
+}
 :where(.altEditor-modal)
   .select2-container--default.select2-container--disabled
   .select2-selection
@@ -480,11 +545,11 @@
   min-width: 0;
 }
 .alteditor-inline-control[aria-invalid='true'] {
-  outline: 2px solid var(--alteditor-error, light-dark(#b42318, #fda29b));
+  outline: 2px solid var(--alteditor-error, var(--alteditor-default-error));
 }
 .alteditor-inline-error {
   display: block;
-  color: var(--alteditor-error, light-dark(#b42318, #fda29b));
+  color: var(--alteditor-error, var(--alteditor-default-error));
   font-size: 0.875em;
 }
 .alteditor-inline-submitting {
@@ -494,12 +559,13 @@
 .altEditor-native {
   box-sizing: border-box;
   width: min(50rem, calc(100% - 2rem));
+  max-height: calc(100vh - 2rem);
   max-height: calc(100dvh - 2rem);
   margin: auto;
   padding: 0;
-  border: 1px solid var(--alteditor-border, light-dark(#7c899b, #748399));
+  border: 1px solid var(--alteditor-border, var(--alteditor-default-border));
   border-radius: var(--alteditor-radius, 0.375rem);
-  background: var(--alteditor-surface, light-dark(#fff, #182231));
+  background: var(--alteditor-surface, var(--alteditor-default-surface));
   font: inherit;
 }
 .altEditor-native::backdrop {
@@ -529,9 +595,9 @@
 }
 .altEditor-native .altEditor-button {
   padding: 0.5rem 1rem;
-  border: 1px solid var(--alteditor-border, light-dark(#7c899b, #748399));
+  border: 1px solid var(--alteditor-border, var(--alteditor-default-border));
   border-radius: var(--alteditor-radius, 0.375rem);
-  background: var(--alteditor-surface, light-dark(#fff, #182231));
+  background: var(--alteditor-surface, var(--alteditor-default-surface));
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -551,12 +617,12 @@
 .altEditor-modal .altEditor-field-error {
   display: block;
   margin-block-start: 0.25rem;
-  color: var(--alteditor-error, light-dark(#b42318, #fda29b));
+  color: var(--alteditor-error, var(--alteditor-default-error));
   font-size: 0.875em;
   white-space: pre-line;
 }
 .altEditor-modal .altEditor-field-invalid {
-  border-color: var(--alteditor-error, light-dark(#b42318, #fda29b));
+  border-color: var(--alteditor-error, var(--alteditor-default-error));
 }
 :where(.altEditor-modal)
   .select2-container--default
@@ -580,7 +646,7 @@
   padding: 0;
   border: 0;
   border-inline-end: 1px solid
-    var(--alteditor-border, light-dark(#7c899b, #748399));
+    var(--alteditor-border, var(--alteditor-default-border));
   background: transparent;
   font: inherit;
   line-height: 1;

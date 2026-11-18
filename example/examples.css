@@ -25,6 +25,26 @@
 [data-bs-theme='dark'] .examples-page {
   color-scheme: dark;
 }
+@supports not (color: light-dark(#fff, #000)) {
+  .examples-page {
+    --example-page: #f4f6fa;
+    --example-surface: #fff;
+    --example-text: #243247;
+    --example-muted: #526178;
+    --example-accent: #2458b8;
+    --example-border: #cbd5e1;
+    --example-subtle: #f5f7fb;
+  }
+  [data-bs-theme='dark'] .examples-page {
+    --example-page: #0e1623;
+    --example-surface: #182231;
+    --example-text: #e2e8f0;
+    --example-muted: #afbed2;
+    --example-accent: #93c5fd;
+    --example-border: #526178;
+    --example-subtle: #223044;
+  }
+}
 .example-theme {
   display: flex;
   align-items: center;
