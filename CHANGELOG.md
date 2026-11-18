@@ -20,6 +20,11 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 - Runtime field change callback failures report recoverable dialog errors. Initialization failures continue to reject opening.
 - Required file fields allow existing attachments to be retained when editing while remaining required for new records.
 
+### Changed
+
+- The development server listens on the loopback interface by default. Removed the obsolete minimatch override so ESLint uses its declared dependency range.
+- Clarified configuration array references, trusted translation sources, and persisted row handling in edit callbacks.
+
 ## 4.3.0 - 2026-11-17
 
 ### Added

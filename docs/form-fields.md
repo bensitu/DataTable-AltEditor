@@ -38,6 +38,8 @@ Names support string paths, dotted paths, and numeric array indexes including `0
 
 Custom template slots use the field `name`. Every generated non-hidden field still needs exactly one slot. Plugins, labels, errors, and `reloadOptions()` use the same generated controls. Cell inline editing continues to use DataTables column configuration and does not consume `fields`, `getValue`, or `setValue`.
 
+Inline uniqueness compares against raw column values. Use it for columns whose stored values are directly comparable to the inline control value. Enforce uniqueness for transformed values in `editorValidate` or the persistence layer.
+
 ## Read and write conversion
 
 Both independent fields and column-derived dialog fields accept these optional functions.

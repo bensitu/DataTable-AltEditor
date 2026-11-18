@@ -29,6 +29,7 @@ export function normalizeFields(fields, api) {
       columns.filter(
         (field) =>
           isFieldPath(field.name) &&
+          !field.disabled &&
           field.type !== 'radio' &&
           (field.type === 'hidden' ||
             (field.editable !== false && String(field.title || '').trim()))

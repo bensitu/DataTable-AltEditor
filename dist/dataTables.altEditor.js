@@ -1,4 +1,4 @@
-/*! DataTables AltEditor v4.3.0
+/*! DataTables AltEditor v4.3.1
  * Copyright (c) 2016 Kingkode, KasperOlesen, luca-vercelli, zack-hable
  * Copyright (c) 2026 Ben Situ and contributors
  * MIT License */
@@ -541,6 +541,7 @@
         columns.filter(
           (field) =>
             isFieldPath(field.name) &&
+            !field.disabled &&
             field.type !== 'radio' &&
             (field.type === 'hidden' ||
               (field.editable !== false && String(field.title || '').trim()))
@@ -3284,7 +3285,7 @@
         },
       }
     );
-    AltEditor.version = '4.3.0';
+    AltEditor.version = '4.3.1';
     AltEditor.defaults = defaults$1;
     AltEditor.classes = { btn: 'btn' };
     return AltEditor;

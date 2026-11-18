@@ -23,9 +23,9 @@ The Ukrainian filename remains `ua.json` for compatibility with existing URLs; t
 
 ## Configuration
 
-Serve the JSON files from your application and configure their URL relative to the page:
-
 Use translation files you control or trust, served from the same origin or a trusted HTTPS endpoint. Labels are rendered as text, but the translation source controls the wording users see.
+
+Serve the JSON files from your application and configure their URL relative to the page:
 
 ```javascript
 new DataTable('#table', {
