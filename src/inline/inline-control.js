@@ -1,10 +1,10 @@
 import { document } from '../core/dependencies.js';
 import { mergeOptions } from '../core/options.js';
+import { normalizeSelectOptions, isChecked } from '../data/field-values.js';
 import {
-  normalizeSelectOptions,
-  isChecked,
+  createSelectOption,
   setSelectValue,
-} from '../data/field-values.js';
+} from '../controls/select-control.js';
 import { segments } from '../data/path.js';
 
 const types = [
@@ -86,18 +86,17 @@ export function createControl(options, value) {
       );
   });
   if (type === 'select') {
-    let entries = normalizeSelectOptions(options.options);
+    const entries = normalizeSelectOptions(options.options);
     if (options.optionsSortByLabel)
-      entries = entries
-        .slice()
-        .sort((a, b) => String(a.label).localeCompare(String(b.label)));
+      entries.sort((a, b) => String(a.label).localeCompare(String(b.label)));
     entries.forEach((entry) => {
-      const option = document.createElement('option');
-      option.value = String(entry.value);
-      option.textContent = String(
-        entry.label === undefined ? entry.value : entry.label
+      control.appendChild(
+        createSelectOption(
+          control,
+          entry.value,
+          entry.label === undefined ? entry.value : entry.label
+        )
       );
-      control.appendChild(option);
     });
   }
   if (type === 'checkbox') control.checked = isChecked(value);

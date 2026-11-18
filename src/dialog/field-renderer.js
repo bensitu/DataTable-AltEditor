@@ -1,4 +1,5 @@
 import { document } from '../core/dependencies.js';
+import { createSelectOption } from '../controls/select-control.js';
 import { normalizeSelectOptions } from '../data/field-values.js';
 import { isFieldPath } from '../data/path.js';
 
@@ -76,10 +77,12 @@ export function renderFields(columnDefs, instanceId) {
 
       var normalized = normalizeSelectOptions(columnDef.options);
       normalized.forEach(function (option) {
-        var optionElement = document.createElement('option');
-        optionElement.value = String(option.value);
-        optionElement.textContent = String(option.label);
-        if (String(option.value) === String(columnDef.value))
+        const optionElement = createSelectOption(
+          select,
+          option.value,
+          option.label
+        );
+        if (optionElement.value === String(columnDef.value))
           optionElement.selected = true;
         select.appendChild(optionElement);
       });

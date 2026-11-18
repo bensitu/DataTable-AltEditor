@@ -1,6 +1,6 @@
 import { clearFieldErrors } from './field-feedback.js';
 import { $ } from '../core/dependencies.js';
-import { fieldElement } from '../data/field-values.js';
+import { fieldElement } from './field-elements.js';
 import { isFieldPath } from '../data/path.js';
 import { applyTemplate } from './template.js';
 import { renderFields } from './field-renderer.js';

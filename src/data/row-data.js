@@ -31,32 +31,6 @@ export function resolveRow(api, snapshot) {
     : null;
 }
 
-/** Invoke a persistence callback; only its first settlement is accepted. */
-export function invoke(callback, editor, values, extra, success, error) {
-  let settled = false;
-  const accept = (handler) => (value) => {
-    if (settled) return;
-    settled = true;
-    handler(value);
-  };
-  const resolve = accept(success);
-  const reject = accept(error);
-  try {
-    if (callback) {
-      const result = callback.apply(
-        editor,
-        [editor, values, resolve, reject].concat(extra || [])
-      );
-      const then = result != null ? result.then : null;
-      if (typeof then === 'function') then.call(result, resolve, reject);
-    } else resolve(values);
-  } catch (failure) {
-    if (settled && editor.debug)
-      console.error('Persistence callback failed after completion:', failure);
-    reject(failure);
-  }
-}
-
 export function cloneRow(value, seen) {
   if (!value || typeof value !== 'object') return value;
   if (value instanceof Date) return new Date(value.getTime());

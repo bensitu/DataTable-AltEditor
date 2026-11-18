@@ -1,4 +1,5 @@
-import { mergeOptions, isPlainObject } from './options.js';
+import { mergeOptions } from './options.js';
+import { isPlainObject } from '../data/objects.js';
 
 const defaults = {
   modalClose: 'Close',

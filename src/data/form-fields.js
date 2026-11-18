@@ -1,5 +1,4 @@
-import { normalizeColumns } from '../core/columns.js';
-import { isPlainObject } from '../core/options.js';
+import { isPlainObject } from './objects.js';
 import { requireSynchronousResult } from '../core/synchronous-result.js';
 import { isFieldPath } from './path.js';
 import { cloneRow } from './row-data.js';
@@ -23,9 +22,8 @@ function validateFieldNames(fields) {
   });
 }
 
-export function normalizeFields(fields, api) {
+export function normalizeFields(fields, columns) {
   if (fields == null) {
-    const columns = normalizeColumns(api);
     validateFieldNames(
       columns.filter(
         (field) =>

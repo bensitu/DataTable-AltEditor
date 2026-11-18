@@ -1,5 +1,5 @@
 import { $, document, root } from '../core/dependencies.js';
-import { fieldElement } from '../data/field-values.js';
+import { fieldElement } from './field-elements.js';
 import { normalizeError } from '../data/errors.js';
 
 export function clearFieldErrors(editor, name) {

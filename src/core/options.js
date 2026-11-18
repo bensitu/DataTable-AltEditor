@@ -1,9 +1,4 @@
-export function isPlainObject(value) {
-  if (!value || Object.prototype.toString.call(value) !== '[object Object]')
-    return false;
-  const proto = Object.getPrototypeOf(value);
-  return proto === Object.prototype || proto === null;
-}
+import { isPlainObject } from '../data/objects.js';
 
 export function mergeOptions() {
   const result = {};

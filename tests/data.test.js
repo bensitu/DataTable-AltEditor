@@ -1,5 +1,10 @@
 import { expect, test } from 'vitest';
-import { readPath, writePath, withValue } from '../src/data/path.js';
+import {
+  readPath,
+  writePath,
+  withValue,
+  withValues,
+} from '../src/data/path.js';
 import { mergeOptions, normalizeOptions } from '../src/core/options.js';
 import { cloneRow } from '../src/data/row-data.js';
 import { equalFieldValues } from '../src/data/field-values.js';
@@ -80,6 +85,30 @@ test('updates nested objects and numeric array sources immutably', () => {
     expect(() => writePath({}, path, 1)).toThrow();
     expect(() => withValue(original, path, 1)).toThrow();
   }
+});
+
+test('combines nested updates while preserving untouched row branches', () => {
+  const attachment = new File(['note'], 'note.txt');
+  const original = {
+    profile: { name: 'Alice', email: 'old@example.com', attachment },
+    choices: [{ label: 'First', enabled: false }, { label: 'Second' }],
+  };
+  const candidate = withValues(original, [
+    ['profile.name', 'Ann'],
+    ['profile.email', 'ann@example.com'],
+    ['choices.0.label', 'Updated'],
+    ['choices.0.enabled', true],
+  ]);
+  expect(candidate.profile).toEqual({
+    name: 'Ann',
+    email: 'ann@example.com',
+    attachment,
+  });
+  expect(candidate.profile.attachment).toBe(attachment);
+  expect(candidate.choices[0]).toEqual({ label: 'Updated', enabled: true });
+  expect(candidate.choices[1]).toBe(original.choices[1]);
+  expect(original.profile.name).toBe('Alice');
+  expect(original.choices[0].enabled).toBe(false);
 });
 
 test('merges configuration in precedence order without losing falsy values or functions', () => {

@@ -19,89 +19,12 @@
   }
 
   function fieldElement(container, name) {
+    const fieldName = String(name);
     return $(container)
       .find('input, select, textarea')
       .filter(function () {
-        return (this.name || this.id) === String(name);
+        return (this.name || this.id) === fieldName;
       });
-  }
-
-  function equalFieldValues(left, right, type) {
-    const values = (value) => (Array.isArray(value) ? value : [value]);
-    return values(left).some((a) =>
-      values(right).some((b) => {
-        if (a === '' || a == null || b === '' || b == null) return false;
-        if (type === 'number')
-          return (
-            Number.isFinite(Number(a)) &&
-            Number.isFinite(Number(b)) &&
-            Number(a) === Number(b)
-          );
-        return String(a) === String(b);
-      })
-    );
-  }
-
-  function normalizeSelectOptions(options) {
-    if (Array.isArray(options)) {
-      return options.map(function (option) {
-        if (option && typeof option === 'object') {
-          var value =
-            option.id !== undefined
-              ? option.id
-              : option.value !== undefined
-                ? option.value
-                : '';
-          var label =
-            option.text !== undefined
-              ? option.text
-              : option.label !== undefined
-                ? option.label
-                : value;
-          return { value: value, label: label };
-        }
-        return { value: option, label: option };
-      });
-    }
-    if (options && typeof options === 'object') {
-      return Object.keys(options).map(function (key) {
-        return { value: key, label: options[key] };
-      });
-    }
-    return [];
-  }
-
-  function isChecked(value) {
-    return (
-      value === true ||
-      value === 1 ||
-      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
-    );
-  }
-
-  /** Preserve stored selections that are absent from the configured options. */
-  function setSelectValue(control, value) {
-    let values = value == null ? [] : Array.isArray(value) ? value : [value];
-    const available = new Set(
-      Array.from(control.options, (option) => option.value)
-    );
-    if (control.multiple && typeof value === 'string' && !available.has(value)) {
-      try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) values = parsed;
-      } catch (_error) {}
-    }
-    values = values.map(String);
-    values.forEach((value) => {
-      if (value !== '' && !available.has(value)) {
-        const option = control.ownerDocument.createElement('option');
-        option.value = value;
-        option.textContent = value;
-        control.appendChild(option);
-        available.add(value);
-      }
-    });
-    $(control).val(control.multiple ? values : values.length ? values[0] : '');
   }
 
   /** Normalize persistence and validation failures without interpreting messages as HTML. */
@@ -235,8 +158,8 @@
   function isPlainObject(value) {
     if (!value || Object.prototype.toString.call(value) !== '[object Object]')
       return false;
-    const proto = Object.getPrototypeOf(value);
-    return proto === Object.prototype || proto === null;
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
   }
 
   function mergeOptions() {
@@ -415,27 +338,54 @@
 
   /** Copy the edited branches so persistence never changes the original row. */
   function withValue(source, path, value) {
-    const keys = segments(path);
-    if (source != null && !isContainer(source))
-      throw new TypeError('Cannot write through a non-object field: ' + path);
-    const copy = (item) =>
-      Array.isArray(item) ? item.slice() : copyProperties(item);
-    const result = copy(source);
-    let cursor = result;
-    let original = source;
-    keys.slice(0, -1).forEach((key, index) => {
-      original = original == null ? undefined : original[key];
-      if (original != null && !isContainer(original))
-        throw new TypeError('Cannot write through a non-object field: ' + path);
-      cursor[key] =
-        original && typeof original === 'object'
-          ? copy(original)
-          : /^\d+$/.test(keys[index + 1])
-            ? []
-            : {};
-      cursor = cursor[key];
-    });
-    cursor[keys[keys.length - 1]] = value;
+    return withValues(source, [[path, value]]);
+  }
+
+  /** Copy each modified row branch once, preserving untouched values. */
+  function withValues(source, updates) {
+    if (!updates.length) return source;
+    const originals = new WeakMap();
+    const copy = (original) => {
+      const result = Array.isArray(original)
+        ? original.slice()
+        : copyProperties(original);
+      originals.set(result, original);
+      return result;
+    };
+    let result;
+    for (const [path, value] of updates) {
+      const keys = segments(path);
+      if (!result) {
+        if (source != null && !isContainer(source))
+          throw new TypeError('Cannot write through a non-object field: ' + path);
+        result = copy(source);
+      }
+      let cursor = result;
+      for (let index = 0; index < keys.length - 1; index++) {
+        const key = keys[index];
+        const original = originals.get(cursor);
+        // Array slicing omits named properties, which can still be addressed by a path.
+        const branch =
+          Array.isArray(cursor) &&
+          original &&
+          !Object.prototype.hasOwnProperty.call(cursor, key)
+            ? original[key]
+            : cursor[key];
+        if (branch == null) {
+          const created = /^\d+$/.test(keys[index + 1]) ? [] : {};
+          originals.set(created, undefined);
+          cursor[key] = created;
+        } else {
+          if (!isContainer(branch))
+            throw new TypeError(
+              'Cannot write through a non-object field: ' + path
+            );
+          if (!originals.has(branch)) cursor[key] = copy(branch);
+        }
+        cursor = cursor[key];
+      }
+      cursor[keys[keys.length - 1]] = value;
+    }
     return result;
   }
 
@@ -470,32 +420,6 @@
     return byIndex.any() && byIndex.data() === snapshot.originalData
       ? byIndex
       : null;
-  }
-
-  /** Invoke a persistence callback; only its first settlement is accepted. */
-  function invoke(callback, editor, values, extra, success, error) {
-    let settled = false;
-    const accept = (handler) => (value) => {
-      if (settled) return;
-      settled = true;
-      handler(value);
-    };
-    const resolve = accept(success);
-    const reject = accept(error);
-    try {
-      if (callback) {
-        const result = callback.apply(
-          editor,
-          [editor, values, resolve, reject].concat(extra || [])
-        );
-        const then = result != null ? result.then : null;
-        if (typeof then === 'function') then.call(result, resolve, reject);
-      } else resolve(values);
-    } catch (failure) {
-      if (settled && editor.debug)
-        console.error('Persistence callback failed after completion:', failure);
-      reject(failure);
-    }
   }
 
   function cloneRow(value, seen) {
@@ -542,9 +466,8 @@
     });
   }
 
-  function normalizeFields(fields, api) {
+  function normalizeFields(fields, columns) {
     if (fields == null) {
-      const columns = normalizeColumns(api);
       validateFieldNames(
         columns.filter(
           (field) =>
@@ -1096,6 +1019,59 @@
     if (!validate(defaults, language))
       throw new TypeError('Language values must be strings');
     return language;
+  }
+
+  function equalFieldValues(left, right, type) {
+    const values = (value) => (Array.isArray(value) ? value : [value]);
+    return values(left).some((a) =>
+      values(right).some((b) => {
+        if (a === '' || a == null || b === '' || b == null) return false;
+        if (type === 'number')
+          return (
+            Number.isFinite(Number(a)) &&
+            Number.isFinite(Number(b)) &&
+            Number(a) === Number(b)
+          );
+        return String(a) === String(b);
+      })
+    );
+  }
+
+  function normalizeSelectOptions(options) {
+    if (Array.isArray(options)) {
+      return options.map(function (option) {
+        if (option && typeof option === 'object') {
+          var value =
+            option.id !== undefined
+              ? option.id
+              : option.value !== undefined
+                ? option.value
+                : '';
+          var label =
+            option.text !== undefined
+              ? option.text
+              : option.label !== undefined
+                ? option.label
+                : value;
+          return { value: value, label: label };
+        }
+        return { value: option, label: option };
+      });
+    }
+    if (options && typeof options === 'object') {
+      return Object.keys(options).map(function (key) {
+        return { value: key, label: options[key] };
+      });
+    }
+    return [];
+  }
+
+  function isChecked(value) {
+    return (
+      value === true ||
+      value === 1 ||
+      ['true', '1', 'yes', 'on'].indexOf(String(value).toLowerCase()) !== -1
+    );
   }
 
   const methods$5 = {
@@ -1723,6 +1699,35 @@
     },
   };
 
+  function createSelectOption(select, value, label) {
+    const option = select.ownerDocument.createElement('option');
+    option.value = String(value);
+    option.textContent = String(label);
+    return option;
+  }
+
+  /** Preserve stored selections that are absent from the configured options. */
+  function setSelectValue(control, value) {
+    let values = value == null ? [] : Array.isArray(value) ? value : [value];
+    const available = new Set(
+      Array.from(control.options, (option) => option.value)
+    );
+    if (control.multiple && typeof value === 'string' && !available.has(value)) {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) values = parsed;
+      } catch (_error) {}
+    }
+    values = values.map(String);
+    values.forEach((value) => {
+      if (value !== '' && !available.has(value)) {
+        control.appendChild(createSelectOption(control, value, value));
+        available.add(value);
+      }
+    });
+    $(control).val(control.multiple ? values : values.length ? values[0] : '');
+  }
+
   /** Build detached field controls without opening a dialog or initializing plugins. */
   function renderFields(columnDefs, instanceId) {
     var fragment = document.createDocumentFragment();
@@ -1797,10 +1802,12 @@
 
         var normalized = normalizeSelectOptions(columnDef.options);
         normalized.forEach(function (option) {
-          var optionElement = document.createElement('option');
-          optionElement.value = String(option.value);
-          optionElement.textContent = String(option.label);
-          if (String(option.value) === String(columnDef.value))
+          const optionElement = createSelectOption(
+            select,
+            option.value,
+            option.label
+          );
+          if (optionElement.value === String(columnDef.value))
             optionElement.selected = true;
           select.appendChild(optionElement);
         });
@@ -2185,8 +2192,18 @@
       var oldValue = $select.val();
       var normalized = this._normalizeOptions(options || []);
       $select.empty();
-      normalized.forEach(function (option) {
-        $('<option/>').val(option.value).text(option.label).appendTo($select);
+      $select.each(function () {
+        const fragment = this.ownerDocument.createDocumentFragment();
+        normalized.forEach(({ value, label }) => {
+          fragment.appendChild(
+            createSelectOption(
+              this,
+              value == null ? '' : value,
+              label == null ? '' : label
+            )
+          );
+        });
+        this.appendChild(fragment);
       });
       if (oldValue !== undefined && oldValue !== null) $select.val(oldValue);
       $select.trigger('change');
@@ -2267,6 +2284,56 @@
     return asynchronous ? Promise.all(results).then(combine) : combine(results);
   }
 
+  /** Invoke a persistence callback; only its first settlement is accepted. */
+  function invokePersistence(
+    callback,
+    editor,
+    values,
+    extra,
+    success,
+    error
+  ) {
+    let settled = false;
+    const accept = (handler) => (value) => {
+      if (settled) return;
+      settled = true;
+      handler(value);
+    };
+    const resolve = accept(success);
+    const reject = accept(error);
+    try {
+      if (callback) {
+        const result = callback.apply(
+          editor,
+          [editor, values, resolve, reject].concat(extra || [])
+        );
+        const then = result != null ? result.then : null;
+        if (typeof then === 'function') then.call(result, resolve, reject);
+      } else resolve(values);
+    } catch (failure) {
+      if (settled && editor.debug)
+        console.error('Persistence callback failed after completion:', failure);
+      reject(failure);
+    }
+  }
+
+  function parsePersistedRow(response) {
+    if (typeof response !== 'string') return response;
+    const json = response.trim();
+    if (json.startsWith('{') || json.startsWith('[')) {
+      try {
+        return JSON.parse(json);
+      } catch (_error) {}
+    }
+    return response;
+  }
+
+  function acceptPersistedRow(response, candidate, errorMessage) {
+    const row = response === undefined ? candidate : parsePersistedRow(response);
+    if (!row || typeof row !== 'object') throw new Error(errorMessage);
+    return row;
+  }
+
   /** @callback PersistenceCallback
    * @param {Object} editor AltEditor instance.
    * @param {Object|Array} rowData Submitted values; deletion receives an array of rows.
@@ -2279,19 +2346,7 @@
       showFieldErrors(this, response);
       this._setDialogSubmitting(false);
     },
-    _normalizeResponseData: function (response) {
-      if (typeof response !== 'string') return response;
-      var trimmed = response.trim();
-      if (!trimmed) return response;
-      if (trimmed.charAt(0) === '{' || trimmed.charAt(0) === '[') {
-        try {
-          return JSON.parse(trimmed);
-        } catch (_error) {
-          return response;
-        }
-      }
-      return response;
-    },
+    _normalizeResponseData: parsePersistedRow,
     _addRowData: function () {
       return this._submitDialog('add');
     },
@@ -2352,7 +2407,10 @@
           if (!active()) return;
           if (Object.keys(nativeErrors).length)
             throw { fieldErrors: nativeErrors };
+          const controlsByName = new Map();
           form.find('input, select, textarea').each(function () {
+            const name = this.name || this.id;
+            if (name && !controlsByName.has(name)) controlsByName.set(name, this);
             if (
               !this.disabled &&
               this.name &&
@@ -2371,7 +2429,7 @@
               !fieldNames.has(String(field.name))
             )
               return false;
-            return feedbackControl(fieldElement(form, field.name)[0], modal);
+            return feedbackControl(controlsByName.get(String(field.name)), modal);
           });
           collection = this._collectFormData(form);
         }
@@ -2452,15 +2510,16 @@
             throw new Error(editor.language.error.targetUnavailable);
           emit(editor, 'submit', payload);
           if (!active()) return;
-          let candidate = action === 'edit' ? snapshot.originalData : values;
-          if (action === 'edit')
-            fieldNames.forEach((name) => {
-              candidate = withValue(
-                candidate,
-                name,
-                editor._getValueByPath(values, name)
-              );
-            });
+          const candidate =
+            action === 'edit'
+              ? withValues(
+                  snapshot.originalData,
+                  Array.from(fieldNames, (name) => [
+                    name,
+                    editor._getValueByPath(values, name),
+                  ])
+                )
+              : values;
           const callback =
             editor[
               action === 'add'
@@ -2469,7 +2528,7 @@
                   ? 'onEditRow'
                   : 'onDeleteRow'
             ];
-          invoke(
+          invokePersistence(
             callback,
             editor,
             values,
@@ -2486,12 +2545,11 @@
                     throw new Error(editor.language.error.targetUnavailable);
                   api.rows(rows.map((row) => row.index())).remove();
                 } else {
-                  const data =
-                    response === undefined || response === values
-                      ? candidate
-                      : editor._normalizeResponseData(response);
-                  if (!data || typeof data !== 'object')
-                    throw new Error(editor.language.error.invalidResponse);
+                  const data = acceptPersistedRow(
+                    response === values ? undefined : response,
+                    candidate,
+                    editor.language.error.invalidResponse
+                  );
                   if (action === 'add') api.row.add(data);
                   else {
                     const row = resolveRow(api, snapshot);
@@ -2596,18 +2654,17 @@
         );
     });
     if (type === 'select') {
-      let entries = normalizeSelectOptions(options.options);
+      const entries = normalizeSelectOptions(options.options);
       if (options.optionsSortByLabel)
-        entries = entries
-          .slice()
-          .sort((a, b) => String(a.label).localeCompare(String(b.label)));
+        entries.sort((a, b) => String(a.label).localeCompare(String(b.label)));
       entries.forEach((entry) => {
-        const option = document.createElement('option');
-        option.value = String(entry.value);
-        option.textContent = String(
-          entry.label === undefined ? entry.value : entry.label
+        control.appendChild(
+          createSelectOption(
+            control,
+            entry.value,
+            entry.label === undefined ? entry.value : entry.label
+          )
         );
-        control.appendChild(option);
       });
     }
     if (type === 'checkbox') control.checked = isChecked(value);
@@ -2899,6 +2956,7 @@
       control.setCustomValidity('');
       if (session.options.unique) {
         const row = resolveRow(this.api, session);
+        const rowIndex = row ? row.index() : null;
         const indexes = this.api.rows().indexes().toArray();
         const duplicate = this.api
           .column(session.columnIndex)
@@ -2906,7 +2964,7 @@
           .toArray()
           .some(
             (value, index) =>
-              (!row || indexes[index] !== row.index()) &&
+              indexes[index] !== rowIndex &&
               equalFieldValues(session.newValue, value, session.options.type)
           );
         if (duplicate)
@@ -2996,7 +3054,7 @@
       this.event('submit', session);
       if (this.session !== session || this.editor._destroyed) return false;
       const callback = this.editor.onInlineEditRow || this.editor.onEditRow;
-      invoke(
+      invokePersistence(
         callback,
         this.editor,
         session.candidate,
@@ -3007,12 +3065,11 @@
             const row = resolveRow(this.api, session);
             if (!row)
               throw new Error(this.editor.language.error.targetUnavailable);
-            const candidate =
-              response === undefined
-                ? session.candidate
-                : this.editor._normalizeResponseData(response);
-            if (!candidate || typeof candidate !== 'object')
-              throw new Error(this.editor.language.error.invalidResponse);
+            const candidate = acceptPersistedRow(
+              response,
+              session.candidate,
+              this.editor.language.error.invalidResponse
+            );
             const rowIndex = row.index();
             this.release(session);
             this.session = null;
@@ -3216,7 +3273,11 @@
           return normalizeColumns(this.api());
         },
         completeFieldDefs: function () {
-          return normalizeFields(this.c.fields, this.api());
+          const fields = this.c.fields;
+          return normalizeFields(
+            fields,
+            fields == null ? normalizeColumns(this.api()) : undefined
+          );
         },
         _getValueByPath: readPath,
         _setValueByPath: writePath,

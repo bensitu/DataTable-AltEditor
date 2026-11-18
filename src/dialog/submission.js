@@ -1,11 +1,18 @@
 import { validateFields } from '../data/validation.js';
-import { fieldElement } from '../data/field-values.js';
-import { feedbackControl } from '../dialog/field-feedback.js';
 import { $ } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
-import { invoke, resolveRow } from '../data/row-data.js';
-import { showFieldErrors, clearFieldErrors } from '../dialog/field-feedback.js';
-import { withValue } from '../data/path.js';
+import { resolveRow } from '../data/row-data.js';
+import {
+  acceptPersistedRow,
+  invokePersistence,
+  parsePersistedRow,
+} from '../data/persistence.js';
+import {
+  feedbackControl,
+  showFieldErrors,
+  clearFieldErrors,
+} from './field-feedback.js';
+import { withValue, withValues } from '../data/path.js';
 import { transformField } from '../data/form-fields.js';
 import { normalizeError } from '../data/errors.js';
 
@@ -21,19 +28,7 @@ export const methods = {
     showFieldErrors(this, response);
     this._setDialogSubmitting(false);
   },
-  _normalizeResponseData: function (response) {
-    if (typeof response !== 'string') return response;
-    var trimmed = response.trim();
-    if (!trimmed) return response;
-    if (trimmed.charAt(0) === '{' || trimmed.charAt(0) === '[') {
-      try {
-        return JSON.parse(trimmed);
-      } catch (_error) {
-        return response;
-      }
-    }
-    return response;
-  },
+  _normalizeResponseData: parsePersistedRow,
   _addRowData: function () {
     return this._submitDialog('add');
   },
@@ -94,7 +89,10 @@ export const methods = {
         if (!active()) return;
         if (Object.keys(nativeErrors).length)
           throw { fieldErrors: nativeErrors };
+        const controlsByName = new Map();
         form.find('input, select, textarea').each(function () {
+          const name = this.name || this.id;
+          if (name && !controlsByName.has(name)) controlsByName.set(name, this);
           if (
             !this.disabled &&
             this.name &&
@@ -113,7 +111,7 @@ export const methods = {
             !fieldNames.has(String(field.name))
           )
             return false;
-          return feedbackControl(fieldElement(form, field.name)[0], modal);
+          return feedbackControl(controlsByName.get(String(field.name)), modal);
         });
         collection = this._collectFormData(form);
       }
@@ -194,15 +192,16 @@ export const methods = {
           throw new Error(editor.language.error.targetUnavailable);
         emit(editor, 'submit', payload);
         if (!active()) return;
-        let candidate = action === 'edit' ? snapshot.originalData : values;
-        if (action === 'edit')
-          fieldNames.forEach((name) => {
-            candidate = withValue(
-              candidate,
-              name,
-              editor._getValueByPath(values, name)
-            );
-          });
+        const candidate =
+          action === 'edit'
+            ? withValues(
+                snapshot.originalData,
+                Array.from(fieldNames, (name) => [
+                  name,
+                  editor._getValueByPath(values, name),
+                ])
+              )
+            : values;
         const callback =
           editor[
             action === 'add'
@@ -211,7 +210,7 @@ export const methods = {
                 ? 'onEditRow'
                 : 'onDeleteRow'
           ];
-        invoke(
+        invokePersistence(
           callback,
           editor,
           values,
@@ -228,12 +227,11 @@ export const methods = {
                   throw new Error(editor.language.error.targetUnavailable);
                 api.rows(rows.map((row) => row.index())).remove();
               } else {
-                const data =
-                  response === undefined || response === values
-                    ? candidate
-                    : editor._normalizeResponseData(response);
-                if (!data || typeof data !== 'object')
-                  throw new Error(editor.language.error.invalidResponse);
+                const data = acceptPersistedRow(
+                  response === values ? undefined : response,
+                  candidate,
+                  editor.language.error.invalidResponse
+                );
                 if (action === 'add') api.row.add(data);
                 else {
                   const row = resolveRow(api, snapshot);

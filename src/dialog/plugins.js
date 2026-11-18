@@ -1,11 +1,12 @@
 import { $, root as window } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { normalizeError } from '../data/errors.js';
+import { fieldElement } from './field-elements.js';
+import { isChecked } from '../data/field-values.js';
 import {
-  fieldElement,
-  isChecked,
+  createSelectOption,
   setSelectValue,
-} from '../data/field-values.js';
+} from '../controls/select-control.js';
 
 export const methods = {
   _initializePlugins: function () {
@@ -208,8 +209,18 @@ export const methods = {
     var oldValue = $select.val();
     var normalized = this._normalizeOptions(options || []);
     $select.empty();
-    normalized.forEach(function (option) {
-      $('<option/>').val(option.value).text(option.label).appendTo($select);
+    $select.each(function () {
+      const fragment = this.ownerDocument.createDocumentFragment();
+      normalized.forEach(({ value, label }) => {
+        fragment.appendChild(
+          createSelectOption(
+            this,
+            value == null ? '' : value,
+            label == null ? '' : label
+          )
+        );
+      });
+      this.appendChild(fragment);
     });
     if (oldValue !== undefined && oldValue !== null) $select.val(oldValue);
     $select.trigger('change');

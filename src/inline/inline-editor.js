@@ -3,7 +3,8 @@ import { normalizeError } from '../data/errors.js';
 import { document } from '../core/dependencies.js';
 import { emit } from '../core/events.js';
 import { requireSynchronousResult } from '../core/synchronous-result.js';
-import { snapshotRow, resolveRow, invoke, cloneRow } from '../data/row-data.js';
+import { snapshotRow, resolveRow, cloneRow } from '../data/row-data.js';
+import { acceptPersistedRow, invokePersistence } from '../data/persistence.js';
 import { withValue } from '../data/path.js';
 import { equalFieldValues } from '../data/field-values.js';
 import {
@@ -282,6 +283,7 @@ export class InlineEditor {
     control.setCustomValidity('');
     if (session.options.unique) {
       const row = resolveRow(this.api, session);
+      const rowIndex = row ? row.index() : null;
       const indexes = this.api.rows().indexes().toArray();
       const duplicate = this.api
         .column(session.columnIndex)
@@ -289,7 +291,7 @@ export class InlineEditor {
         .toArray()
         .some(
           (value, index) =>
-            (!row || indexes[index] !== row.index()) &&
+            indexes[index] !== rowIndex &&
             equalFieldValues(session.newValue, value, session.options.type)
         );
       if (duplicate)
@@ -379,7 +381,7 @@ export class InlineEditor {
     this.event('submit', session);
     if (this.session !== session || this.editor._destroyed) return false;
     const callback = this.editor.onInlineEditRow || this.editor.onEditRow;
-    invoke(
+    invokePersistence(
       callback,
       this.editor,
       session.candidate,
@@ -390,12 +392,11 @@ export class InlineEditor {
           const row = resolveRow(this.api, session);
           if (!row)
             throw new Error(this.editor.language.error.targetUnavailable);
-          const candidate =
-            response === undefined
-              ? session.candidate
-              : this.editor._normalizeResponseData(response);
-          if (!candidate || typeof candidate !== 'object')
-            throw new Error(this.editor.language.error.invalidResponse);
+          const candidate = acceptPersistedRow(
+            response,
+            session.candidate,
+            this.editor.language.error.invalidResponse
+          );
           const rowIndex = row.index();
           this.release(session);
           this.session = null;

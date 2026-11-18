@@ -11,7 +11,7 @@ import { methods as formData } from '../dialog/form-data.js';
 import { methods as dialogForms } from '../dialog/dialog-form.js';
 import { methods as fields } from '../dialog/field-renderer.js';
 import { methods as plugins } from '../dialog/plugins.js';
-import { methods as actions } from '../crud/actions.js';
+import { methods as submission } from '../dialog/submission.js';
 import { InlineEditor } from '../inline/inline-editor.js';
 let instance = 0;
 export function createAltEditor(DataTable) {
@@ -98,7 +98,7 @@ export function createAltEditor(DataTable) {
     fields,
     formData,
     plugins,
-    actions,
+    submission,
     {
       selectionListener: function () {
         var dt = this.s.dt;
@@ -127,7 +127,11 @@ export function createAltEditor(DataTable) {
         return normalizeColumns(this.api());
       },
       completeFieldDefs: function () {
-        return normalizeFields(this.c.fields, this.api());
+        const fields = this.c.fields;
+        return normalizeFields(
+          fields,
+          fields == null ? normalizeColumns(this.api()) : undefined
+        );
       },
       _getValueByPath: readPath,
       _setValueByPath: writePath,

@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import DataTable from 'datatables.net';
 import '../src/index.js';
-import { invoke } from '../src/data/row-data.js';
+import { invokePersistence as invoke } from '../src/data/persistence.js';
 import { afterEach, expect, test, vi } from 'vitest';
 
 const tables = [];
