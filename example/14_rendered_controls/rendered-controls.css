@@ -1,4 +1,4 @@
-.rendered-controls
+.example-rendered-controls
   :is(input, select, textarea, button, [contenteditable], .task-switch):not(
     .alteditor-inline-control
   ):not([type='checkbox']) {
@@ -12,15 +12,14 @@
   font: inherit;
 }
 
-.rendered-controls input[type='number'] {
+.example-rendered-controls input[type='number'] {
   width: 6rem;
 }
 
-.rendered-controls [contenteditable],
-.rendered-controls .task-switch {
+.example-rendered-controls :is([contenteditable], .task-switch) {
   display: inline-block;
 }
 
-.rendered-controls :is(button, summary, .task-switch) {
+.example-rendered-controls :is(button, summary, .task-switch) {
   cursor: pointer;
 }

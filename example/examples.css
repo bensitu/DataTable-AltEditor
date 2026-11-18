@@ -54,24 +54,29 @@
   color: var(--example-muted);
   font-size: 0.875rem;
 }
+.example-theme select,
+.example-actions button,
+.example-table .dt-input,
+.example-table .dt-buttons .dt-button {
+  background: var(--example-surface);
+  color: var(--example-text);
+  border: 1px solid var(--example-border);
+  border-radius: 0.375rem;
+}
+.example-actions button,
+.example-table .dt-input,
+.example-table .dt-buttons .dt-button {
+  min-height: 2.75rem;
+}
 .example-theme select {
   width: auto;
   height: auto;
   margin: 0;
   padding: 0.5rem 2rem 0.5rem 0.75rem;
-  background-color: var(--example-surface);
-  color: var(--example-text);
-  border: 1px solid var(--example-border);
-  border-radius: 0.375rem;
   font: inherit;
 }
 .example-actions button {
-  min-height: 2.75rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--example-border);
-  border-radius: 0.375rem;
-  background: var(--example-surface);
-  color: var(--example-text);
   font: inherit;
   cursor: pointer;
 }
@@ -83,8 +88,7 @@
   font: inherit;
   font-size: 0.9375rem;
 }
-.example-table table.dataTable thead,
-.example-table table.dataTable tfoot {
+.example-table table.dataTable :is(thead, tfoot) {
   color: var(--example-text);
   border-color: var(--example-border);
 }
@@ -102,16 +106,15 @@
 .example-table table.dataTable tbody tr > * {
   box-shadow: none;
 }
-.example-table table.dataTable th,
-.example-table table.dataTable td {
+.example-table table.dataTable :is(th, td) {
   border-color: var(--example-border);
+  padding-block: 0.75rem;
 }
 .example-table .dt-input {
-  background-color: var(--example-surface);
-  color: var(--example-text);
-  border: 1px solid var(--example-border);
-  border-radius: 0.375rem;
+  box-sizing: border-box;
+  max-width: 100%;
   font-family: inherit;
+  font-size: 1rem;
 }
 .example-table .dt-paging-button {
   font-family: inherit;
@@ -127,6 +130,10 @@
   background: var(--example-subtle);
   border-color: var(--example-border);
 }
+.example-table .dt-container .dt-paging .dt-paging-button:hover:not(.disabled) {
+  background: var(--example-subtle);
+  border-color: var(--example-accent);
+}
 .example-main {
   box-sizing: border-box;
   width: 100%;
@@ -134,9 +141,7 @@
   margin: 0 auto;
   padding: 2.5rem 2rem 4rem;
 }
-.example-header {
-  margin-bottom: 2rem;
-}
+.example-header,
 .example-header nav {
   margin-bottom: 2rem;
 }
@@ -188,10 +193,6 @@
 .example-table table {
   width: 100%;
 }
-.example-table table.dataTable th,
-.example-table table.dataTable td {
-  padding-block: 0.75rem;
-}
 .example-table table.dataTable thead {
   background: var(--example-subtle);
 }
@@ -205,12 +206,7 @@
 }
 .example-table .dt-buttons .dt-button {
   margin: 0;
-  min-height: 2.75rem;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--example-border);
-  border-radius: 0.375rem;
-  background: var(--example-surface);
-  color: var(--example-text);
   font: inherit;
   font-size: 0.875rem;
 }
@@ -220,12 +216,6 @@
 }
 .example-table .dt-buttons .dt-button.disabled {
   opacity: 0.45;
-}
-.example-table .dt-input {
-  box-sizing: border-box;
-  max-width: 100%;
-  min-height: 2.75rem;
-  font-size: 1rem;
 }
 .example-table .dt-info,
 .example-table .dt-search,

@@ -31,9 +31,9 @@
       crossorigin="anonymous"
     />
 
-    <link rel="stylesheet" href="../../dist/dataTables.altEditor.css" />
+    <link rel="stylesheet" href="../../dist/dataTables.altEditor.min.css" />
     <link rel="stylesheet" href="../examples.css" />
-    <link rel="stylesheet" href="./example18.css" />
+    <link rel="stylesheet" href="../dialog-templates.css" />
     <script src="../theme.js"></script>
   </head>
 
@@ -74,7 +74,7 @@
     </main>
 
     <template id="create-person">
-      <section class="person-layout">
+      <section class="example-dialog-template">
         <h2>Welcome a new colleague</h2>
         <p>Enter their contact information and choose a team.</p>
         <fieldset>
@@ -89,7 +89,7 @@
       </section>
     </template>
     <template id="edit-person">
-      <section class="person-layout">
+      <section class="example-dialog-template">
         <h2>Update colleague details</h2>
         <p data-person-summary></p>
         <div data-alteditor-field="team"></div>

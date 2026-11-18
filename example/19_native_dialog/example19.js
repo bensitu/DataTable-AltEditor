@@ -73,7 +73,7 @@ const table = new DataTable('#example', {
       render(value, type) {
         if (type !== 'display') return value ? 1 : 0;
         const badge = document.createElement('span');
-        badge.className = 'person-status';
+        badge.className = 'example-status-badge';
         badge.textContent = value ? 'Active' : 'Inactive';
         return badge;
       },

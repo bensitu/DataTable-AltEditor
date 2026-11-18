@@ -14,6 +14,8 @@ Simulated save requests do not send row values in query strings. They call `succ
 
 The examples pin CDN scripts and stylesheets with SHA-384 Subresource Integrity metadata and anonymous cross-origin requests. Recalculate the integrity value from the exact resource bytes whenever a URL or version changes. For production deployments, manage dependencies locally or pin resources with matching Subresource Integrity metadata and a suitable Content Security Policy.
 
+Example pages load the minified editor stylesheet. The GitHub Pages build also minifies example stylesheets while keeping their source files readable in the repository.
+
 ## Choose by integration need
 
 - **Start with a normal object table:** use Example 02. Use Example 01 when your rows are arrays.
