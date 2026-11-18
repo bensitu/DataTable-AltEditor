@@ -1,4 +1,6 @@
 import { $, root as window } from '../core/dependencies.js';
+import { emit } from '../core/events.js';
+import { normalizeError } from '../data/errors.js';
 import {
   fieldElement,
   isChecked,
@@ -83,7 +85,21 @@ export const methods = {
         $element
           .off('change' + that.s.modalNamespace)
           .on('change' + that.s.modalNamespace, function (event) {
-            columnDef.editorOnChange(event, that);
+            try {
+              columnDef.editorOnChange(event, that);
+            } catch (error) {
+              if (that._opening) throw error;
+              if (that._destroyed) return;
+              that._showErrorMessage(
+                normalizeError(error, that.language.error).message
+              );
+              emit(that, 'error', {
+                action: that._action,
+                mode: 'dialog',
+                field: columnDef.name,
+                error,
+              });
+            }
           });
       }
     });

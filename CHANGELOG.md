@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): incompatible public API changes increment the major version, compatible features increment the minor version, and compatible fixes increment the patch version.
 
+## 4.3.1 - Unreleased
+
+### Fixed
+
+- Uniqueness validation no longer replays field change callbacks during submission and preserves application-defined validity messages. Converted comparisons stop after finding a duplicate and copy row context only when it is read.
+- Runtime field change callback failures report recoverable dialog errors. Initialization failures continue to reject opening.
+- Required file fields allow existing attachments to be retained when editing while remaining required for new records.
+
 ## 4.3.0 - 2026-11-17
 
 ### Added

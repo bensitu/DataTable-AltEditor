@@ -74,13 +74,14 @@ export const methods = {
     });
   },
   _validateFormData: function ($form, fieldErrors) {
+    var that = this;
     var errors = [];
     $form.find('select, textarea, input').each(function () {
       if (this.disabled) return;
       var $input = $(this);
       var id = this.name || this.id || 'field';
       if ($input.attr('data-unique') === 'true') {
-        $input.trigger('change');
+        that._validateUniqueField(this);
       }
       if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
         const message = this.validationMessage || id + ' is invalid';

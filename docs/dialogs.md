@@ -127,3 +127,5 @@ Templates and returned DOM are trusted application configuration; the library do
 Generated field identifiers are unique to each editor instance. Locate controls by their `name` inside the supplied `form` or dialog element; do not assume that a field name is its DOM identifier. Labels remain associated with their corresponding controls.
 
 If a field plugin or `editorOnChange` callback throws during initialization, opening returns `false`, closes the incomplete dialog, and reports `alteditor-error.dt` with `action: 'open'`. Correct the configuration and wait for any framework closing transition before retrying. A failed opening does not emit the ready or normal close callbacks.
+
+An `editorOnChange` exception during later interaction displays dialog feedback and emits `alteditor-error.dt` with the current action, `mode: 'dialog'`, and the field name. The dialog remains available for correction. Submission validates uniqueness directly without triggering another change callback.

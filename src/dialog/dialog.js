@@ -227,64 +227,6 @@ export const methods = {
       });
     }
 
-    var checkUnique = function (event) {
-      var target = $(event.target);
-      if (target.attr('data-unique') !== 'true') return;
-      var column = (that.columnDefs || []).find(
-        (item) => String(item.name) === target.attr('name')
-      );
-      if (!column) {
-        event.target.setCustomValidity('');
-        return;
-      }
-
-      var candidate = target.val();
-      var formName = target.closest('form').attr('name') || '';
-      var editRow =
-        formName.indexOf('altEditor-edit-form-') === 0
-          ? that._resolveSnapshotRow(that._editSnapshot)
-          : null;
-      var editIndex = editRow ? editRow.index() : null;
-      var rowIndexes = dt.rows().indexes().toArray();
-
-      event.target.setCustomValidity('');
-      var values;
-      try {
-        values =
-          column.index !== undefined && !column.getValue
-            ? dt.column(column.index).data().toArray()
-            : dt
-                .rows()
-                .data()
-                .toArray()
-                .map((row) =>
-                  transformField(
-                    column,
-                    'getValue',
-                    that._getValueByPath(row, column.name),
-                    that,
-                    'edit',
-                    row
-                  )
-                );
-      } catch (error) {
-        event.target.setCustomValidity(
-          normalizeError(error, that.language.error).message ||
-            that.language.error.validation
-        );
-        return;
-      }
-      var duplicate = values.some(function (value, index) {
-        var rowIndex = rowIndexes[index];
-        if (editIndex !== null && rowIndex === editIndex) return false;
-        return equalFieldValues(candidate, value, column.type);
-      });
-      if (duplicate)
-        event.target.setCustomValidity(
-          column.uniqueMsg || that.language.error.unique
-        );
-    };
-
     $modal.on(
       'input' + this.s.namespace + ' change' + this.s.namespace,
       'input, select, textarea',
@@ -293,9 +235,65 @@ export const methods = {
       }
     );
     $modal.on('input' + this.s.namespace, '[data-unique]', function () {
-      this.setCustomValidity('');
+      that._clearUniqueError(this);
     });
-    $modal.on('change' + this.s.namespace, '[data-unique]', checkUnique);
+    $modal.on('change' + this.s.namespace, '[data-unique]', function () {
+      that._validateUniqueField(this);
+    });
+  },
+  _clearUniqueError: function (element) {
+    if (!this._uniqueMessages) return;
+    const message = this._uniqueMessages.get(element);
+    if (message && element.validationMessage === message)
+      element.setCustomValidity('');
+    this._uniqueMessages.delete(element);
+  },
+  _validateUniqueField: function (element) {
+    if ($(element).attr('data-unique') !== 'true') return;
+    this._clearUniqueError(element);
+    if (element.validity && element.validity.customError) return;
+    const field = (this.columnDefs || []).find(
+      (item) => String(item.name) === element.name
+    );
+    if (!field) return;
+    const api = this.api();
+    const row =
+      this._dialogContext && this._dialogContext.action === 'edit'
+        ? this._resolveSnapshotRow(this._editSnapshot)
+        : null;
+    const editIndex = row ? row.index() : null;
+    const indexes = api.rows().indexes().toArray();
+    const direct = field.index !== undefined && !field.getValue;
+    const values = direct
+      ? api.column(field.index).data().toArray()
+      : api.rows().data().toArray();
+    let message;
+    try {
+      const duplicate = values.some((value, index) => {
+        if (indexes[index] === editIndex) return false;
+        const stored = direct
+          ? value
+          : transformField(
+              field,
+              'getValue',
+              this._getValueByPath(value, field.name),
+              this,
+              'edit',
+              value
+            );
+        return equalFieldValues($(element).val(), stored, field.type);
+      });
+      if (duplicate) message = field.uniqueMsg || this.language.error.unique;
+    } catch (error) {
+      message =
+        normalizeError(error, this.language.error).message ||
+        this.language.error.validation;
+    }
+    if (message) {
+      if (!this._uniqueMessages) this._uniqueMessages = new WeakMap();
+      this._uniqueMessages.set(element, message);
+      element.setCustomValidity(message);
+    }
   },
   _initLanguage: function (source) {
     const language = resolveLanguage(

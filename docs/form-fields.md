@@ -51,7 +51,7 @@ Conversions are synchronous. Use persistence callbacks and `editorValidate` for 
 
 The context contains `editor`, `field`, `operation` (`add` or `edit`), and `originalRowData` (undefined for add). `setValue` also receives `values`, a snapshot of all collected form values before write conversion. Plain objects and arrays passed to each converter are detached copies. Treat context data as read-only, especially File objects and other non-plain values.
 
-`getValue` runs when a field is populated. Uniqueness validation also uses it to compare the control value against the corresponding values in loaded rows. Keep converters deterministic and free of side effects. Uniqueness across unloaded records requires a server constraint.
+`getValue` runs when a field is populated. Uniqueness validation also uses it to compare the control value against the corresponding values in loaded rows. Those comparisons read existing rows with `operation: 'edit'`, including when an add form is open. Keep converters deterministic and free of side effects. Uniqueness across unloaded records requires a server constraint.
 
 Submission collects controls, runs native constraints and custom validators against form values, then calls `setValue` for each submitted field. Pre-submit and submit events and persistence callbacks receive the converted values. Edit candidates merge those values into the captured row while preserving unrelated properties. `success(persistedRow)` still replaces the candidate with the complete server response.
 

@@ -36,6 +36,90 @@ afterEach(() => {
 });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+test('validates unique values without replaying change callbacks or clearing application validity', async () => {
+  const change = vi.fn();
+  const save = vi.fn((_editor, _values, success) => success());
+  const { editor } = create({
+    columns: [
+      {
+        data: 'name',
+        title: 'Name',
+        unique: true,
+        value: 'Carol',
+        editorOnChange: change,
+      },
+    ],
+    onAddRow: save,
+  });
+  editor.openAddDialog();
+  change.mockClear();
+  const input = $(editor.modal_selector).find('[name="name"]')[0];
+  input.setCustomValidity('Options are loading');
+  await editor._addRowData();
+  expect(save).not.toHaveBeenCalled();
+  expect(input.validationMessage).toBe('Options are loading');
+  input.setCustomValidity('');
+  input.value = 'Alice';
+  await editor._addRowData();
+  expect(save).not.toHaveBeenCalled();
+  input.value = 'Carol';
+  await editor._addRowData();
+  expect(change).not.toHaveBeenCalled();
+  expect(save).toHaveBeenCalledOnce();
+});
+
+test('reports runtime change callback failures and permits correction', async () => {
+  const { editor, table } = create({
+    columns: [
+      {
+        data: 'name',
+        title: 'Name',
+        editorOnChange(event) {
+          if (event.target.value === 'invalid')
+            throw new Error('Unable to update dependent options');
+        },
+      },
+    ],
+  });
+  const error = vi.fn();
+  table.on('alteditor-error.dt', error);
+  editor.openEditDialog(0);
+  const input = $(editor.modal_selector).find('[name="name"]');
+  expect(() => input.val('invalid').trigger('change')).not.toThrow();
+  expect(error).toHaveBeenCalledOnce();
+  expect($(editor.modal_selector).text()).toContain(
+    'Unable to update dependent options'
+  );
+  input.val('Ann').trigger('change');
+  await editor._editRowData();
+  expect(table.row(0).data().name).toBe('Ann');
+});
+
+test('keeps an existing required attachment when editing and requires a file when adding', async () => {
+  const { editor, table } = create({
+    data: [
+      { id: 'a', name: 'Alice', attachment: 'data:text/plain;base64,YQ==' },
+    ],
+    columns: [
+      { data: 'name', title: 'Name' },
+      { data: 'attachment', title: 'Attachment', type: 'file', required: true },
+    ],
+  });
+  editor.openEditDialog(0);
+  expect($(editor.modal_selector).find('[type="file"]')[0].required).toBe(
+    false
+  );
+  $(editor.modal_selector).find('[name="name"]').val('Ann');
+  await editor._editRowData();
+  expect(table.row(0).data()).toEqual({
+    id: 'a',
+    name: 'Ann',
+    attachment: 'data:text/plain;base64,YQ==',
+  });
+  editor.openAddDialog();
+  expect($(editor.modal_selector).find('[type="file"]')[0].required).toBe(true);
+});
+
 test('preserves structured values outside compatible controls in edit submissions', async () => {
   const original = {
     id: 'a',

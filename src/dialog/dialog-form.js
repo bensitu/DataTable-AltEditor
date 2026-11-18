@@ -67,6 +67,14 @@ export const methods = {
         rowData === undefined
           ? column.value
           : this._getValueByPath(rowData, column.name);
+      if (column.type === 'file') {
+        if (rowData !== undefined && stored != null && stored !== '')
+          fieldElement(this.modal_selector, column.name).prop(
+            'required',
+            false
+          );
+        continue;
+      }
       const element = fieldElement(this.modal_selector, column.name).filter(
         ':input[type!="file"]'
       );

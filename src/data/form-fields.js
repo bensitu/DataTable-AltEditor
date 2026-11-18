@@ -57,11 +57,19 @@ export function transformField(
   if (field[method] === undefined) return value;
   if (typeof field[method] !== 'function')
     throw new TypeError(method + ' must be a function');
+  let originalCopy;
+  let copied = false;
   const result = field[method](cloneRow(value), {
     editor,
     field: field.name,
     operation,
-    originalRowData: cloneRow(originalRowData),
+    get originalRowData() {
+      if (!copied) {
+        originalCopy = cloneRow(originalRowData);
+        copied = true;
+      }
+      return originalCopy;
+    },
     values: cloneRow(values),
   });
   if (result != null && typeof result.then === 'function') {

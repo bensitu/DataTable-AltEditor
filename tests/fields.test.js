@@ -2,6 +2,7 @@ import $ from 'jquery';
 import DataTable from 'datatables.net';
 import '../src/index.js';
 import { afterEach, expect, test, vi } from 'vitest';
+import { transformField } from '../src/data/form-fields.js';
 
 const tables = [];
 function create(fields, options = {}) {
@@ -32,6 +33,31 @@ afterEach(() => {
   tables.splice(0).forEach((table) => table.destroy());
   document.body.innerHTML = '';
   vi.restoreAllMocks();
+});
+
+test('isolates converter row context without reading unused properties', () => {
+  const read = vi.fn(() => ({ active: true }));
+  const original = {
+    get profile() {
+      return read();
+    },
+  };
+  const field = { name: 'name', getValue: (value) => value };
+  expect(transformField(field, 'getValue', 'Alice', {}, 'edit', original)).toBe(
+    'Alice'
+  );
+  expect(read).not.toHaveBeenCalled();
+  field.getValue = (_value, context) => {
+    const row = context.originalRowData;
+    row.profile.active = false;
+    expect(context.originalRowData).toBe(row);
+    return row.profile.active;
+  };
+  expect(transformField(field, 'getValue', 'Alice', {}, 'edit', original)).toBe(
+    false
+  );
+  expect(read).toHaveBeenCalledOnce();
+  expect(original.profile.active).toBe(true);
 });
 
 test('edits independent fields with structured read and write conversions', async () => {
