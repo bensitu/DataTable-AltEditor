@@ -11,6 +11,8 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Explicit construction with an empty DataTables API reports a clear error. Temporary inline cell focus attributes are removed when focus leaves the cell.
+- The file upload example closes a failed response after headers are sent instead of attempting a second response.
 - Column-derived forms reject duplicate and overlapping writable paths while allowing display-only duplicate columns. Nested writes reject opaque objects instead of replacing their types or adding properties to them.
 - Closed or closing dialogs ignore stale submissions and release their submit handlers. Pending file reads stop when a dialog closes or its editor is destroyed.
 - An unavailable replacement target preserves the active dialog's context and close notifications.

@@ -3024,7 +3024,17 @@
 
     focusCell(node) {
       if (node && node.isConnected) {
-        if (!node.hasAttribute('tabindex')) node.tabIndex = -1;
+        if (!node.hasAttribute('tabindex')) {
+          node.tabIndex = -1;
+          node.addEventListener(
+            'blur',
+            () => {
+              if (node.getAttribute('tabindex') === '-1')
+                node.removeAttribute('tabindex');
+            },
+            { once: true }
+          );
+        }
         node.focus();
       }
     }
@@ -3067,6 +3077,7 @@
     function AltEditor(dt, options) {
       const api = new DataTable.Api(dt);
       const table = api.table().node();
+      if (!table) throw new TypeError('AltEditor requires a DataTables table');
       if (table.altEditor && !table.altEditor._destroyed) return table.altEditor;
       if (!DataTable.versionCheck('2.1') || DataTable.versionCheck('3'))
         throw new Error('AltEditor requires DataTables >=2.1.0 <3');

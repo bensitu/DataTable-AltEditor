@@ -76,12 +76,14 @@ test('handles composition, Enter, Escape and keyboard navigation without duplica
   expect(editor.isInlineEditing()).toBe(false);
   expect(table.row(0).data().user.name).toBe('Ann');
   editor.startInlineEdit({ row: 0, column: 1 });
+  expect(cell.hasAttribute('tabindex')).toBe(false);
   input().dispatchEvent(
     new KeyboardEvent('keydown', { key: 'Tab', bubbles: true })
   );
   expect(editor.isInlineEditing()).toBe(false);
   expect(document.activeElement).toBe(table.cell(0, 1).node());
   editor.startInlineEdit({ row: 0, column: 0 });
+  expect(table.cell(0, 1).node().hasAttribute('tabindex')).toBe(false);
   input().dispatchEvent(
     new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
   );

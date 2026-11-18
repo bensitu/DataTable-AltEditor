@@ -22,6 +22,8 @@ Obtain the instance through `table.altEditor()` and its table through `editor.ap
 
 Buttons and Select are optional. Without Select, pass explicit row selectors to edit and delete methods. Existing callback argument order is unchanged, including the editor as the first argument and original row data as the fifth edit argument. Only the first success or error completion is accepted; repeated completions are ignored. Errors render as text.
 
+Edit callbacks should return normalized server data through `success(persistedRow)`. Mutating their `rowData` argument and calling `success()` does not change the captured edit candidate. Add callbacks retain their existing mutable candidate behavior.
+
 `uniqueMsg` now supplies the unique validation message, with `language.error.unique` as its fallback. `special` is retained as a deprecated data attribute and has no built-in behavior. Unused defaults named alwaysAsk, focus, columns, update, and editor have been removed. Deprecated readonly field types map to readonly text controls.
 
 ## Cell editing

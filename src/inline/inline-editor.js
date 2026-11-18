@@ -421,7 +421,17 @@ export class InlineEditor {
 
   focusCell(node) {
     if (node && node.isConnected) {
-      if (!node.hasAttribute('tabindex')) node.tabIndex = -1;
+      if (!node.hasAttribute('tabindex')) {
+        node.tabIndex = -1;
+        node.addEventListener(
+          'blur',
+          () => {
+            if (node.getAttribute('tabindex') === '-1')
+              node.removeAttribute('tabindex');
+          },
+          { once: true }
+        );
+      }
       node.focus();
     }
   }

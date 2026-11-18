@@ -101,6 +101,9 @@ test('registers an editor for automatic initialization', () => {
 });
 
 test('creates an editor explicitly without Buttons or Select', () => {
+  expect(() => new AltEditor(new DataTable.Api())).toThrow(
+    'AltEditor requires a DataTables table'
+  );
   document.body.innerHTML = '<table id="table"></table>';
   const table = new DataTable('#table', {
     data: [[1]],

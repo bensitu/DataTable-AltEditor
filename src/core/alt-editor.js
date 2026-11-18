@@ -23,6 +23,7 @@ export function createAltEditor(DataTable) {
   function AltEditor(dt, options) {
     const api = new DataTable.Api(dt);
     const table = api.table().node();
+    if (!table) throw new TypeError('AltEditor requires a DataTables table');
     if (table.altEditor && !table.altEditor._destroyed) return table.altEditor;
     if (!DataTable.versionCheck('2.1') || DataTable.versionCheck('3'))
       throw new Error('AltEditor requires DataTables >=2.1.0 <3');

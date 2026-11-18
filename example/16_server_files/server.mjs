@@ -162,6 +162,10 @@ createServer(async (request, response) => {
     response.end(content);
   } catch (error) {
     console.error('Request failed:', error);
+    if (response.headersSent) {
+      response.destroy();
+      return;
+    }
     json(response, error.code === 'ENOENT' ? 404 : 400, {
       message:
         error.code === 'ENOENT' ? 'Not found' : 'Unable to process the request',

@@ -6,7 +6,7 @@ Use `altEditor: true` for row dialogs or an options object to customize behavior
 
 ## Configuration
 
-Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`, root-level compatibility options, then the instance `altEditor` object. Explicit constructor options are applied last. Functions retain their references, arrays are copied and replaced, and unsafe object keys are rejected.
+Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`, root-level compatibility options, then the instance `altEditor` object. Explicit constructor options are applied last. Functions retain their references, arrays are shallow-copied and replaced, and unsafe object keys are rejected. Objects inside configuration arrays retain their references; treat them as read-only after initialization.
 
 | Option                | Default                                                                             | Behavior                                                                                                       |
 | --------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
