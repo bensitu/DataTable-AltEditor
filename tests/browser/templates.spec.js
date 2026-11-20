@@ -34,6 +34,7 @@ test('native templates retain keyboard focus and save and delete records with ot
   await input.press('Enter');
   await expect(dialog.locator('.altEditor-close')).toBeDisabled();
   await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
   await expect(dialog).toBeVisible();
   await page.evaluate(() => finishSave());
   await expect(dialog).toBeHidden();

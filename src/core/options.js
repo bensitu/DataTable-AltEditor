@@ -22,6 +22,7 @@ export function mergeOptions() {
  * @property {boolean} [closeModalOnSuccess=true] Close dialogs after successful persistence.
  * @property {boolean} [encodeFiles=true] Read uploaded files as data URLs.
  * @property {boolean} [debug=false] Enable diagnostic messages.
+ * @property {number} [persistenceTimeout=0] Milliseconds to wait for a persistence callback.
  * @property {Object|boolean} [inlineEdit] Cell editing configuration.
  */
 export const defaults = {
@@ -29,6 +30,7 @@ export const defaults = {
   closeModalOnSuccess: true,
   encodeFiles: true,
   debug: false,
+  persistenceTimeout: 0,
   dialog: {
     framework: 'auto',
     templates: { add: null, edit: null },
@@ -74,5 +76,13 @@ export function normalizeOptions(base, init, supplied) {
     throw new TypeError('Dialog templates must be an object');
   if (options.fields != null && !Array.isArray(options.fields))
     throw new TypeError('Form fields must be an array');
+  if (
+    !Number.isInteger(options.persistenceTimeout) ||
+    options.persistenceTimeout < 0 ||
+    options.persistenceTimeout > 2147483647
+  )
+    throw new TypeError(
+      'Persistence timeout must be an integer between 0 and 2147483647'
+    );
   return options;
 }

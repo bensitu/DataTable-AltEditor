@@ -1,35 +1,40 @@
 {
-    "modalClose": "Зачинити",
-    "edit": {
-        "title": "Редагування",
-        "button": "Редагувати"
-    },
-    "add": {
-        "title": "Додавання",
-        "button": "Додати"
-    },
-    "delete": {
-        "title": "Видалення",
-        "button": "Видалити"
-    },
-    "deleteMessage": "Ви впевнені, що хочете видалити вибрані рядки?",
-    "success": "Виконано.",
-    "error": {
-        "message": "Невідома помилка",
-        "label": "Помилка",
-        "responseCode": "Код відповіді:",
-        "required": "Заповнені не всі дані",
-        "validation": "Неприпустиме значення поля",
-        "unique": "Запис не є унікальним",
-        "editSelection": "Виберіть рівно один рядок для редагування.",
-        "deleteSelection": "Виберіть принаймні один рядок для видалення.",
-        "targetUnavailable": "Цільовий рядок недоступний",
-        "invalidResponse": "Операція збереження має повертати об’єкт або масив рядка",
-        "invalidSetter": "inlineEditSetValue має повертати об’єкт або масив рядка",
-        "fileRead": "Не вдалося прочитати файл",
-        "fileAborted": "Читання файлу перервано",
-        "fileSize": "Розмір файлу перевищує встановлене обмеження",
-        "dialogFramework": "Для відкриття діалогів AltEditor потрібен Bootstrap Modal або Foundation Reveal",
-        "nativeDialog": "Для вбудованих діалогових вікон потрібен браузер із підтримкою HTMLDialogElement.showModal"
-    }
+  "modalClose": "Зачинити",
+  "edit": {
+    "title": "Редагування",
+    "button": "Редагувати"
+  },
+  "add": {
+    "title": "Додавання",
+    "button": "Додати"
+  },
+  "delete": {
+    "title": "Видалення",
+    "button": "Видалити"
+  },
+  "deleteMessage": "Ви впевнені, що хочете видалити вибрані рядки?",
+  "success": "Виконано.",
+  "inline": {
+    "label": "Редагувати значення"
+  },
+  "error": {
+    "message": "Невідома помилка",
+    "label": "Помилка",
+    "responseCode": "Код відповіді:",
+    "required": "Заповнені не всі дані",
+    "validation": "Неприпустиме значення поля",
+    "unique": "Запис не є унікальним",
+    "editSelection": "Виберіть рівно один рядок для редагування.",
+    "deleteSelection": "Виберіть принаймні один рядок для видалення.",
+    "targetUnavailable": "Цільовий рядок недоступний",
+    "invalidResponse": "Операція збереження має повертати об’єкт або масив рядка",
+    "invalidSetter": "inlineEditSetValue має повертати об’єкт або масив рядка",
+    "fileRead": "Не вдалося прочитати файл",
+    "fileAborted": "Читання файлу перервано",
+    "fileSize": "Розмір файлу перевищує встановлене обмеження",
+    "dialogFramework": "Для відкриття діалогів AltEditor потрібен Bootstrap Modal або Foundation Reveal",
+    "nativeDialog": "Для вбудованих діалогових вікон потрібен браузер із підтримкою HTMLDialogElement.showModal",
+    "unsupportedInlineValue": "Це значення не можна змінити в цьому полі.",
+    "persistenceTimeout": "Відповідь на запит збереження не надійшла вчасно. Перевірте поточні дані, перш ніж повторити спробу."
+  }
 }

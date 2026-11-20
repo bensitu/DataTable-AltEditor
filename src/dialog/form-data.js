@@ -86,7 +86,8 @@ export const methods = {
         that._validateUniqueField(this);
       }
       if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
-        const message = this.validationMessage || id + ' is invalid';
+        const message =
+          this.validationMessage || that.language.error.validation;
         errors.push(message);
         if (fieldErrors) fieldErrors[id] = message;
       }

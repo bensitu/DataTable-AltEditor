@@ -37,7 +37,7 @@ function create(dialog = {}) {
 }
 test('clones separate add and edit layouts while retaining defaults, validation and persistence', async () => {
   document.body.innerHTML =
-    '<template id="add"><section aria-labelledby="profile-heading"><h2 id="profile-heading">Create profile</h2><div data-alteditor-field="name"></div></section></template><template id="edit"><fieldset><legend>Change profile</legend><div data-alteditor-field="name"></div></fieldset></template>';
+    '<template id="add"><section aria-labelledby="profile-heading" aria-details="details"><h2 id="profile-heading">Create profile</h2><p id="details">Enter a name</p><svg><defs><clipPath id="outline"></clipPath></defs><rect clip-path="url(#outline)"></rect><use href="#outline" xlink:href="#outline"></use></svg><div data-alteditor-field="name"></div></section></template><template id="edit"><fieldset><legend>Change profile</legend><div data-alteditor-field="name"></div></fieldset></template>';
   const render = vi.fn();
   const editor = create({
     templates: {
@@ -53,6 +53,15 @@ test('clones separate add and edit layouts while retaining defaults, validation 
     modal.find('h2').attr('id')
   );
   expect(modal.find('h2').attr('id')).not.toBe('profile-heading');
+  expect(modal.find('section').attr('aria-details')).toBe(
+    modal.find('p').attr('id')
+  );
+  const outline = '#' + modal.find('clipPath').attr('id');
+  expect(modal.find('rect').attr('clip-path')).toBe('url(' + outline + ')');
+  expect(modal.find('use').attr('href')).toBe(outline);
+  expect(
+    modal.find('use')[0].getAttributeNS('http://www.w3.org/1999/xlink', 'href')
+  ).toBe(outline);
   expect(modal.find('[name="name"]').val()).toBe('New name');
   modal.find('[name="name"]').val('');
   await editor._addRowData();
@@ -146,6 +155,19 @@ test('supports cancellation and prevents reentrant opening from lifecycle callba
   expect(editor.c.dialog.onClose).toHaveBeenCalledOnce();
   editor.c.dialog.onBeforeOpen = () => editor.destroy();
   expect(editor.openAddDialog()).toBe(false);
+});
+
+test('allows a dialog to reopen after its framework throws while showing', () => {
+  const editor = create();
+  vi.spyOn($.fn, 'modal').mockImplementationOnce(() => {
+    throw new Error('Unable to show the dialog');
+  });
+  expect(editor.openAddDialog()).toBe(false);
+  editor.openAddDialog();
+  expect(editor._dialogOpen).toBe(true);
+  expect($(editor.modal_selector).find('.addRowBtn').attr('id')).toBe(
+    editor.modal_selector.slice(1) + '-addRowBtn'
+  );
 });
 
 test('retains the active form context when a replacement target disappears', async () => {

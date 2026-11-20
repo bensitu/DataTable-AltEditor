@@ -22,6 +22,8 @@ const defaults = {
     invalidResponse: 'Persistence must return a row object or array',
     invalidSetter: 'inlineEditSetValue must return a row object or array',
     unsupportedInlineValue: 'This value cannot be edited with this control',
+    persistenceTimeout:
+      'The save did not respond in time. Check the current data before retrying.',
     fileRead: 'Failed to read file',
     fileAborted: 'File read was aborted',
     fileSize: 'File exceeds the configured size limit',

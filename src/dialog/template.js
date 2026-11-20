@@ -1,5 +1,31 @@
 import { document } from '../core/dependencies.js';
 
+const identifierAttributes = [
+  'for',
+  'headers',
+  'itemref',
+  'aria-activedescendant',
+  'aria-controls',
+  'aria-describedby',
+  'aria-details',
+  'aria-errormessage',
+  'aria-flowto',
+  'aria-labelledby',
+  'aria-owns',
+];
+const urlAttributes = [
+  'clip-path',
+  'fill',
+  'filter',
+  'marker',
+  'marker-end',
+  'marker-mid',
+  'marker-start',
+  'mask',
+  'stroke',
+  'style',
+];
+
 /** Clone application markup and place generated fields into named slots. */
 export function applyTemplate(source, fields, context) {
   if (typeof source === 'function') source = source(context);
@@ -25,13 +51,7 @@ export function applyTemplate(source, fields, context) {
     element.id = id;
   });
   layout.querySelectorAll('*').forEach((element) => {
-    [
-      'for',
-      'aria-labelledby',
-      'aria-describedby',
-      'aria-controls',
-      'aria-owns',
-    ].forEach((attribute) => {
+    identifierAttributes.forEach((attribute) => {
       if (element.hasAttribute(attribute))
         element.setAttribute(
           attribute,
@@ -42,9 +62,23 @@ export function applyTemplate(source, fields, context) {
             .join(' ')
         );
     });
-    const href = element.getAttribute('href');
-    if (href && href[0] === '#' && identifiers.has(href.slice(1)))
-      element.setAttribute('href', '#' + identifiers.get(href.slice(1)));
+    ['href', 'xlink:href'].forEach((attribute) => {
+      const node = element.getAttributeNode(attribute);
+      if (!node || !node.value.startsWith('#')) return;
+      const id = identifiers.get(node.value.slice(1));
+      if (id) node.value = '#' + id;
+    });
+    urlAttributes.forEach((attribute) => {
+      const node = element.getAttributeNode(attribute);
+      if (node)
+        node.value = node.value.replace(
+          /url\(\s*(['"]?)#([^'"\s)]+)\1\s*\)/g,
+          (match, quote, id) =>
+            identifiers.has(id)
+              ? 'url(' + quote + '#' + identifiers.get(id) + quote + ')'
+              : match
+        );
+    });
   });
   const groups = new Map();
   fields.querySelectorAll('.altEditor-field').forEach((field) => {

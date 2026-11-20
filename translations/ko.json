@@ -14,6 +14,9 @@
   },
   "deleteMessage": "선택한 레코드를 삭제하시겠습니까?",
   "success": "작업이 완료되었습니다.",
+  "inline": {
+    "label": "값 편집"
+  },
   "error": {
     "message": "알 수 없는 오류가 발생했습니다.",
     "label": "오류",
@@ -30,6 +33,8 @@
     "fileAborted": "파일 읽기가 중단되었습니다",
     "fileSize": "파일이 설정된 크기 제한을 초과합니다",
     "dialogFramework": "AltEditor 대화 상자를 열려면 Bootstrap Modal 또는 Foundation Reveal이 필요합니다",
-    "nativeDialog": "기본 대화 상자를 사용하려면 HTMLDialogElement.showModal을 지원하는 브라우저가 필요합니다"
+    "nativeDialog": "기본 대화 상자를 사용하려면 HTMLDialogElement.showModal을 지원하는 브라우저가 필요합니다",
+    "unsupportedInlineValue": "이 입력 컨트롤로는 이 값을 편집할 수 없습니다.",
+    "persistenceTimeout": "저장 요청에 대한 응답이 지연되었습니다. 다시 시도하기 전에 현재 데이터를 확인하세요."
   }
 }

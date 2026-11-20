@@ -22,8 +22,13 @@ export function normalizeError(error, language) {
       });
       message = messages.join('\n');
     }
-    if (!message && error.responseText) message = String(error.responseText);
-    if (!message && error.status != null)
+    if (
+      !message &&
+      error.responseJSON &&
+      typeof error.responseJSON.message === 'string'
+    )
+      message = error.responseJSON.message;
+    if (!message && Number.isInteger(error.status))
       message = language.responseCode + error.status;
   }
   return {

@@ -8,7 +8,7 @@ AltEditor provides named dialogs, labeled native fields, keyboard editing, focus
 
 Dialog frameworks manage focus containment. On opening, the editor focuses an available control; closing restores the previously focused element if it still exists. Close buttons provide keyboard dismissal. Escape and backdrop dismissal are intentionally disabled by the existing dialog configuration, including native mode. This differs from the Escape behavior recommended by the [ARIA modal dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/); applications should make the Close action easy to find.
 
-Pending validation or persistence disables close and submit actions. Always bound external requests with a timeout and settle failures so the form remains recoverable. The editor does not impose a network timeout.
+Pending validation or persistence disables close and submit actions. Use transport timeouts and settle failures so the form remains recoverable. Use `persistenceTimeout` to limit how long the editor waits for persistence.
 
 Double-click is the default pointer entry into inline editing. Provide a keyboard-accessible button or table navigation integration that calls `startInlineEdit()`. Do not rely on double-click alone. [Example 17](../example/17_inline_options/example17.html) demonstrates public edit controls, and [Example 21](../example/21_async_validation/example21.html) includes an **Edit first visible name** button. Inside an active control, Enter saves, Escape cancels an unsent edit, and Tab / Shift+Tab save and navigate eligible cells. See the [keyboard contract](inline-edit.md#keyboard-and-focus).
 

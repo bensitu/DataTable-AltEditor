@@ -6,6 +6,7 @@ import { normalizeFields } from '../data/form-fields.js';
 import { emit } from './events.js';
 import { readPath, writePath } from '../data/path.js';
 import { resolveRow } from '../data/row-data.js';
+import { cancelPersistence } from '../data/persistence.js';
 import { methods as dialogs } from '../dialog/dialog.js';
 import { methods as formData } from '../dialog/form-data.js';
 import { methods as dialogForms } from '../dialog/dialog-form.js';
@@ -189,6 +190,7 @@ export function createAltEditor(DataTable) {
       destroy: function () {
         if (this._destroyed) return;
         this._destroyed = true;
+        cancelPersistence(this);
         if (this._inline) this._inline.destroy();
         this._dialogOpen = false;
         this._abortFileReads();

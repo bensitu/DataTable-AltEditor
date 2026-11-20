@@ -273,7 +273,7 @@ test('shows validator execution failures globally and preserves native validatio
   expect(editor._submitting).toBe(false);
 });
 
-test('validates only editable rendered fields and reports multiple invalid fields', async () => {
+test('validates collapsed editable fields and skips unavailable controls', async () => {
   const skipped = vi.fn();
   const { editor } = create({
     data: [
@@ -308,10 +308,16 @@ test('validates only editable rendered fields and reports multiple invalid field
     ],
   });
   editor.openEditDialog(0);
+  document.querySelector(
+    editor.modal_selector + ' [name="email"]'
+  ).parentElement.style.display = 'none';
   await editor._editRowData();
   expect(skipped).not.toHaveBeenCalled();
   expect($(editor.modal_selector).find('.altEditor-field-error')).toHaveLength(
-    2
+    1
+  );
+  expect($(editor.modal_selector).find('.altEditor-feedback').text()).toContain(
+    'Invalid email'
   );
 });
 

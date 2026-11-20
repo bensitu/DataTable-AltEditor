@@ -17,9 +17,9 @@ AltEditor includes the following JSON language files. English is built in and su
 | Russian              | [ru.json](../translations/ru.json)       |
 | Spanish (Spain)      | [es-ES.json](../translations/es-ES.json) |
 | Turkish              | [tr.json](../translations/tr.json)       |
-| Ukrainian            | [ua.json](../translations/ua.json)       |
+| Ukrainian            | [uk.json](../translations/uk.json)       |
 
-The Ukrainian filename remains `ua.json` for compatibility with existing URLs; the standard language tag for Ukrainian is `uk`.
+The Ukrainian translation uses the standard language tag `uk`. The `ua.json` URL remains available for existing applications.
 
 ## Configuration
 
@@ -60,7 +60,7 @@ new DataTable('#table', {
 
 [Example 09](../example/09_translations/example9.html) includes both Italian JSON loading and a second table with partial inline language overrides and English defaults.
 
-Each supplied file contains all 25 string values from the AltEditor language defaults: `modalClose`, `edit.title`, `edit.button`, `add.title`, `add.button`, `delete.title`, `delete.button`, `deleteMessage`, `success`, `error.message`, `error.label`, `error.responseCode`, `error.required`, `error.validation`, `error.unique`, `error.editSelection`, `error.deleteSelection`, `error.targetUnavailable`, `error.invalidResponse`, `error.invalidSetter`, `error.fileRead`, `error.fileAborted`, `error.fileSize`, `error.dialogFramework`, and `error.nativeDialog`.
+Each supplied file contains the complete editor language configuration, including `inline.label`, `error.unsupportedInlineValue`, and `error.persistenceTimeout`.
 
 The files translate editor dialog labels, deletion confirmation, and applicable operation and uniqueness messages. DataTables search, pagination, and extension labels use DataTables language configuration, including `language.url`, independently. Applications supply toolbar button text, column titles, option labels, custom validation messages, and server error messages. Select2 and date pickers have their own localization settings.
 

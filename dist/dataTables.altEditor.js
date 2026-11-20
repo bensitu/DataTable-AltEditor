@@ -65,8 +65,13 @@
         });
         message = messages.join('\n');
       }
-      if (!message && error.responseText) message = String(error.responseText);
-      if (!message && error.status != null)
+      if (
+        !message &&
+        error.responseJSON &&
+        typeof error.responseJSON.message === 'string'
+      )
+        message = error.responseJSON.message;
+      if (!message && Number.isInteger(error.status))
         message = language.responseCode + error.status;
     }
     return {
@@ -251,6 +256,7 @@
    * @property {boolean} [closeModalOnSuccess=true] Close dialogs after successful persistence.
    * @property {boolean} [encodeFiles=true] Read uploaded files as data URLs.
    * @property {boolean} [debug=false] Enable diagnostic messages.
+   * @property {number} [persistenceTimeout=0] Milliseconds to wait for a persistence callback.
    * @property {Object|boolean} [inlineEdit] Cell editing configuration.
    */
   const defaults$1 = {
@@ -258,6 +264,7 @@
     closeModalOnSuccess: true,
     encodeFiles: true,
     debug: false,
+    persistenceTimeout: 0,
     dialog: {
       framework: 'auto',
       templates: { add: null, edit: null },
@@ -303,6 +310,14 @@
       throw new TypeError('Dialog templates must be an object');
     if (options.fields != null && !Array.isArray(options.fields))
       throw new TypeError('Form fields must be an array');
+    if (
+      !Number.isInteger(options.persistenceTimeout) ||
+      options.persistenceTimeout < 0 ||
+      options.persistenceTimeout > 2147483647
+    )
+      throw new TypeError(
+        'Persistence timeout must be an integer between 0 and 2147483647'
+      );
     return options;
   }
 
@@ -633,6 +648,100 @@
     return !event.isDefaultPrevented();
   }
 
+  /** Invoke a persistence callback; only its first settlement is accepted. */
+  function invokePersistence(
+    callback,
+    editor,
+    values,
+    extra,
+    success,
+    error
+  ) {
+    let settled = false;
+    let timer;
+    const settle = () => {
+      if (settled) return false;
+      settled = true;
+      if (timer !== undefined) root.clearTimeout(timer);
+      if (editor._cancelPersistence === settle) delete editor._cancelPersistence;
+      return true;
+    };
+    const accept = (handler) => (value) => {
+      if (settle()) handler(value);
+    };
+    const resolve = accept(success);
+    const reject = accept(error);
+    try {
+      if (callback) {
+        editor._cancelPersistence = settle;
+        const timeout = editor.c && editor.c.persistenceTimeout;
+        if (timeout > 0)
+          timer = root.setTimeout(() => {
+            const failure = new Error(editor.language.error.persistenceTimeout);
+            failure.name = 'TimeoutError';
+            reject(failure);
+          }, timeout);
+        const result = callback.apply(
+          editor,
+          [editor, values, resolve, reject].concat(extra || [])
+        );
+        const then = result != null ? result.then : null;
+        if (typeof then === 'function') then.call(result, resolve, reject);
+      } else resolve(values);
+    } catch (failure) {
+      if (settled && editor.debug)
+        console.error('Persistence callback failed after completion:', failure);
+      reject(failure);
+    }
+  }
+
+  function cancelPersistence(editor) {
+    if (editor._cancelPersistence) editor._cancelPersistence();
+  }
+
+  function parsePersistedRow(response) {
+    if (typeof response !== 'string') return response;
+    const json = response.trim();
+    if (json.startsWith('{') || json.startsWith('[')) {
+      try {
+        return JSON.parse(json);
+      } catch (_error) {}
+    }
+    return response;
+  }
+
+  function acceptPersistedRow(response, candidate, errorMessage) {
+    const row = response === undefined ? candidate : parsePersistedRow(response);
+    if (!row || typeof row !== 'object') throw new Error(errorMessage);
+    return row;
+  }
+
+  const identifierAttributes = [
+    'for',
+    'headers',
+    'itemref',
+    'aria-activedescendant',
+    'aria-controls',
+    'aria-describedby',
+    'aria-details',
+    'aria-errormessage',
+    'aria-flowto',
+    'aria-labelledby',
+    'aria-owns',
+  ];
+  const urlAttributes = [
+    'clip-path',
+    'fill',
+    'filter',
+    'marker',
+    'marker-end',
+    'marker-mid',
+    'marker-start',
+    'mask',
+    'stroke',
+    'style',
+  ];
+
   /** Clone application markup and place generated fields into named slots. */
   function applyTemplate(source, fields, context) {
     if (typeof source === 'function') source = source(context);
@@ -658,13 +767,7 @@
       element.id = id;
     });
     layout.querySelectorAll('*').forEach((element) => {
-      [
-        'for',
-        'aria-labelledby',
-        'aria-describedby',
-        'aria-controls',
-        'aria-owns',
-      ].forEach((attribute) => {
+      identifierAttributes.forEach((attribute) => {
         if (element.hasAttribute(attribute))
           element.setAttribute(
             attribute,
@@ -675,9 +778,23 @@
               .join(' ')
           );
       });
-      const href = element.getAttribute('href');
-      if (href && href[0] === '#' && identifiers.has(href.slice(1)))
-        element.setAttribute('href', '#' + identifiers.get(href.slice(1)));
+      ['href', 'xlink:href'].forEach((attribute) => {
+        const node = element.getAttributeNode(attribute);
+        if (!node || !node.value.startsWith('#')) return;
+        const id = identifiers.get(node.value.slice(1));
+        if (id) node.value = '#' + id;
+      });
+      urlAttributes.forEach((attribute) => {
+        const node = element.getAttributeNode(attribute);
+        if (node)
+          node.value = node.value.replace(
+            /url\(\s*(['"]?)#([^'"\s)]+)\1\s*\)/g,
+            (match, quote, id) =>
+              identifiers.has(id)
+                ? 'url(' + quote + '#' + identifiers.get(id) + quote + ')'
+                : match
+          );
+      });
     });
     const groups = new Map();
     fields.querySelectorAll('.altEditor-field').forEach((field) => {
@@ -771,12 +888,15 @@
         }),
         $('<button/>', {
           type: 'submit',
-          class: useNative
-            ? 'altEditor-button altEditor-submit'
-            : options.destructive
-              ? 'btn btn-danger button'
-              : 'btn btn-primary button',
-          id: options.buttonId,
+          class:
+            (useNative
+              ? 'altEditor-button'
+              : options.destructive
+                ? 'btn btn-danger button'
+                : 'btn btn-primary button') +
+            ' altEditor-submit ' +
+            options.buttonId,
+          id: modal[0].id + '-' + options.buttonId,
           form: options.formName,
           text: options.buttonCaption,
         })
@@ -851,6 +971,7 @@
     dialog.appendChild(content);
     modal.appendChild(dialog);
     if (useNative) {
+      modal.setAttribute('closedby', 'none');
       [modal, closeButton].forEach((node) => {
         [...node.attributes]
           .filter((attr) => attr.name.startsWith('data-'))
@@ -956,19 +1077,25 @@
     $(element).off('.altEditorAdapter');
     element._altEditorShowing = false;
     element._altEditorClosePending = false;
+    const animated = element.classList.contains('fade');
     element.classList.remove('fade');
-    hide$2(element);
-    if (
-      root.bootstrap &&
-      root.bootstrap.Modal &&
-      root.bootstrap.Modal.getOrCreateInstance
-    ) {
-      const modal = root.bootstrap.Modal.getInstance(element);
-      if (modal) modal.dispose();
-    } else {
-      const modal = $(element).data('bs.modal');
-      if (modal && typeof modal.dispose === 'function') modal.dispose();
-      else $(element).off('.bs.modal').removeData('bs.modal');
+    try {
+      if (element.classList.contains('show') || element.classList.contains('in'))
+        hide$2(element);
+      if (
+        root.bootstrap &&
+        root.bootstrap.Modal &&
+        root.bootstrap.Modal.getOrCreateInstance
+      ) {
+        const modal = root.bootstrap.Modal.getInstance(element);
+        if (modal) modal.dispose();
+      } else {
+        const modal = $(element).data('bs.modal');
+        if (modal && typeof modal.dispose === 'function') modal.dispose();
+        else $(element).off('.bs.modal').removeData('bs.modal');
+      }
+    } finally {
+      if (animated) element.classList.add('fade');
     }
   }
 
@@ -1066,6 +1193,8 @@
       invalidResponse: 'Persistence must return a row object or array',
       invalidSetter: 'inlineEditSetValue must return a row object or array',
       unsupportedInlineValue: 'This value cannot be edited with this control',
+      persistenceTimeout:
+        'The save did not respond in time. Check the current data before retrying.',
       fileRead: 'Failed to read file',
       fileAborted: 'File read was aborted',
       fileSize: 'File exceeds the configured size limit',
@@ -1220,7 +1349,22 @@
           framework === 'foundation'
         );
         this._dialogShown = true;
-        selected.api.show(element);
+        try {
+          selected.api.show(element);
+        } catch (error) {
+          this._dialogShown = false;
+          try {
+            selected.api.dispose(element);
+          } catch (cleanupError) {
+            if (this.debug)
+              console.warn(
+                'AltEditor could not release the dialog',
+                cleanupError
+              );
+          }
+          this._closing = false;
+          throw error;
+        }
       } catch (error) {
         return this._abortDialogOpening(error);
       }
@@ -1254,6 +1398,7 @@
       this._dialogOpen = false;
       this._dialogToken = {};
       this._abortFileReads();
+      cancelPersistence(this);
       clearFieldErrors(this);
       this._cleanupPlugins();
       this._removeModalEvents(this.modal_selector);
@@ -1551,7 +1696,8 @@
           that._validateUniqueField(this);
         }
         if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
-          const message = this.validationMessage || id + ' is invalid';
+          const message =
+            this.validationMessage || that.language.error.validation;
           errors.push(message);
           if (fieldErrors) fieldErrors[id] = message;
         }
@@ -2241,56 +2387,6 @@
     return asynchronous ? Promise.all(results).then(combine) : combine(results);
   }
 
-  /** Invoke a persistence callback; only its first settlement is accepted. */
-  function invokePersistence(
-    callback,
-    editor,
-    values,
-    extra,
-    success,
-    error
-  ) {
-    let settled = false;
-    const accept = (handler) => (value) => {
-      if (settled) return;
-      settled = true;
-      handler(value);
-    };
-    const resolve = accept(success);
-    const reject = accept(error);
-    try {
-      if (callback) {
-        const result = callback.apply(
-          editor,
-          [editor, values, resolve, reject].concat(extra || [])
-        );
-        const then = result != null ? result.then : null;
-        if (typeof then === 'function') then.call(result, resolve, reject);
-      } else resolve(values);
-    } catch (failure) {
-      if (settled && editor.debug)
-        console.error('Persistence callback failed after completion:', failure);
-      reject(failure);
-    }
-  }
-
-  function parsePersistedRow(response) {
-    if (typeof response !== 'string') return response;
-    const json = response.trim();
-    if (json.startsWith('{') || json.startsWith('[')) {
-      try {
-        return JSON.parse(json);
-      } catch (_error) {}
-    }
-    return response;
-  }
-
-  function acceptPersistedRow(response, candidate, errorMessage) {
-    const row = response === undefined ? candidate : parsePersistedRow(response);
-    if (!row || typeof row !== 'object') throw new Error(errorMessage);
-    return row;
-  }
-
   /** @callback PersistenceCallback
    * @param {Object} editor AltEditor instance.
    * @param {Object|Array} rowData Submitted values; deletion receives an array of rows.
@@ -2364,7 +2460,7 @@
           editor._validateFormData(form, nativeErrors);
           if (!active()) return;
           if (Object.keys(nativeErrors).length)
-            throw { fieldErrors: nativeErrors };
+            throw Object.assign(new Error(), { fieldErrors: nativeErrors });
           const controlsByName = new Map();
           const controls = fieldControls(form);
           controls.each(function () {
@@ -2378,7 +2474,6 @@
             )
               fieldNames.add(this.name);
           });
-          const modal = $(editor.modal_selector)[0];
           validators = fieldDefinitions.filter((field) => {
             if (
               typeof field.editorValidate !== 'function' ||
@@ -2388,7 +2483,13 @@
               !fieldNames.has(String(field.name))
             )
               return false;
-            return feedbackControl(controlsByName.get(String(field.name)), modal);
+            const control = controlsByName.get(String(field.name));
+            return (
+              control &&
+              !control.disabled &&
+              !control.readOnly &&
+              control.type !== 'hidden'
+            );
           });
           collection = this._collectFormData(form, controls);
         }
@@ -2438,13 +2539,13 @@
                     )
                   );
                 } catch (error) {
-                  throw {
+                  throw Object.assign(new Error(), {
                     fieldErrors: {
                       [field.name]:
                         normalizeError(error, editor.language.error).message ||
                         editor.language.error.validation,
                     },
-                  };
+                  });
                 }
               });
               return converted;
@@ -3453,6 +3554,7 @@
         destroy: function () {
           if (this._destroyed) return;
           this._destroyed = true;
+          cancelPersistence(this);
           if (this._inline) this._inline.destroy();
           this._dialogOpen = false;
           this._abortFileReads();

@@ -14,6 +14,9 @@
   },
   "deleteMessage": "Voulez-vous supprimer les enregistrements sélectionnés ?",
   "success": "Opération réussie.",
+  "inline": {
+    "label": "Modifier la valeur"
+  },
   "error": {
     "message": "Une erreur inconnue s’est produite.",
     "label": "Erreur",
@@ -30,6 +33,8 @@
     "fileAborted": "La lecture du fichier a été annulée",
     "fileSize": "Le fichier dépasse la taille maximale configurée",
     "dialogFramework": "Bootstrap Modal ou Foundation Reveal est nécessaire pour ouvrir les boîtes de dialogue AltEditor",
-    "nativeDialog": "Les boîtes de dialogue natives nécessitent un navigateur prenant en charge HTMLDialogElement.showModal"
+    "nativeDialog": "Les boîtes de dialogue natives nécessitent un navigateur prenant en charge HTMLDialogElement.showModal",
+    "unsupportedInlineValue": "Cette valeur ne peut pas être modifiée avec ce champ.",
+    "persistenceTimeout": "L’enregistrement n’a pas répondu à temps. Vérifiez les données actuelles avant de réessayer."
   }
 }

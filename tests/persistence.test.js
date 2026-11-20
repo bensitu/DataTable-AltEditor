@@ -26,10 +26,45 @@ function create(options = {}) {
 }
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 afterEach(() => {
+  vi.useRealTimers();
   tables.splice(0).forEach((table) => table.destroy());
   document.body.innerHTML = '';
   vi.restoreAllMocks();
 });
+
+test.each(['dialog', 'inline'])(
+  'recovers from a persistence timeout in %s editing',
+  async (mode) => {
+    let complete;
+    const save = vi.fn((_editor, _values, accept) => {
+      complete = accept;
+    });
+    const { editor, table } = create({
+      altEditor: { inlineEdit: true, persistenceTimeout: 100 },
+      onEditRow: save,
+    });
+    vi.useFakeTimers();
+    if (mode === 'dialog') {
+      editor.openEditDialog(0);
+      $(editor.modal_selector).find('[name="name"]').val('Ann');
+      await editor._editRowData();
+    } else {
+      editor.startInlineEdit({ row: 0, column: 0 });
+      document.querySelector('.alteditor-inline-control').value = 'Ann';
+      editor.commitInlineEdit();
+    }
+    await vi.advanceTimersByTimeAsync(100);
+    complete({ id: 'a', name: 'Late response' });
+    expect(table.row(0).data().name).toBe('Alice');
+    expect(document.body.textContent).toContain(
+      editor.language.error.persistenceTimeout
+    );
+    editor.onEditRow = (_editor, values, accept) => accept();
+    if (mode === 'dialog') await editor._editRowData();
+    else editor.commitInlineEdit();
+    expect(table.row(0).data().name).toBe('Ann');
+  }
+);
 
 test('accepts only the first callback or thenable settlement and handles throwing then access', async () => {
   for (const outcome of ['success', 'error']) {

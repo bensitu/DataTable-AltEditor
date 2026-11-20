@@ -7,11 +7,7 @@ import {
   invokePersistence,
   parsePersistedRow,
 } from '../data/persistence.js';
-import {
-  feedbackControl,
-  showFieldErrors,
-  clearFieldErrors,
-} from './field-feedback.js';
+import { showFieldErrors, clearFieldErrors } from './field-feedback.js';
 import { withValue, withValues } from '../data/path.js';
 import { transformField } from '../data/form-fields.js';
 import { normalizeError } from '../data/errors.js';
@@ -90,7 +86,7 @@ export const methods = {
         editor._validateFormData(form, nativeErrors);
         if (!active()) return;
         if (Object.keys(nativeErrors).length)
-          throw { fieldErrors: nativeErrors };
+          throw Object.assign(new Error(), { fieldErrors: nativeErrors });
         const controlsByName = new Map();
         const controls = fieldControls(form);
         controls.each(function () {
@@ -104,7 +100,6 @@ export const methods = {
           )
             fieldNames.add(this.name);
         });
-        const modal = $(editor.modal_selector)[0];
         validators = fieldDefinitions.filter((field) => {
           if (
             typeof field.editorValidate !== 'function' ||
@@ -114,7 +109,13 @@ export const methods = {
             !fieldNames.has(String(field.name))
           )
             return false;
-          return feedbackControl(controlsByName.get(String(field.name)), modal);
+          const control = controlsByName.get(String(field.name));
+          return (
+            control &&
+            !control.disabled &&
+            !control.readOnly &&
+            control.type !== 'hidden'
+          );
         });
         collection = this._collectFormData(form, controls);
       }
@@ -164,13 +165,13 @@ export const methods = {
                   )
                 );
               } catch (error) {
-                throw {
+                throw Object.assign(new Error(), {
                   fieldErrors: {
                     [field.name]:
                       normalizeError(error, editor.language.error).message ||
                       editor.language.error.validation,
                   },
-                };
+                });
               }
             });
             return converted;

@@ -46,18 +46,24 @@ export function dispose(element) {
   $(element).off('.altEditorAdapter');
   element._altEditorShowing = false;
   element._altEditorClosePending = false;
+  const animated = element.classList.contains('fade');
   element.classList.remove('fade');
-  hide(element);
-  if (
-    window.bootstrap &&
-    window.bootstrap.Modal &&
-    window.bootstrap.Modal.getOrCreateInstance
-  ) {
-    const modal = window.bootstrap.Modal.getInstance(element);
-    if (modal) modal.dispose();
-  } else {
-    const modal = $(element).data('bs.modal');
-    if (modal && typeof modal.dispose === 'function') modal.dispose();
-    else $(element).off('.bs.modal').removeData('bs.modal');
+  try {
+    if (element.classList.contains('show') || element.classList.contains('in'))
+      hide(element);
+    if (
+      window.bootstrap &&
+      window.bootstrap.Modal &&
+      window.bootstrap.Modal.getOrCreateInstance
+    ) {
+      const modal = window.bootstrap.Modal.getInstance(element);
+      if (modal) modal.dispose();
+    } else {
+      const modal = $(element).data('bs.modal');
+      if (modal && typeof modal.dispose === 'function') modal.dispose();
+      else $(element).off('.bs.modal').removeData('bs.modal');
+    }
+  } finally {
+    if (animated) element.classList.add('fade');
   }
 }

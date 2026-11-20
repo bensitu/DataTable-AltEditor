@@ -15,9 +15,10 @@ Configuration precedence is: AltEditor defaults, `DataTable.defaults.altEditor`,
 | `closeModalOnSuccess` | `true`                                                                              | Close a successful dialog. When false, show success and disable further submission until another dialog opens. |
 | `encodeFiles`         | `true`                                                                              | Read files as data URLs; false passes the first selected File object.                                          |
 | `debug`               | `false`                                                                             | Log exceptions thrown by persistence callbacks after their first completion.                                   |
-| `inlineEdit`          | disabled                                                                            | Set true or configure enabled, submitOnBlur, selectText, and tabNavigation.                                    |
+| `persistenceTimeout`  | `0`                                                                                 | Maximum time in milliseconds to wait for the persistence callback. Zero disables the timeout.                  |
+| `inlineEdit`          | disabled                                                                            | Set true or configure enabled, submitOnBlur, selectText, tabNavigation, and persistUnchanged.                  |
 
-The callbacks and the first three options also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`; see the [supported languages and configuration guide](translations.md).
+The callbacks, `closeModalOnSuccess`, `encodeFiles`, and `debug` also work at the DataTable root level. Configure translations with `language.altEditor` or load a JSON translation using `language.altEditorUrl`. Missing translation keys use English defaults. Translation files are included under `translations/`; see the [supported languages and configuration guide](translations.md).
 
 Invalid automatic editor configuration is logged to the console and leaves DataTables usable without an editor. Explicit constructor or accessor initialization throws configuration errors to the caller.
 
@@ -34,7 +35,7 @@ The first argument is always the AltEditor instance; `editor.api()` returns its 
 
 Dialog add/edit callbacks receive enabled form values after any explicit `setValue` conversions; disabled controls are omitted. Delete receives an array of the captured rows. Inline editing receives a complete candidate row and a snapshot of the original row. Inline editing uses `onEditRow` if `onInlineEditRow` is absent. If no applicable callback is supplied, the update succeeds locally.
 
-Set a timeout in the application transport and call `error()` when it expires. The editor does not impose a persistence deadline or cancel an in-flight server write. Returning a Promise or thenable settles persistence through its resolution or rejection. Resolving `undefined` is equivalent to `success()`. Normal non-thenable return values are ignored.
+Set `persistenceTimeout` inside `altEditor` to report an error when a callback does not settle before the deadline. The editor retains the input and ignores that operation's late results. Configure your transport timeout separately. An editor timeout cannot cancel a server write, so check the saved state before retrying. Returning a Promise or thenable settles persistence through its resolution or rejection. Resolving `undefined` is equivalent to `success()`. Normal non-thenable return values are ignored.
 
 Call `success(persistedRow)` with a row object or array. Calling `success()` uses the submitted candidate; dialog editing preserves fields outside the form. JSON row strings are accepted. Delete ignores the response body. Call `error(errorValue)` to retain the form for correction and retry. Error content is rendered as text. Only the first callback, Promise, or synchronous exception settlement is accepted, and callbacks completed after destruction are ignored.
 
@@ -67,7 +68,7 @@ The target is captured when editing starts and does not change if table selectio
 | `openDeleteDialog(rowSelector?)` | Delete explicit or selected rows.                                                    |
 | `refresh()`                      | Reload Ajax data or redraw client data without resetting paging.                     |
 | `startInlineEdit(cellSelector)`  | Start an eligible visible cell; return a boolean.                                    |
-| `commitInlineEdit()`             | Validate and start persistence; return a boolean, not a persistence result.          |
+| `commitInlineEdit()`             | Return true if the edit closes unchanged or begins submission.                       |
 | `cancelInlineEdit()`             | Cancel an unsaved cell; return a boolean.                                            |
 | `isInlineEditing()`              | Report editing or pending cell persistence.                                          |
 | `reloadOptions(select, options)` | Replace options in a native or enhanced select; accepts an element or jQuery object. |

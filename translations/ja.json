@@ -14,6 +14,9 @@
   },
   "deleteMessage": "選択したレコードを削除してもよろしいですか？",
   "success": "操作が完了しました。",
+  "inline": {
+    "label": "値を編集"
+  },
   "error": {
     "message": "不明なエラーが発生しました。",
     "label": "エラー",
@@ -30,6 +33,8 @@
     "fileAborted": "ファイルの読み取りが中止されました",
     "fileSize": "ファイルが設定されたサイズ制限を超えています",
     "dialogFramework": "AltEditor のダイアログを開くには Bootstrap Modal または Foundation Reveal が必要です",
-    "nativeDialog": "ネイティブダイアログには HTMLDialogElement.showModal に対応したブラウザーが必要です"
+    "nativeDialog": "ネイティブダイアログには HTMLDialogElement.showModal に対応したブラウザーが必要です",
+    "unsupportedInlineValue": "この入力欄ではこの値を編集できません。",
+    "persistenceTimeout": "保存処理から時間内に応答がありませんでした。再試行する前に現在のデータを確認してください。"
   }
 }

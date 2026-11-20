@@ -55,12 +55,15 @@ export function renderDialog(modal, options) {
       }),
       $('<button/>', {
         type: 'submit',
-        class: useNative
-          ? 'altEditor-button altEditor-submit'
-          : options.destructive
-            ? 'btn btn-danger button'
-            : 'btn btn-primary button',
-        id: options.buttonId,
+        class:
+          (useNative
+            ? 'altEditor-button'
+            : options.destructive
+              ? 'btn btn-danger button'
+              : 'btn btn-primary button') +
+          ' altEditor-submit ' +
+          options.buttonId,
+        id: modal[0].id + '-' + options.buttonId,
         form: options.formName,
         text: options.buttonCaption,
       })
@@ -135,6 +138,7 @@ export function createDialogShell(modalId, useNative, closeCaption) {
   dialog.appendChild(content);
   modal.appendChild(dialog);
   if (useNative) {
+    modal.setAttribute('closedby', 'none');
     [modal, closeButton].forEach((node) => {
       [...node.attributes]
         .filter((attr) => attr.name.startsWith('data-'))

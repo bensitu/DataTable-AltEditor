@@ -14,6 +14,9 @@
   },
   "deleteMessage": "Seçili kayıtları silmek istediğinizden emin misiniz?",
   "success": "İşlem başarılı.",
+  "inline": {
+    "label": "Değeri düzenle"
+  },
   "error": {
     "message": "Bilinmeyen bir hata oluştu.",
     "label": "Hata",
@@ -30,6 +33,8 @@
     "fileAborted": "Dosya okuma işlemi iptal edildi",
     "fileSize": "Dosya, yapılandırılan boyut sınırını aşıyor",
     "dialogFramework": "AltEditor iletişim kutularını açmak için Bootstrap Modal veya Foundation Reveal gereklidir",
-    "nativeDialog": "Yerel iletişim kutuları, HTMLDialogElement.showModal desteği olan bir tarayıcı gerektirir"
+    "nativeDialog": "Yerel iletişim kutuları, HTMLDialogElement.showModal desteği olan bir tarayıcı gerektirir",
+    "unsupportedInlineValue": "Bu değer bu denetimle düzenlenemez.",
+    "persistenceTimeout": "Kaydetme işlemi zamanında yanıt vermedi. Yeniden denemeden önce mevcut verileri kontrol edin."
   }
 }

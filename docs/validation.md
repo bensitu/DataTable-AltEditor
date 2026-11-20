@@ -24,7 +24,7 @@ Return the complete saved row when the server changes its values. Resolving `und
 
 The first settlement wins, whether it comes from `success`, `error`, a returned thenable, or a synchronous throw. For example, calling `success(row)` and then returning a rejected Promise still accepts that first row, consumes the rejection, and produces no second update or event. Choose one persistence style per callback for clarity. A synchronous throw before settlement is a failure.
 
-The editor blocks repeated submissions while work is pending. Standard close actions and operation replacement remain disabled during validation and persistence. If the framework closes the dialog externally or the editor is destroyed, later results are ignored. Missing edit or delete targets cannot redirect changes to another row. These protections do not cancel network requests; configure transport timeouts and server concurrency handling in the application.
+The editor blocks repeated submissions while work is pending. Standard close actions and operation replacement remain disabled during validation and persistence. Set `persistenceTimeout` to restore editing if persistence stops responding. Later results are ignored after timeout, external dialog closure, or destruction. Missing edit or delete targets cannot redirect changes to another row. Configure transport timeouts and server concurrency handling in the application.
 
 ## Structured errors
 
@@ -40,7 +40,7 @@ Pass this object to `error()` or reject with it:
 }
 ```
 
-`message` is optional. `fieldErrors` maps field names or column data paths to nonempty message strings, including numeric array keys and dotted object paths. Strings, `Error` instances, and objects containing only `message` remain valid global failures. Existing Ajax response error formats remain supported. All feedback renders as text.
+`message` is optional. `fieldErrors` maps field names or column data paths to nonempty message strings, including numeric array keys and dotted object paths. Strings, `Error` instances, and objects containing only `message` remain valid global failures. Ajax failures can use `responseJSON.errors` or `responseJSON.message`. Unstructured responses use the HTTP status code or the localized generic message. All feedback renders as text.
 
 Dialog errors appear beside editable visible controls. Existing `aria-describedby` values are preserved, and invalid controls receive `aria-invalid="true"`. The first available invalid control receives focus. Select2 feedback also describes its visible selection control. An error for a hidden, disabled, readonly, omitted, or unknown field appears in global feedback instead. Template layouts retain the same rules; generated fields use their names rather than CSS selectors derived from server keys.
 
@@ -96,6 +96,6 @@ The context contains `editor`, `field` (the column data source), `values`, `orig
 
 Dialogs check native constraints before collecting values and reading attachments. Custom validators then receive the captured values. Each eligible custom validator runs once per submission, and asynchronous checks can run concurrently. Feedback follows field order. Persistence and pre-submit/submit events run only after all validation passes. Native constraints use the browser's `checkValidity()` and messages. The editor displays feedback in the form.
 
-Custom validation runs only for editable, enabled, visible controls in the current form. Hidden, readonly, disabled, omitted, and `editable: false` fields are skipped. Select2's hidden source select remains eligible through its visible replacement. Native validation retains the controls' own browser rules. Delete does not run field validators. Inline editing validates only its active field, with the complete candidate available for cross-field checks.
+Custom validation runs for editable, enabled controls in the current form, including Select2 controls and fields in collapsed or inactive sections. Hidden input types, readonly, disabled, omitted, `visible: false`, and `editable: false` fields are skipped. Native validation retains the controls' own browser rules. Delete does not run field validators. Inline editing validates only its active field, with the complete candidate available for cross-field checks.
 
 Validators do not run on each keystroke. Correct a value and submit again to retry. Stale results after closure or destruction cannot update another operation, and validation cannot start a second persistence request while one is active. These client checks improve feedback; the server must still validate and authorize submitted data.

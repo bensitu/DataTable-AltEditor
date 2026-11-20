@@ -478,7 +478,8 @@ test.each([
     'Invalid name\nInvalid age',
   ],
   [{ responseJSON: { errors: {} } }, 'There was an unknown error!'],
-  [{ responseText: '<b>Unavailable</b>' }, '<b>Unavailable</b>'],
+  [{ responseText: '<b>Unavailable</b>', status: 500 }, 'Response code: 500'],
+  [{ responseJSON: { message: 'Unavailable' } }, 'Unavailable'],
   [{ status: 503 }, 'Response code: 503'],
   [undefined, 'There was an unknown error!'],
 ])(

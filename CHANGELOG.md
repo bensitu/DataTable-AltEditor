@@ -9,8 +9,16 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ## 4.3.1 - Unreleased
 
+### Added
+
+- Optional `persistenceTimeout` lets dialog and inline editing recover when a save stops responding.
+- Added `uk.json` as the standard Ukrainian translation filename. The existing `ua.json` URL remains available.
+
 ### Fixed
 
+- Dialogs can reopen after a framework fails to show them. Submit button IDs are unique across tables.
+- Dialog templates preserve internal accessibility and SVG references when assigning IDs.
+- Custom validation checks editable fields in collapsed layouts. Error feedback uses explicit messages and HTTP status codes for failed requests.
 - Inline editors preserve stored values that number and date/time controls cannot represent and retain edits when the browser window loses focus.
 - Dialog submissions validate controls before reading attachments and retain the validated values and validator eligibility while reads are pending.
 - Inline editing stops if a cancellation callback destroys the editor. Closing a cell emits one notification, and asynchronous setters are rejected before persistence.

@@ -12,6 +12,7 @@ import { resolveLanguage } from '../core/language.js';
 import { requireSynchronousResult } from '../core/synchronous-result.js';
 import { $, document } from '../core/dependencies.js';
 import { snapshotRow, cloneRow } from '../data/row-data.js';
+import { cancelPersistence } from '../data/persistence.js';
 export const methods = {
   _prepareDialog: function () {
     if (
@@ -141,7 +142,22 @@ export const methods = {
         framework === 'foundation'
       );
       this._dialogShown = true;
-      selected.api.show(element);
+      try {
+        selected.api.show(element);
+      } catch (error) {
+        this._dialogShown = false;
+        try {
+          selected.api.dispose(element);
+        } catch (cleanupError) {
+          if (this.debug)
+            console.warn(
+              'AltEditor could not release the dialog',
+              cleanupError
+            );
+        }
+        this._closing = false;
+        throw error;
+      }
     } catch (error) {
       return this._abortDialogOpening(error);
     }
@@ -175,6 +191,7 @@ export const methods = {
     this._dialogOpen = false;
     this._dialogToken = {};
     this._abortFileReads();
+    cancelPersistence(this);
     clearFieldErrors(this);
     this._cleanupPlugins();
     this._removeModalEvents(this.modal_selector);

@@ -14,6 +14,9 @@
   },
   "deleteMessage": "¿Desea eliminar los registros seleccionados?",
   "success": "Operación completada.",
+  "inline": {
+    "label": "Editar valor"
+  },
   "error": {
     "message": "Se ha producido un error desconocido.",
     "label": "Error",
@@ -30,6 +33,8 @@
     "fileAborted": "Se canceló la lectura del archivo",
     "fileSize": "El archivo supera el límite de tamaño configurado",
     "dialogFramework": "Se requiere Bootstrap Modal o Foundation Reveal para abrir los diálogos de AltEditor",
-    "nativeDialog": "Los diálogos nativos requieren un navegador compatible con HTMLDialogElement.showModal"
+    "nativeDialog": "Los diálogos nativos requieren un navegador compatible con HTMLDialogElement.showModal",
+    "unsupportedInlineValue": "Este valor no se puede editar con este control.",
+    "persistenceTimeout": "La operación de guardado no respondió a tiempo. Compruebe los datos actuales antes de volver a intentarlo."
   }
 }

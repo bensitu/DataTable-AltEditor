@@ -14,6 +14,9 @@
   },
   "deleteMessage": "确定要删除所选记录吗？",
   "success": "操作成功！",
+  "inline": {
+    "label": "编辑值"
+  },
   "error": {
     "message": "发生未知错误。",
     "label": "错误",
@@ -30,6 +33,8 @@
     "fileAborted": "文件读取已中止",
     "fileSize": "文件超过配置的大小限制",
     "dialogFramework": "打开 AltEditor 对话框需要 Bootstrap Modal 或 Foundation Reveal",
-    "nativeDialog": "原生对话框需要浏览器支持 HTMLDialogElement.showModal"
+    "nativeDialog": "原生对话框需要浏览器支持 HTMLDialogElement.showModal",
+    "unsupportedInlineValue": "此控件无法编辑该值。",
+    "persistenceTimeout": "保存请求未在规定时间内返回。请先检查当前数据，再重试。"
   }
 }
