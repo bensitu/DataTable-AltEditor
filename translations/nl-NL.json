@@ -1,40 +1,40 @@
 {
-  "modalClose": "Sluiten",
-  "edit": {
-    "title": "Wijzigen",
-    "button": "Wijzig"
-  },
-  "add": {
-    "title": "Nieuw",
-    "button": "Aanmaken"
-  },
-  "delete": {
-    "title": "Verwijderen",
-    "button": "Verwijder"
-  },
-  "success": "Gelukt.",
-  "deleteMessage": "Ben je zeker dat je deze rij(en) wilt verwijderen?",
-  "inline": {
-    "label": "Waarde bewerken"
-  },
-  "error": {
-    "message": "Er is een onverwachte fout opgetreden.",
-    "label": "Fout",
-    "responseCode": "Reactiecode:",
-    "required": "Verplichte waarde",
-    "validation": "Ongeldige veldwaarde",
-    "unique": "Dubbele waarde",
-    "editSelection": "Selecteer precies één rij om te bewerken.",
-    "deleteSelection": "Selecteer ten minste één rij om te verwijderen.",
-    "targetUnavailable": "De doelrij is niet beschikbaar",
-    "invalidResponse": "De opslagbewerking moet een rijobject of array teruggeven",
-    "invalidSetter": "inlineEditSetValue moet een rijobject of array teruggeven",
-    "fileRead": "Het bestand kon niet worden gelezen",
-    "fileAborted": "Het lezen van het bestand is afgebroken",
-    "fileSize": "Het bestand overschrijdt de ingestelde groottelimiet",
-    "dialogFramework": "Bootstrap Modal of Foundation Reveal is vereist om AltEditor-dialoogvensters te openen",
-    "nativeDialog": "Native dialoogvensters vereisen een browser met ondersteuning voor HTMLDialogElement.showModal",
-    "unsupportedInlineValue": "Deze waarde kan niet met dit invoerveld worden bewerkt.",
-    "persistenceTimeout": "Het opslaan heeft niet op tijd gereageerd. Controleer de huidige gegevens voordat u het opnieuw probeert."
-  }
+    "modalClose": "Sluiten",
+    "edit": {
+        "title": "Wijzigen",
+        "button": "Wijzig"
+    },
+    "add": {
+        "title": "Nieuw",
+        "button": "Aanmaken"
+    },
+    "delete": {
+        "title": "Verwijderen",
+        "button": "Verwijder"
+    },
+    "success": "Gelukt.",
+    "inline": {
+        "label": "Waarde bewerken"
+    },
+    "error": {
+        "message": "Er is een onverwachte fout opgetreden.",
+        "label": "Fout",
+        "responseCode": "Reactiecode:",
+        "required": "Verplichte waarde",
+        "validation": "Ongeldige veldwaarde",
+        "unique": "Dubbele waarde",
+        "editSelection": "Selecteer precies één rij om te bewerken.",
+        "deleteSelection": "Selecteer ten minste één rij om te verwijderen.",
+        "targetUnavailable": "De doelrij is niet beschikbaar",
+        "invalidResponse": "De opslagbewerking moet een rijobject of array teruggeven",
+        "invalidSetter": "inlineEditSetValue moet een rijobject of array teruggeven",
+        "fileRead": "Het bestand kon niet worden gelezen",
+        "fileAborted": "Het lezen van het bestand is afgebroken",
+        "fileSize": "Het bestand overschrijdt de ingestelde groottelimiet",
+        "dialogFramework": "Bootstrap Modal of Foundation Reveal is vereist om AltEditor-dialoogvensters te openen",
+        "nativeDialog": "Native dialoogvensters vereisen een browser met ondersteuning voor HTMLDialogElement.showModal",
+        "unsupportedInlineValue": "Deze waarde kan niet met dit invoerveld worden bewerkt.",
+        "persistenceTimeout": "Het opslaan heeft niet op tijd gereageerd. Controleer de huidige gegevens voordat u het opnieuw probeert."
+    },
+    "deleteMessage": "Ben je zeker dat je deze rij(en) wilt verwijderen?"
 }
