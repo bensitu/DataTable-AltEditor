@@ -32,6 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: npm
     env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       EXPECTED_PACKAGE_NAME: '@bensitu/datatable-alteditor'
       NPM_CONFIG_IGNORE_SCRIPTS: 'true'
       NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
@@ -39,7 +40,6 @@ jobs:
       - name: Validate requested version and npm tag
         shell: bash
         env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           REQUESTED_VERSION: ${{ inputs.version }}
           REQUESTED_NPM_TAG: ${{ inputs.npm_tag }}
         run: |
@@ -52,8 +52,8 @@ jobs:
             echo "Enter a valid semantic version, optionally prefixed with v." >&2
             exit 1
           fi
-          if [[ "${GITHUB_REF_TYPE}" != branch || "${GITHUB_REF_NAME}" != "${DEFAULT_BRANCH}" ]]; then
-            echo "npm publishing must run from ${DEFAULT_BRANCH}." >&2
+          if [[ "${GITHUB_REF}" != "refs/heads/${DEFAULT_BRANCH}" && "${GITHUB_REF}" != "refs/tags/v${VERSION}" ]]; then
+            echo "Run from the default branch or the requested release tag." >&2
             exit 1
           fi
           case "${NPM_TAG}" in
@@ -75,15 +75,28 @@ jobs:
             echo "PRERELEASE=${PRERELEASE}"
           } >> "${GITHUB_ENV}"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Check out release source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          node-version: '24.x'
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify release commit
+        shell: bash
+        run: |
+          RELEASE_COMMIT="$(git rev-parse --verify "refs/tags/${TAG_NAME}^{commit}")"
+          if [[ "${RELEASE_COMMIT}" != "${GITHUB_SHA}" ]] ||
+            ! git merge-base --is-ancestor "${RELEASE_COMMIT}" "refs/remotes/origin/${DEFAULT_BRANCH}"; then
+            echo "Run on the commit tagged ${TAG_NAME} in the default branch history." >&2
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24.22.3'
           package-manager-cache: false
           registry-url: https://registry.npmjs.org/
-
-      - name: Use npm with trusted publishing support
-        run: npm install --global 'npm@^11.5.1'
 
       - name: Download published release artifact
         shell: bash
@@ -152,6 +165,14 @@ jobs:
             if (!read(file).length) throw new Error('Package file is empty: ' + file);
           }
           NODE
+
+      - name: Verify package matches the tagged source
+        shell: bash
+        run: |
+          SOURCE_PACKAGE="${RUNNER_TEMP}/source-package"
+          mkdir -p "${SOURCE_PACKAGE}"
+          npm pack --ignore-scripts --pack-destination "${SOURCE_PACKAGE}"
+          cmp "${PACKAGE_TARBALL}" "${SOURCE_PACKAGE}/$(basename "${PACKAGE_TARBALL}")"
 
       - name: Check npm version availability
         shell: bash

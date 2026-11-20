@@ -10,24 +10,25 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: draft-release
   cancel-in-progress: false
 
 jobs:
-  draft-release:
+  build:
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: 24
-          cache: npm
+          node-version: '24.22.3'
+          package-manager-cache: false
       - name: Prepare release metadata
         env:
           REQUESTED_VERSION: ${{ inputs.version }}
@@ -45,10 +46,12 @@ jobs:
             echo "Release ${TAG_NAME} already exists." >&2
             exit 1
           fi
-      - run: npm ci --engine-strict
+      - run: npm ci --engine-strict --ignore-scripts
       - run: npm run format:check
       - run: npm run lint
       - run: npm run build
+      - name: Verify committed distribution
+        run: git diff --exit-code -- dist
       - run: npm run test:coverage
       - run: npx --no-install playwright install --with-deps chromium firefox webkit
       - run: npm run test:compat -- --skip-build
@@ -58,17 +61,51 @@ jobs:
           npm pack --ignore-scripts --pack-destination artifacts
           cd artifacts
           sha256sum "${PACKAGE_TARBALL}" > "${PACKAGE_TARBALL}.sha256"
+      - name: Upload release files
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: release-files
+          path: artifacts/
+          if-no-files-found: error
+  draft-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release files
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: release-files
+          path: artifacts
       - name: Create tag and draft release
         shell: bash
         env:
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
+          REQUESTED_VERSION: ${{ inputs.version }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "${TAG_NAME}" "${GITHUB_SHA}" -m "Release ${TAG_NAME}"
-          git push origin "refs/tags/${TAG_NAME}"
-          args=("${TAG_NAME}" "artifacts/${PACKAGE_TARBALL}" "artifacts/${PACKAGE_TARBALL}.sha256"
-            --draft --verify-tag --title "${TAG_NAME}" --notes-file artifacts/release-notes.md)
+          VERSION="${REQUESTED_VERSION#v}"
+          if [[ ! "${VERSION}" =~ ^[0-9][0-9A-Za-z.+-]*$ ]]; then
+            echo "Invalid release version." >&2
+            exit 1
+          fi
+          TAG_NAME="v${VERSION}"
+          PACKAGE_TARBALL="bensitu-datatable-alteditor-${VERSION}.tgz"
+          cd artifacts
+          test -s "${PACKAGE_TARBALL}"
+          test -s release-notes.md
+          sha256sum "${PACKAGE_TARBALL}" | cmp - "${PACKAGE_TARBALL}.sha256"
+          TAG_OBJECT="$(gh api "repos/${GH_REPO}/git/tags" --method POST \
+            --raw-field "tag=${TAG_NAME}" --raw-field "message=Release ${TAG_NAME}" \
+            --raw-field "object=${GITHUB_SHA}" --raw-field type=commit \
+            --raw-field 'tagger[name]=github-actions[bot]' \
+            --raw-field 'tagger[email]=41898282+github-actions[bot]@users.noreply.github.com' \
+            --raw-field "tagger[date]=$(date -u +%FT%TZ)" --jq .sha)"
+          gh api "repos/${GH_REPO}/git/refs" --method POST \
+            --raw-field "ref=refs/tags/${TAG_NAME}" --raw-field "sha=${TAG_OBJECT}" >/dev/null
+          args=("${TAG_NAME}" "${PACKAGE_TARBALL}" "${PACKAGE_TARBALL}.sha256"
+            --draft --verify-tag --title "${TAG_NAME}" --notes-file release-notes.md)
           if [[ "${VERSION%%+*}" == *-* ]]; then
             args+=(--prerelease)
           fi

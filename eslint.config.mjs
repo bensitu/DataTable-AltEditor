@@ -30,6 +30,7 @@ export default [
       'no-unreachable': 'error',
       'no-unsafe-finally': 'error',
       'no-eval': 'error',
+      'no-throw-literal': 'error',
       'no-implied-eval': 'error',
       'no-prototype-builtins': 'error',
       'no-self-compare': 'error',

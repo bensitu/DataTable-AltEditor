@@ -57,7 +57,7 @@ For behavior changes, run `npm test` and add a focused regression test when it d
 
 For browser behavior or styles, rebuild and run the relevant Playwright tests. Install Chromium once with `npx playwright install chromium`; `npm run test:e2e` runs the regular Chromium suite. For broader compatibility changes, install all browsers with `npx playwright install` and run `npm run test:compat`. After building once, `npm run test:compat -- --skip-build` runs the same compatibility checks without rebuilding. The release workflow uses this option. That command also checks DataTables 2.1.8, Firefox, WebKit, Bootstrap 4, and Foundation.
 
-Documentation-only changes need link, formatting, and content checks rather than the complete runtime test suite. Check screenshots against the current examples and keep image files small. Existing source syntax targets ES2015; tests and build scripts use newer Node.js APIs.
+For documentation changes, check links, formatting, and content. Check screenshots against the current examples and keep image files small. Library source uses ES2015 syntax and runtime APIs available in the supported browsers. Tests and build scripts use the supported Node.js versions.
 
 ## Local distribution archives
 

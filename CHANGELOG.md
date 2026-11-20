@@ -36,6 +36,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- Release builds use read-only repository access. npm publication verifies that the release archive matches the tagged source.
 - Unchanged inline controls close without persistence by default. Set `inlineEdit.persistUnchanged` to retain submission for unchanged values.
 - Dialog and inline editing share option construction and persistence response handling. Dialogs index form controls during initialization and submission, and copy each edited row branch once.
 - Separated toolbar bindings, dialog feedback, field uniqueness checks, and inline control events from their controllers.

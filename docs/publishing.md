@@ -34,7 +34,15 @@ npm publish --dry-run --access public
 
 The `prepack` script rebuilds the distribution for normal packing and publication. A scoped package archive is named `bensitu-datatable-alteditor-<version>.tgz`. Inspect the actual archive when distributing it separately. Development Node.js constraints are configured with `devEngines`, independently of browser consumers.
 
-To publish, sign in with an npm account allowed to publish under `@bensitu`, confirm its identity, and publish the checked version.
+### Publish a GitHub release to npm
+
+Configure [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) for this repository, workflow filename `publish-npm.yml`, and environment `npm`. The trusted publisher must allow direct publication. Publish the GitHub release first, then run **Publish to npm** in Actions with its version and the intended npm distribution tag.
+
+Run from the release commit on the default branch or select the matching release tag if the branch has advanced. The workflow verifies the tag, the package checksum, and that the archive matches a fresh package from the tagged files. It publishes the release archive with provenance. The release workflows use a fixed Node.js version with bundled npm so both runs use the same packaging tools.
+
+### Publish manually
+
+To publish manually, sign in with an npm account allowed to publish under `@bensitu`, confirm its identity, and publish the checked version.
 
 ```sh
 npm login
@@ -42,7 +50,7 @@ npm whoami
 npm publish --access public
 ```
 
-Follow npm's authentication prompts when required. Publishing a package version is separate from pushing branches or creating a GitHub release, and an existing published name/version cannot be reused. The GitHub release workflow below only creates a tag and draft release; it does not publish to npm.
+Follow npm's authentication prompts when required. Each package name and version can be published once. Create and review the GitHub release separately when both distribution channels are needed.
 
 ## Contribution templates
 
@@ -60,7 +68,7 @@ Run `npm run build:pages` locally to rebuild `dist/` and assemble `.pages/`. The
 
 Merge the intended release code into the default branch with matching versions in `package.json` and `package-lock.json`. Add the release notes under the corresponding version heading in `CHANGELOG.md`. Both `## 4.1.0 - YYYY-MM-DD` and `## [4.1.0] - YYYY-MM-DD` heading formats are accepted.
 
-From Actions, run **Draft GitHub release** on the default branch and enter the package version, optionally prefixed with `v`. The workflow checks the version and notes, installs dependencies with Node.js 24, runs formatting, lint, coverage, DataTables compatibility, and browser checks, then packages the built distribution. It builds once and passes `--skip-build` to the compatibility command so the browser checks and release archive use the same generated files. It creates an annotated `v<version>` tag at the selected commit and a draft release containing the npm `.tgz` archive and its SHA-256 checksum. Versions containing a prerelease identifier are marked as prereleases.
+From Actions, run **Draft GitHub release** on the default branch and enter the package version, optionally prefixed with `v`. The read-only build job verifies the release metadata, builds and checks the committed distribution, runs the compatibility tests, and packages the release files. A separate job creates the annotated `v<version>` tag at the selected commit and the draft with the npm `.tgz` archive and its SHA-256 checksum. Versions containing a prerelease identifier are marked as prereleases.
 
 Review and publish the draft in GitHub when ready. The workflow does not publish to the npm registry and does not change package versions automatically. Existing tags or releases are not overwritten. If release creation fails after the tag was pushed, the tag remains: inspect the failure and either finish creating the draft for that tag or remove the tag deliberately before retrying. The workflow does not automatically delete remote tags or releases.
 

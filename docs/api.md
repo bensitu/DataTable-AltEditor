@@ -151,13 +151,6 @@ See [inline editing](inline-edit.md), [events](events.md), and [troubleshooting]
 
 ## jQuery compatibility
 
-The supported jQuery range is `>=1.8 <4.0.0`. Optional frameworks and field plugins may require a narrower range. Development dependencies and examples use 3.8.0.
+The peer range is `>=1.8 <4.0.0`. Use jQuery 3.8.0 with the bundled examples and choose a jQuery 3.x version with current security fixes for deployed applications. jQuery 3.5.0 fixed security issues in DOM manipulation. Optional frameworks and plugins may require a narrower range. See the [jQuery 3.5.0 release notes](https://blog.jquery.com/2020/04/10/jquery-3-5-0-released/).
 
-A compatibility check of AltEditor 4.1.1 with jQuery 4.0.0 and DataTables 2.3.8 produced a successful Rollup build, but did not pass all runtime checks. Rollup treats jQuery as an external dependency, so a successful build does not establish runtime compatibility.
-
-- 82 of 83 unit tests passed. CommonJS loading without a global DOM window failed because jQuery 4 requires a different factory entry point in that environment.
-- 13 Chromium checks covering Bootstrap 5, native dialogs, templates, and inline editing passed. These results do not establish compatibility for every optional field plugin or browser.
-- Bootstrap 4.6.2 rejects jQuery 4 during initialization.
-- Foundation 6.9.0 dialog focus handling calls `.sort()` on a jQuery collection, which jQuery 4 no longer provides. Both Foundation browser checks failed to open a usable dialog.
-
-See the [jQuery 4 upgrade guide](https://jquery.com/upgrade-guide/4.0/) for the factory entry point and removed collection methods. Use jQuery 3.8.0 for the bundled examples and supported framework combinations.
+jQuery 4 uses a separate entry point for CommonJS initialization without a global window. Bootstrap 4.6.2 rejects jQuery 4, and Foundation 6.9.0 uses a collection method it removed. See the [jQuery 4 upgrade guide](https://jquery.com/upgrade-guide/4.0/).
