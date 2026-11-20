@@ -415,6 +415,16 @@ test('does not replace an inline control if its cancel listener destroys the edi
   expect(close.mock.calls[0][1].reason).toBe('destroy');
 });
 
+test('reads the replacement cell after the previous edit is canceled', () => {
+  const { editor, table } = create();
+  table.one('alteditor-inline-cancel.dt', () =>
+    table.cell(1, 0).data('Updated')
+  );
+  editor.startInlineEdit({ row: 0, column: 0 });
+  expect(editor.startInlineEdit({ row: 1, column: 0 })).toBe(true);
+  expect(input().value).toBe('Updated');
+});
+
 test('reads checkbox and select values and rejects an invalid explicit setter', () => {
   const { editor, table } = create({
     data: [{ enabled: false, role: 'reader' }],

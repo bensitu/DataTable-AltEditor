@@ -120,7 +120,8 @@ export function controlValue(control) {
 
 export function sameControlValue(initial, current) {
   return Array.isArray(initial)
-    ? initial.length === current.length &&
+    ? Array.isArray(current) &&
+        initial.length === current.length &&
         initial.every((value, index) => value === current[index])
     : initial === current;
 }

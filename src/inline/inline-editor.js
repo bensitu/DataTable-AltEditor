@@ -104,31 +104,43 @@ export class InlineEditor {
       return false;
     }
     if (!options || !this.api.column(index.column).visible()) return false;
-    const value = cell.data();
+    const stored = cell.data();
     if (
-      value !== null &&
-      typeof value === 'object' &&
+      stored !== null &&
+      typeof stored === 'object' &&
       !(
         options.type === 'select' &&
         options.multiple &&
-        Array.isArray(value)
+        Array.isArray(stored)
       ) &&
       typeof options.inlineEditSetValue !== 'function'
     )
       return false;
-    if (this.session && this.session.cellNode === cell.node()) return true;
+    const cellNode = cell.node();
+    if (this.session && this.session.cellNode === cellNode) return true;
     if (
-      cell.node().isContentEditable ||
-      cell
-        .node()
-        .querySelector(
-          'input, select, textarea, button, a[href], summary, audio[controls], video[controls], ' +
-            '[tabindex], [contenteditable]:not([contenteditable="false"]), ' +
-            '[role="button"], [role="checkbox"], [role="combobox"], [role="link"], ' +
-            '[role="radio"], [role="slider"], [role="spinbutton"], [role="switch"], [role="textbox"]'
-        )
+      cellNode.isContentEditable ||
+      cellNode.querySelector(
+        'input, select, textarea, button, a[href], summary, audio[controls], video[controls], ' +
+          '[tabindex], [contenteditable]:not([contenteditable="false"]), ' +
+          '[role="button"], [role="checkbox"], [role="combobox"], [role="link"], ' +
+          '[role="radio"], [role="slider"], [role="spinbutton"], [role="switch"], [role="textbox"]'
+      )
     )
       return false;
+    if (this.session) {
+      this.cancel('replace', false);
+      if (
+        this.session ||
+        this.editor._destroyed ||
+        this.editor._dialogOpen ||
+        this.editor._opening ||
+        cell.node() !== cellNode ||
+        !this.body.contains(cellNode)
+      )
+        return false;
+    }
+    const value = cell.data();
     const control = createControl(
       options,
       value,
@@ -149,16 +161,6 @@ export class InlineEditor {
       }
       return false;
     }
-    if (this.session) {
-      this.cancel('replace', false);
-      if (
-        this.session ||
-        this.editor._destroyed ||
-        this.editor._dialogOpen ||
-        this.editor._opening
-      )
-        return false;
-    }
     if (this.editor._message) this.editor._message.empty();
     const row = this.api.row(index.row);
     const session = Object.assign(snapshotRow(row), {
@@ -167,7 +169,7 @@ export class InlineEditor {
       oldValue: value,
       initialValue: controlValue(control),
       originalRow: cloneRow(row.data()),
-      cellNode: cell.node(),
+      cellNode,
       options,
       state: 'editing',
       composing: false,
@@ -188,7 +190,7 @@ export class InlineEditor {
         isCurrent: () => this.session === session,
       }
     );
-    this.attach(session, cell.node());
+    this.attach(session, cellNode);
     this.event('open', session);
     return true;
   }
