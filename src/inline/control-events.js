@@ -30,9 +30,10 @@ export function bindControlEvents(
         commit(event.shiftKey ? -1 : 1);
       }
     },
-    blur() {
+    blur(event) {
       if (!isCurrent() || session.state !== 'editing' || session.detaching)
         return;
+      if (!event.relatedTarget && !control.ownerDocument.hasFocus()) return;
       if (settings.submitOnBlur) commit();
       else cancel('blur', false);
     },

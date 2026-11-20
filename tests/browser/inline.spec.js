@@ -74,11 +74,14 @@ test('Tab and Shift+Tab navigate only after persistence succeeds', async ({
   await input.fill('Ann');
   await input.press('Tab');
   await expect(input).toBeDisabled();
-  await page.evaluate(() => finishSave());
+  await page.evaluate(() => {
+    finishSave();
+    delete window.finishSave;
+  });
   await expect(input).toHaveAttribute('type', 'number');
   await input.press('Shift+Tab');
-  await page.evaluate(() => finishSave());
   await expect(input).toHaveValue('Ann');
+  expect(await page.evaluate(() => window.finishSave)).toBeUndefined();
 });
 
 test('blur cancels by default and submits once when configured', async ({

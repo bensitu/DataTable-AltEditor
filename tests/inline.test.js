@@ -124,6 +124,53 @@ test('preserves rendered controls and still edits decorative markup', () => {
   expect(cell.innerHTML).toBe('<strong>Alice</strong>');
 });
 
+test('keeps values that native controls cannot represent', () => {
+  const save = vi.fn();
+  const { editor, table } = create({
+    data: [{ name: 'Alice', date: '2026-11-21T08:00:00Z', amount: '1,234' }],
+    columns: [
+      { data: 'name', title: 'Name' },
+      { data: 'date', title: 'Date', type: 'date' },
+      { data: 'amount', title: 'Amount', type: 'number' },
+    ],
+    onInlineEditRow: save,
+  });
+  expect(editor.startInlineEdit({ row: 0, column: 1 })).toBe(false);
+  expect(editor.startInlineEdit({ row: 0, column: 2 })).toBe(false);
+  expect(document.querySelector('.altEditor-message').textContent).toContain(
+    editor.language.error.unsupportedInlineValue
+  );
+  editor.startInlineEdit({ row: 0, column: 0 });
+  input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+  expect(editor.isInlineEditing()).toBe(false);
+  expect(table.row(0).data()).toEqual({
+    name: 'Alice',
+    date: '2026-11-21T08:00:00Z',
+    amount: '1,234',
+  });
+  expect(save).not.toHaveBeenCalled();
+});
+
+test('navigates unchanged cells without rewriting the original value', () => {
+  const save = vi.fn((_editor, _row, accept) => accept());
+  const { editor, table } = create({
+    data: [{ id: 'a', user: { name: 'Alice' }, age: '30' }],
+    onInlineEditRow: save,
+  });
+  editor.startInlineEdit({ row: 0, column: 0 });
+  input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+  expect(input().type).toBe('number');
+  expect(editor.commitInlineEdit()).toBe(true);
+  expect(input()).toBeNull();
+  expect(table.row(0).data().age).toBe('30');
+  expect(save).not.toHaveBeenCalled();
+  editor.c.inlineEdit.persistUnchanged = true;
+  editor.startInlineEdit({ row: 0, column: 1 });
+  editor.commitInlineEdit();
+  expect(save).toHaveBeenCalledOnce();
+  expect(table.row(0).data().age).toBe(30);
+});
+
 test.each([false, true])('honors submitOnBlur=%s', (submitOnBlur) => {
   const { editor, table } = create({
     altEditor: {
@@ -132,6 +179,14 @@ test.each([false, true])('honors submitOnBlur=%s', (submitOnBlur) => {
   });
   editor.startInlineEdit({ row: 0, column: 0 });
   input().value = 'Ann';
+  const documentFocus = vi.spyOn(document, 'hasFocus').mockReturnValue(false);
+  try {
+    input().dispatchEvent(new FocusEvent('blur'));
+    expect(editor.isInlineEditing()).toBe(true);
+    expect(input().value).toBe('Ann');
+  } finally {
+    documentFocus.mockRestore();
+  }
   input().dispatchEvent(new Event('blur'));
   expect(editor.isInlineEditing()).toBe(false);
   expect(table.row(0).data().user.name).toBe(submitOnBlur ? 'Ann' : 'Alice');
@@ -335,6 +390,7 @@ test('isolates tables and cleans editing or pending persistence on destroy', () 
   });
   const second = create();
   first.editor.startInlineEdit({ row: 0, column: 0 });
+  input().value = 'Ann';
   first.editor.commitInlineEdit();
   second.editor.startInlineEdit({ row: 0, column: 0 });
   first.editor.destroy();
@@ -395,6 +451,7 @@ test('reads checkbox and select values and rejects an invalid explicit setter', 
     ],
   });
   invalid.editor.startInlineEdit({ row: 0, column: 0 });
+  input().value = '35';
   expect(invalid.editor.commitInlineEdit()).toBe(false);
   expect(invalid.editor.isInlineEditing()).toBe(true);
   expect(invalid.editor.commitInlineEdit()).toBe(false);

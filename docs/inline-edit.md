@@ -11,6 +11,7 @@ altEditor: {
     submitOnBlur: false,
     selectText: true,
     tabNavigation: true,
+    persistUnchanged: false,
   },
 }
 ```
@@ -47,7 +48,7 @@ Supported controls are text, number, email, date, time, datetime-local, textarea
 
 The raw value comes from `cell.data()`, independently of formatted cell HTML. Successful updates use DataTables rendering. Numeric sources, including array index 0, and dotted paths such as `user.email` are supported. Unsafe prototype paths are rejected.
 
-Native date, time, and datetime-local controls require values in their HTML formats, such as `2026-09-11`, `14:30`, and `2026-09-11T14:30`. Inline editing does not apply dialog `dateFormat` or Moment conversion. Keep raw values in native-compatible formats and use DataTables renderers for localized display.
+Native date, time, and datetime-local controls require values in their HTML formats, such as `2026-09-11`, `14:30`, and `2026-09-11T14:30`. The editor skips nonempty values that a number or date/time control would clear. Keep raw values in native-compatible formats and use DataTables renderers for localized display.
 
 For function or complex object sources, provide a setter:
 
@@ -72,9 +73,11 @@ The setter receives a copy of the row's array and plain-object branches and must
 | Enter           | Validate and save. Ignored while IME composition is active.                                            |
 | Escape          | Cancel an unsaved value and return focus to the cell.                                                  |
 | Tab / Shift+Tab | Save, then move to the next or previous eligible visible cell in the same row. No movement on failure. |
-| Blur            | Cancel by default; save once when submitOnBlur is true.                                                |
+| Blur            | Cancel by default when focus leaves the cell within the page. Save when submitOnBlur is true.          |
 
 `selectText` selects text when the control supports it. `tabNavigation: false` leaves Tab to normal browser focus navigation and the configured blur behavior. Enter submits textarea values too. Pending persistence disables the control; Escape and `cancelInlineEdit()` cannot revoke a submitted operation.
+
+An unchanged control closes without validation or persistence and Tab continues to the next eligible cell. Set `persistUnchanged: true` to submit unchanged values. Switching away from the browser window preserves the active edit.
 
 ## Persistence
 
@@ -82,7 +85,7 @@ The setter receives a copy of the row's array and plain-object branches and must
 onInlineEditRow(editor, rowData, success, error, originalRowData, meta);
 ```
 
-The callback falls back to `onEditRow`. Without either callback, the row updates locally. The candidate is not written into DataTables before success. Call `success()` to accept it, `success(persistedRow)` to supply a server result, or `error(errorValue)` to permit correction and retry. Returning a Promise also settles persistence; resolving `undefined` accepts the candidate. Only the first settlement is accepted. Structured `fieldErrors` and synchronous or asynchronous `editorValidate` are supported; see [validation](validation.md). `commitInlineEdit()` returns whether submission began; subscribe to events for its outcome.
+The callback falls back to `onEditRow`. Without either callback, the row updates locally. The candidate is not written into DataTables before success. Call `success()` to accept it, `success(persistedRow)` to supply a server result, or `error(errorValue)` to permit correction and retry. Returning a Promise also settles persistence; resolving `undefined` accepts the candidate. Only the first settlement is accepted. Structured `fieldErrors` and synchronous or asynchronous `editorValidate` are supported; see [validation](validation.md). `commitInlineEdit()` returns true when it closes an unchanged cell or begins submission. Subscribe to events for the outcome.
 
 `meta` includes rowIndex, columnIndex, dataSrc, oldValue, newValue, rowData, and cellNode. `originalRowData` is a snapshot. Row identity is captured independently of table selection. A stable DataTables rowId is recommended for asynchronous persistence.
 

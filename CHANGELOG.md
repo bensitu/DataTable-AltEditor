@@ -11,6 +11,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Fixed
 
+- Inline editors preserve stored values that number and date/time controls cannot represent and retain edits when the browser window loses focus.
 - Dialog submissions validate controls before reading attachments and retain the validated values and validator eligibility while reads are pending.
 - Inline editing stops if a cancellation callback destroys the editor. Closing a cell emits one notification, and asynchronous setters are rejected before persistence.
 - Select2 fields notify change handlers once during value initialization. Rejected asynchronous lifecycle callbacks are handled without an unhandled rejection.
@@ -26,6 +27,7 @@ Starting with 4.0.0, version numbers follow [Semantic Versioning](https://semver
 
 ### Changed
 
+- Unchanged inline controls close without persistence by default. Set `inlineEdit.persistUnchanged` to retain submission for unchanged values.
 - Dialog and inline editing share option construction and persistence response handling. Dialogs index form controls during initialization and submission, and copy each edited row branch once.
 - Separated toolbar bindings, dialog feedback, field uniqueness checks, and inline control events from their controllers.
 - Consolidated shared editor and example styles. The deployed examples serve minified stylesheets.

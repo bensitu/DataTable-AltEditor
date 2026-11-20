@@ -268,6 +268,7 @@
       submitOnBlur: false,
       selectText: true,
       tabNavigation: true,
+      persistUnchanged: false,
     },
   };
 
@@ -1051,6 +1052,7 @@
     add: { title: 'Add record', button: 'Add' },
     deleteMessage: 'Are you sure you wish to delete the selected row(s)?',
     success: 'Success!',
+    inline: { label: 'Edit value' },
     error: {
       message: 'There was an unknown error!',
       label: 'Error!',
@@ -1063,6 +1065,7 @@
       targetUnavailable: 'Target row is unavailable',
       invalidResponse: 'Persistence must return a row object or array',
       invalidSetter: 'inlineEditSetValue must return a row object or array',
+      unsupportedInlineValue: 'This value cannot be edited with this control',
       fileRead: 'Failed to read file',
       fileAborted: 'File read was aborted',
       fileSize: 'File exceeds the configured size limit',
@@ -2621,9 +2624,10 @@
           commit(event.shiftKey ? -1 : 1);
         }
       },
-      blur() {
+      blur(event) {
         if (!isCurrent() || session.state !== 'editing' || session.detaching)
           return;
+        if (!event.relatedTarget && !control.ownerDocument.hasFocus()) return;
         if (settings.submitOnBlur) commit();
         else cancel('blur', false);
       },
@@ -2693,14 +2697,14 @@
       : options;
   }
 
-  function createControl(options, value) {
+  function createControl(options, value, label) {
     const type = options.type;
     const control = document.createElement(
       type === 'select' || type === 'textarea' ? type : 'input'
     );
     if (control.tagName === 'INPUT') control.type = type;
     control.className = 'alteditor-inline-control';
-    control.setAttribute('aria-label', options.title || 'Edit value');
+    control.setAttribute('aria-label', options.title || label);
     [
       'required',
       'multiple',
@@ -2750,6 +2754,13 @@
         .call(control.options, (option) => option.selected)
         .map((option) => option.value);
     return control.value;
+  }
+
+  function sameControlValue(initial, current) {
+    return Array.isArray(initial)
+      ? initial.length === current.length &&
+          initial.every((value, index) => value === current[index])
+      : initial === current;
   }
 
   /** @typedef {Object} InlineEventPayload
@@ -2812,7 +2823,7 @@
       return emit(this.editor, 'inline-' + name, this.payload(session, extra));
     }
 
-    start(selector) {
+    start(selector, reportUnavailable = true) {
       if (
         this.editor._destroyed ||
         !this.editor.c.inlineEdit.enabled ||
@@ -2866,6 +2877,26 @@
           )
       )
         return false;
+      const control = createControl(
+        options,
+        value,
+        this.editor.language.inline.label
+      );
+      if (
+        ['date', 'time', 'datetime-local', 'number'].includes(options.type) &&
+        value != null &&
+        value !== '' &&
+        control.value === ''
+      ) {
+        if (reportUnavailable) {
+          const error = new Error(
+            this.editor.language.error.unsupportedInlineValue
+          );
+          this.editor._showErrorMessage(error.message);
+          emit(this.editor, 'error', { action: 'open', mode: 'inline', error });
+        }
+        return false;
+      }
       if (this.session) {
         this.cancel('replace', false);
         if (
@@ -2881,14 +2912,15 @@
       const session = Object.assign(snapshotRow(row), {
         columnIndex: index.column,
         dataSrc: column.name,
-        oldValue: cell.data(),
+        oldValue: value,
+        initialValue: controlValue(control),
         originalRow: cloneRow(row.data()),
         cellNode: cell.node(),
         options,
         state: 'editing',
         composing: false,
       });
-      session.control = createControl(options, session.oldValue);
+      session.control = control;
       session.errorNode = document.createElement('span');
       session.errorNode.className = 'alteditor-inline-error';
       session.errorNode.id = 'alteditor-error-' + this.editor._instanceId;
@@ -2983,6 +3015,17 @@
       const control = session.control;
       if (this.editor._message) this.editor._message.empty();
       session.newValue = controlValue(control);
+      if (
+        !this.editor.c.inlineEdit.persistUnchanged &&
+        !control.validity.badInput &&
+        sameControlValue(session.initialValue, session.newValue)
+      ) {
+        const row = resolveRow(this.api, session);
+        this.close(session, 'unchanged', !direction);
+        if (row && direction && !this.session && !this.editor._destroyed)
+          this.navigate(row.index(), session.columnIndex, direction);
+        return true;
+      }
       control.setCustomValidity('');
       if (session.options.unique) {
         const row = resolveRow(this.api, session);
@@ -3136,7 +3179,7 @@
         index >= 0 && index < columns.length;
         index += direction
       ) {
-        if (this.start({ row: rowIndex, column: columns[index] })) return;
+        if (this.start({ row: rowIndex, column: columns[index] }, false)) return;
       }
       this.focusCell(this.api.cell(rowIndex, columnIndex).node());
     }
@@ -3376,7 +3419,7 @@
         startInlineEdit: function (cellSelector) {
           return this._inline.start(cellSelector);
         },
-        /** Validate and submit the active cell. @returns {boolean} Whether submission started. */
+        /** Finish or submit the active cell. @returns {boolean} Whether the edit was accepted. */
         commitInlineEdit: function () {
           return this._inline.commit();
         },

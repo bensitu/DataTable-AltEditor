@@ -54,7 +54,7 @@ Opening configuration failures use `alteditor-error.dt` with `action: 'open'`; t
 
 Payload fields include `rowIndex`, `columnIndex`, `dataSrc`, `oldValue`, and `cellNode`. Submission adds `newValue` and the candidate `rowData`. Error events add `error`; cancellation and closure add `reason`.
 
-Closing reasons include `success`, `cancel`, `escape`, `blur`, `draw`, `replace`, `dialog`, `destroy`, `target-unavailable`, and `error`. Cancellation emits cancel followed by close. Successful persistence emits success followed by close, before starting a Tab navigation target. Destruction closes a pending edit without applying late results.
+Closing reasons include `success`, `unchanged`, `cancel`, `escape`, `blur`, `draw`, `replace`, `dialog`, `destroy`, `target-unavailable`, and `error`. Cancellation emits cancel followed by close. An unchanged edit emits close. Successful persistence emits success followed by close, before starting a Tab navigation target. Destruction closes a pending edit without applying late results.
 
 ```js
 $(table.table().node()).on(

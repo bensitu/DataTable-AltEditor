@@ -118,6 +118,7 @@ test('inline structured failures retain an editable control and show unrelated e
     },
   });
   editor.startInlineEdit({ row: 0, column: 0 });
+  document.querySelector('.alteditor-inline-control').value = 'Reserved';
   editor.commitInlineEdit();
   await flush();
   expect(
@@ -328,6 +329,7 @@ test('inline async validation blocks duplicate submission and permits correction
     onInlineEditRow: save,
   });
   editor.startInlineEdit({ row: 0, column: 0 });
+  document.querySelector('.alteditor-inline-control').value = 'Reserved';
   editor.commitInlineEdit();
   expect(editor.commitInlineEdit()).toBe(false);
   table.draw();
@@ -363,6 +365,7 @@ test.each(['remove', 'destroy'])(
       onInlineEditRow: save,
     });
     editor.startInlineEdit({ row: 0, column: 0 });
+    document.querySelector('.alteditor-inline-control').value = 'Ann';
     editor.commitInlineEdit();
     if (action === 'remove') table.row(0).remove().draw();
     else editor.destroy();

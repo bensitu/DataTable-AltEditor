@@ -12,6 +12,7 @@ import {
   controlOptions,
   createControl,
   controlValue,
+  sameControlValue,
 } from './inline-control.js';
 
 /** @typedef {Object} InlineEventPayload
@@ -74,7 +75,7 @@ export class InlineEditor {
     return emit(this.editor, 'inline-' + name, this.payload(session, extra));
   }
 
-  start(selector) {
+  start(selector, reportUnavailable = true) {
     if (
       this.editor._destroyed ||
       !this.editor.c.inlineEdit.enabled ||
@@ -128,6 +129,26 @@ export class InlineEditor {
         )
     )
       return false;
+    const control = createControl(
+      options,
+      value,
+      this.editor.language.inline.label
+    );
+    if (
+      ['date', 'time', 'datetime-local', 'number'].includes(options.type) &&
+      value != null &&
+      value !== '' &&
+      control.value === ''
+    ) {
+      if (reportUnavailable) {
+        const error = new Error(
+          this.editor.language.error.unsupportedInlineValue
+        );
+        this.editor._showErrorMessage(error.message);
+        emit(this.editor, 'error', { action: 'open', mode: 'inline', error });
+      }
+      return false;
+    }
     if (this.session) {
       this.cancel('replace', false);
       if (
@@ -143,14 +164,15 @@ export class InlineEditor {
     const session = Object.assign(snapshotRow(row), {
       columnIndex: index.column,
       dataSrc: column.name,
-      oldValue: cell.data(),
+      oldValue: value,
+      initialValue: controlValue(control),
       originalRow: cloneRow(row.data()),
       cellNode: cell.node(),
       options,
       state: 'editing',
       composing: false,
     });
-    session.control = createControl(options, session.oldValue);
+    session.control = control;
     session.errorNode = document.createElement('span');
     session.errorNode.className = 'alteditor-inline-error';
     session.errorNode.id = 'alteditor-error-' + this.editor._instanceId;
@@ -245,6 +267,17 @@ export class InlineEditor {
     const control = session.control;
     if (this.editor._message) this.editor._message.empty();
     session.newValue = controlValue(control);
+    if (
+      !this.editor.c.inlineEdit.persistUnchanged &&
+      !control.validity.badInput &&
+      sameControlValue(session.initialValue, session.newValue)
+    ) {
+      const row = resolveRow(this.api, session);
+      this.close(session, 'unchanged', !direction);
+      if (row && direction && !this.session && !this.editor._destroyed)
+        this.navigate(row.index(), session.columnIndex, direction);
+      return true;
+    }
     control.setCustomValidity('');
     if (session.options.unique) {
       const row = resolveRow(this.api, session);
@@ -398,7 +431,7 @@ export class InlineEditor {
       index >= 0 && index < columns.length;
       index += direction
     ) {
-      if (this.start({ row: rowIndex, column: columns[index] })) return;
+      if (this.start({ row: rowIndex, column: columns[index] }, false)) return;
     }
     this.focusCell(this.api.cell(rowIndex, columnIndex).node());
   }

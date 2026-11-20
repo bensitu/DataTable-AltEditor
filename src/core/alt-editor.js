@@ -155,7 +155,7 @@ export function createAltEditor(DataTable) {
       startInlineEdit: function (cellSelector) {
         return this._inline.start(cellSelector);
       },
-      /** Validate and submit the active cell. @returns {boolean} Whether submission started. */
+      /** Finish or submit the active cell. @returns {boolean} Whether the edit was accepted. */
       commitInlineEdit: function () {
         return this._inline.commit();
       },

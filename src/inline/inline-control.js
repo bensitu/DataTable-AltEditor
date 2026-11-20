@@ -59,14 +59,14 @@ export function controlOptions(column) {
     : options;
 }
 
-export function createControl(options, value) {
+export function createControl(options, value, label) {
   const type = options.type;
   const control = document.createElement(
     type === 'select' || type === 'textarea' ? type : 'input'
   );
   if (control.tagName === 'INPUT') control.type = type;
   control.className = 'alteditor-inline-control';
-  control.setAttribute('aria-label', options.title || 'Edit value');
+  control.setAttribute('aria-label', options.title || label);
   [
     'required',
     'multiple',
@@ -116,4 +116,11 @@ export function controlValue(control) {
       .call(control.options, (option) => option.selected)
       .map((option) => option.value);
   return control.value;
+}
+
+export function sameControlValue(initial, current) {
+  return Array.isArray(initial)
+    ? initial.length === current.length &&
+        initial.every((value, index) => value === current[index])
+    : initial === current;
 }

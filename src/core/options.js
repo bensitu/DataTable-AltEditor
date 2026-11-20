@@ -39,6 +39,7 @@ export const defaults = {
     submitOnBlur: false,
     selectText: true,
     tabNavigation: true,
+    persistUnchanged: false,
   },
 };
 

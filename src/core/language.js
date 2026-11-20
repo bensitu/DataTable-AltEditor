@@ -8,6 +8,7 @@ const defaults = {
   add: { title: 'Add record', button: 'Add' },
   deleteMessage: 'Are you sure you wish to delete the selected row(s)?',
   success: 'Success!',
+  inline: { label: 'Edit value' },
   error: {
     message: 'There was an unknown error!',
     label: 'Error!',
@@ -20,6 +21,7 @@ const defaults = {
     targetUnavailable: 'Target row is unavailable',
     invalidResponse: 'Persistence must return a row object or array',
     invalidSetter: 'inlineEditSetValue must return a row object or array',
+    unsupportedInlineValue: 'This value cannot be edited with this control',
     fileRead: 'Failed to read file',
     fileAborted: 'File read was aborted',
     fileSize: 'File exceeds the configured size limit',
