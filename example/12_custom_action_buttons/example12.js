@@ -331,30 +331,37 @@ $(document).ready(function () {
       data: 'id',
       title: 'Id',
       type: 'readonly',
+      render: DataTable.render.text(),
     },
     {
       data: 'name',
       title: 'Name',
+      render: DataTable.render.text(),
     },
     {
       data: 'position',
       title: 'Position',
+      render: DataTable.render.text(),
     },
     {
       data: 'office',
       title: 'Office',
+      render: DataTable.render.text(),
     },
     {
       data: 'extension',
       title: 'Extn.',
+      render: DataTable.render.text(),
     },
     {
       data: 'startDate',
       title: 'Start date',
+      render: DataTable.render.text(),
     },
     {
       data: 'salary',
       title: 'Salary',
+      render: DataTable.render.text(),
     },
     {
       data: null,
@@ -379,17 +386,12 @@ $(document).ready(function () {
     columns: columnDefs,
     onAddRow: function (editor, values, success) {
       values['id'] =
-        Math.max(
-          0,
-          ...editor
-            .api()
-            .rows()
-            .data()
-            .toArray()
-            .map(function (row) {
-              return Number(row['id']) || 0;
-            })
-        ) + 1;
+        editor
+          .api()
+          .rows()
+          .data()
+          .toArray()
+          .reduce((maximum, row) => Math.max(maximum, Number(row['id']) || 0), 0) + 1;
       success();
     },
     layout: { topStart: 'buttons' },

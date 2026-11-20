@@ -28,7 +28,12 @@ const table = new DataTable('#people', {
   data: [{ name: 'Alice', email: 'alice@example.com' }],
   columns: [
     { data: 'name', title: 'Name', required: true },
-    { data: 'email', title: 'Email', type: 'email' },
+    {
+      data: 'email',
+      title: 'Email',
+      type: 'email',
+      render: DataTable.render.text(),
+    },
   ],
   altEditor: {
     dialog: {

@@ -27,7 +27,10 @@ new DataTable('#example', {
     {
       data: 'roles',
       title: 'Roles',
-      render: (value) => value.map((role) => role.label).join(', '),
+      render(roles, type) {
+        const labels = roles.map((role) => role.label).join(', ');
+        return type === 'display' ? DataTable.render.text().display(labels) : labels;
+      },
     },
     {
       data: 'active',

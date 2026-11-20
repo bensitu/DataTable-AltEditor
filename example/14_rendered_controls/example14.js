@@ -98,7 +98,7 @@ $('#tasks').on('change', 'input, select, textarea', function () {
 const actions = new DataTable('#actions', {
   data: [{ name: 'Prepare report', note: 'Review figures', enabled: true }],
   columns: [
-    { data: 'name', title: 'Task', required: true },
+    { data: 'name', title: 'Task', required: true, render: DataTable.render.text() },
     {
       data: 'note',
       title: 'Editable note',

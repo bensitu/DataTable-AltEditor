@@ -32,7 +32,7 @@ async function start() {
     data: rows,
     rowId: 'id',
     columns: [
-      { data: 'id', title: 'ID', readonly: true },
+      { data: 'id', title: 'ID', readonly: true, render: DataTable.render.text() },
       {
         data: 'name',
         title: 'Name',

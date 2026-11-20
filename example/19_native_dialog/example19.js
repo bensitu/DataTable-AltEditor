@@ -29,7 +29,7 @@ const table = new DataTable('#example', {
   ],
   rowId: 'id',
   columns: [
-    { data: 'id', title: 'ID', type: 'hidden' },
+    { data: 'id', title: 'ID', type: 'hidden', render: DataTable.render.text() },
     {
       data: 'name',
       title: 'Name',
@@ -64,6 +64,7 @@ const table = new DataTable('#example', {
       type: 'date',
       required: true,
       value: '2026-09-14',
+      render: DataTable.render.text(),
     },
     {
       data: 'active',
@@ -86,7 +87,10 @@ const table = new DataTable('#example', {
       select2: { width: '100%' },
       options: skills,
       value: ['design'],
-      render: (values) => values.map((value) => skills[value]).join(', '),
+      render(values, type) {
+        const labels = values.map((value) => skills[value]).join(', ');
+        return type === 'display' ? DataTable.render.text().display(labels) : labels;
+      },
     },
     {
       data: 'notes',

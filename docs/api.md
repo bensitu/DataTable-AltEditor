@@ -127,6 +127,10 @@ Pending encoded file reads are aborted when the dialog closes or the editor is d
 
 A required file field requires a selection when adding a record or editing a record without an attachment. Editing a record with an existing attachment permits retaining it without uploading a replacement.
 
+## Rendering table values
+
+AltEditor sends raw values to persistence and to DataTables. Use `render: DataTable.render.text()` for user-entered strings so the display renderer escapes them. For custom display, create a DOM node and assign its `textContent`. When returning an HTML string from a renderer, escape user-controlled values for their output context. See the [DataTables security guide](https://datatables.net/manual/core/security).
+
 ## Server-side data
 
 For a complete PHP/MySQL integration with `serverSide: true`, see [Example 23](../example/23_php_mysql/README.md). It includes database setup, server paging, search, ordering, JSON writes, and server-side validation.

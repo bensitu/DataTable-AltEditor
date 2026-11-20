@@ -33,6 +33,8 @@ Report details are shared only as needed to investigate and resolve the issue. P
 
 AltEditor runs in the browser. Applications remain responsible for server-side authentication, authorization, validation, and safe storage. Read-only fields, disabled controls, and client-side validation are not security boundaries. Treat row data, uploaded files, and values sent by the browser as untrusted input on the server.
 
+Configure `DataTable.render.text()` for columns that display untrusted text. For custom cell content, assign untrusted strings through `textContent` or escape them for their output context. See [rendering table values](docs/api.md#rendering-table-values).
+
 Use the optional `maxFileSize` column setting to avoid reading oversized files in the browser. Enforce file size, content, and type restrictions independently on the server; the client setting can be bypassed.
 
 For ordinary bugs and feature requests, use the [issue tracker](https://github.com/bensitu/DataTable-AltEditor/issues). Report vulnerabilities in third-party dependencies through the affected project's security process; notify AltEditor maintainers privately if AltEditor is also affected.

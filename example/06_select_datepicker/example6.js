@@ -9,10 +9,12 @@ $(document).ready(function () {
       title: 'Id',
       type: 'text',
       readonly: true,
+      render: DataTable.render.text(),
     },
     {
       data: 'name',
       title: 'Name',
+      render: DataTable.render.text(),
     },
     {
       data: 'position',
@@ -29,11 +31,13 @@ $(document).ready(function () {
       data: 'startDate',
       title: 'Start date',
       datetimepicker: { timepicker: false, format: 'Y/m/d' },
+      render: DataTable.render.text(),
     },
     {
       data: 'creationTimestamp',
       title: 'Creation timestamp',
       datetimepicker: { timepicker: true, format: 'Y-m-d H:i:s' },
+      render: DataTable.render.text(),
     },
     {
       data: 'friends',
@@ -44,11 +48,12 @@ $(document).ready(function () {
       select2: { width: '100%' },
       render: function (data, type, row, meta) {
         if (!Array.isArray(data)) return '';
-        return data
+        const labels = data
           .map(function (x) {
             return friendsOptions[x] || x;
           })
           .join(', ');
+        return type === 'display' ? DataTable.render.text().display(labels) : labels;
       },
     },
     {
@@ -64,8 +69,6 @@ $(document).ready(function () {
   ];
 
   var loadUrl = './mock_svc_load.json';
-  // Static JSON simulates a successful save. Production code must use a write endpoint.
-  var saveUrl = './mock_svc_ok.json';
 
   $('#example').DataTable({
     rowId: 'id',
@@ -100,53 +103,18 @@ $(document).ready(function () {
         name: 'refresh', // do not change name
       },
     ],
-    onAddRow: function (editor, values, success, error) {
+    // Changes are applied locally. Use a write endpoint for server persistence.
+    onAddRow: function (editor, values, success) {
+      const rows = editor.api().rows().data().toArray();
       values.id =
-        Math.max(
-          0,
-          ...editor
-            .api()
-            .rows()
-            .data()
-            .toArray()
-            .map(function (row) {
-              return Number(row.id) || 0;
-            })
-        ) + 1;
-      $.ajax({
-        // A production endpoint should return the persisted row.
-        url: saveUrl,
-        type: 'GET',
-        success: function () {
-          // Static responses acknowledge the request; retain the submitted values.
-          success();
-        },
-        error: error,
-      });
+        rows.reduce((maximum, row) => Math.max(maximum, Number(row.id) || 0), 0) + 1;
+      success();
     },
-    onDeleteRow: function (editor, values, success, error) {
-      $.ajax({
-        // A production endpoint should delete the requested rows.
-        url: saveUrl,
-        type: 'GET',
-        success: function () {
-          // Static responses acknowledge the request; retain the submitted values.
-          success();
-        },
-        error: error,
-      });
+    onDeleteRow: function (_editor, _values, success) {
+      success();
     },
-    onEditRow: function (editor, values, success, error) {
-      $.ajax({
-        // A production endpoint should return the persisted row.
-        url: saveUrl,
-        type: 'GET',
-        success: function () {
-          // Static responses acknowledge the request; retain the submitted values.
-          success();
-        },
-        error: error,
-      });
+    onEditRow: function (_editor, _values, success) {
+      success();
     },
   });
 });

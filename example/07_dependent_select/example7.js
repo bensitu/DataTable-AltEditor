@@ -17,10 +17,12 @@ $(document).ready(function () {
       data: 'id',
       title: 'Id',
       type: 'readonly',
+      render: DataTable.render.text(),
     },
     {
       data: 'name',
       title: 'Name',
+      render: DataTable.render.text(),
     },
     {
       data: 'country',
@@ -80,6 +82,7 @@ $(document).ready(function () {
         });
         town.data('options-request', request);
       },
+      render: DataTable.render.text(),
     },
     {
       data: 'town',
@@ -87,6 +90,7 @@ $(document).ready(function () {
       type: 'select',
       options: allTownsOptions,
       select2: { width: '100%' },
+      render: DataTable.render.text(),
     },
   ];
 
@@ -124,48 +128,18 @@ $(document).ready(function () {
         name: 'refresh', // do not change name
       },
     ],
-    onAddRow: function (editor, values, success, error) {
-      // Static JSON simulates persistence; production code must use a write endpoint.
+    // Changes are applied locally. Use a write endpoint for server persistence.
+    onAddRow: function (editor, values, success) {
+      const rows = editor.api().rows().data().toArray();
       values.id =
-        Math.max(
-          0,
-          ...editor
-            .api()
-            .rows()
-            .data()
-            .toArray()
-            .map(function (row) {
-              return Number(row.id) || 0;
-            })
-        ) + 1;
-      $.ajax({
-        url: dataUrl + 'mock_svc_ok.json',
-        type: 'GET',
-        success: function () {
-          success();
-        },
-        error: error,
-      });
+        rows.reduce((maximum, row) => Math.max(maximum, Number(row.id) || 0), 0) + 1;
+      success();
     },
-    onDeleteRow: function (editor, values, success, error) {
-      $.ajax({
-        url: dataUrl + 'mock_svc_ok.json',
-        type: 'GET',
-        success: function () {
-          success();
-        },
-        error: error,
-      });
+    onDeleteRow: function (_editor, _values, success) {
+      success();
     },
-    onEditRow: function (editor, values, success, error) {
-      $.ajax({
-        url: dataUrl + 'mock_svc_ok.json',
-        type: 'GET',
-        success: function () {
-          success();
-        },
-        error: error,
-      });
+    onEditRow: function (_editor, _values, success) {
+      success();
     },
   });
 });

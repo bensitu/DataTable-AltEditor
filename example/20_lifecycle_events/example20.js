@@ -108,7 +108,7 @@ const table = new DataTable('#example', {
   ],
   rowId: 'id',
   columns: [
-    { data: 'id', title: 'ID', type: 'hidden' },
+    { data: 'id', title: 'ID', type: 'hidden', render: DataTable.render.text() },
     {
       data: 'name',
       title: 'Name',

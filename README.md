@@ -73,7 +73,12 @@ const table = new DataTable('#people', {
   data: [{ id: 'alice', name: 'Alice', age: 30 }],
   rowId: 'id',
   columns: [
-    { data: 'name', title: 'Name', required: true },
+    {
+      data: 'name',
+      title: 'Name',
+      required: true,
+      render: DataTable.render.text(),
+    },
     { data: 'age', title: 'Age', type: 'number', min: 0 },
   ],
   altEditor: { inlineEdit: true },
@@ -83,6 +88,8 @@ table.altEditor().openEditDialog('#alice');
 ```
 
 Run this script after the table element and dependencies have loaded. This example opens a row dialog and also enables double-click cell editing. For dialogs only, use `altEditor: true`. Without persistence callbacks, changes are kept in the current table and disappear when data reloads.
+
+Use `DataTable.render.text()` on columns that display user-entered strings. AltEditor saves raw values, and DataTables controls how those values appear in cells. See [safe table rendering](docs/api.md#rendering-table-values).
 
 Both `new DataTable()` and jQuery initialization work. To add toolbar buttons, load Buttons and Select and add these DataTable options:
 

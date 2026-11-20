@@ -42,7 +42,7 @@ const people = new DataTable('#people', {
   pageLength: 5,
   lengthMenu: [5, 10],
   columns: [
-    { data: 'user.name', title: 'Name', required: true },
+    { data: 'user.name', title: 'Name', required: true, render: DataTable.render.text() },
     {
       data: 'user.email',
       title: 'Email',
@@ -50,13 +50,15 @@ const people = new DataTable('#people', {
       required: true,
       unique: true,
       uniqueMsg: 'This email address is already in use.',
+      render: DataTable.render.text(),
     },
-    { data: 'age', title: 'Age', type: 'number', min: 0, max: 120, step: 1 },
+    { data: 'age', title: 'Age', type: 'number', min: 0, max: 120, step: 1, render: DataTable.render.text() },
     {
       data: 'role',
       title: 'Role',
       type: 'select',
       options: { editor: 'Editor', reader: 'Reader' },
+      render: DataTable.render.text(),
     },
   ],
   altEditor: {
@@ -104,8 +106,8 @@ new DataTable('#cities', {
     ['Osaka', 20],
   ],
   columns: [
-    { data: 0, title: 'City', required: true },
-    { data: 1, title: 'Quantity', type: 'number', min: 0 },
+    { data: 0, title: 'City', required: true, render: DataTable.render.text() },
+    { data: 1, title: 'Quantity', type: 'number', min: 0, render: DataTable.render.text() },
   ],
   altEditor: { inlineEdit: true },
 });

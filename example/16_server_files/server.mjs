@@ -9,6 +9,8 @@ const files = new Map();
 let nextId = 2;
 let nextFileId = 1;
 const maxFileSize = 2 * 1024 * 1024;
+const maxRequestSize = maxFileSize + 64 * 1024;
+const localHosts = new Set(['127.0.0.1:8090', 'localhost:8090']);
 
 function json(response, status, value) {
   response.writeHead(status, {
@@ -19,17 +21,14 @@ function json(response, status, value) {
 }
 
 async function readForm(request) {
+  if (Number(request.headers['content-length']) > maxRequestSize) return null;
   const chunks = [];
   let size = 0;
-  for await (const chunk of request) {
+  for await (const chunk of request.iterator({ destroyOnReturn: false })) {
     size += chunk.length;
-    if (size > maxFileSize + 65536) {
-      chunks.length = 0;
-      continue;
-    }
+    if (size > maxRequestSize) return null;
     chunks.push(chunk);
   }
-  if (size > maxFileSize + 65536) return null;
   const body = new Request('http://127.0.0.1', {
     method: 'POST',
     headers: { 'Content-Type': request.headers['content-type'] || '' },
@@ -40,7 +39,13 @@ async function readForm(request) {
 
 createServer(async (request, response) => {
   try {
-    const path = new URL(request.url, 'http://127.0.0.1:8090').pathname;
+    const { host, origin } = request.headers;
+    if (!localHosts.has(host) || (origin && origin !== 'http://' + host)) {
+      response.setHeader('Connection', 'close');
+      json(response, 403, { message: 'This example accepts local requests only' });
+      return;
+    }
+    const path = new URL(request.url, 'http://' + host).pathname;
     if (path === '/api/records' && request.method === 'GET') {
       json(response, 200, [...records.values()]);
       return;
@@ -52,6 +57,7 @@ createServer(async (request, response) => {
     ) {
       const form = await readForm(request);
       if (!form) {
+        response.setHeader('Connection', 'close');
         json(response, 413, { message: 'Request exceeds the upload limit' });
         return;
       }

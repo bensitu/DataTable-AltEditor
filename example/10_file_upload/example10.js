@@ -4,14 +4,17 @@ $(document).ready(function () {
       data: 'id',
       title: 'Id',
       type: 'readonly',
+      render: DataTable.render.text(),
     },
     {
       data: 'name',
       title: 'Name',
+      render: DataTable.render.text(),
     },
     {
       data: 'position',
       title: 'Position',
+      render: DataTable.render.text(),
     },
     {
       data: 'imagelink',
@@ -62,8 +65,6 @@ $(document).ready(function () {
 
   var myTable;
   var loadUrl = './mock_svc_load.json';
-  // Static JSON simulates a successful save. Production code must use a write endpoint.
-  var saveUrl = './mock_svc_ok.json';
 
   myTable = $('#example').DataTable({
     rowId: 'id',
@@ -98,50 +99,18 @@ $(document).ready(function () {
         name: 'refresh', // do not change name
       },
     ],
-    onAddRow: function (editor, values, success, error) {
+    // Changes are applied locally. Use a write endpoint for server persistence.
+    onAddRow: function (editor, values, success) {
+      const rows = editor.api().rows().data().toArray();
       values.id =
-        Math.max(
-          0,
-          ...editor
-            .api()
-            .rows()
-            .data()
-            .toArray()
-            .map(function (row) {
-              return Number(row.id) || 0;
-            })
-        ) + 1;
-      $.ajax({
-        url: saveUrl,
-        type: 'GET',
-
-        success: function () {
-          success();
-        },
-        error: error,
-      });
+        rows.reduce((maximum, row) => Math.max(maximum, Number(row.id) || 0), 0) + 1;
+      success();
     },
-    onDeleteRow: function (editor, values, success, error) {
-      $.ajax({
-        url: saveUrl,
-        type: 'GET',
-
-        success: function () {
-          success();
-        },
-        error: error,
-      });
+    onDeleteRow: function (_editor, _values, success) {
+      success();
     },
-    onEditRow: function (editor, values, success, error) {
-      $.ajax({
-        url: saveUrl,
-        type: 'GET',
-
-        success: function () {
-          success();
-        },
-        error: error,
-      });
+    onEditRow: function (_editor, _values, success) {
+      success();
     },
   });
 });

@@ -27,7 +27,7 @@ const table = new DataTable('#example', {
   ],
   rowId: 'id',
   columns: [
-    { data: 'id', title: 'ID', type: 'readonly' },
+    { data: 'id', title: 'ID', type: 'readonly', render: DataTable.render.text() },
     {
       data: 'name',
       title: 'Name',
@@ -35,6 +35,7 @@ const table = new DataTable('#example', {
       editorValidate(value) {
         if (value.trim().length < 2) return 'Enter at least two characters.';
       },
+      render: DataTable.render.text(),
     },
     {
       data: 'email',
@@ -46,6 +47,7 @@ const table = new DataTable('#example', {
         if (value === 'taken@example.com')
           return 'This email address is already in use.';
       },
+      render: DataTable.render.text(),
     },
   ],
   select: 'single',
